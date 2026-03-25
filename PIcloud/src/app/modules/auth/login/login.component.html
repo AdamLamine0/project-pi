@@ -1,0 +1,76 @@
+<div class="auth-container">
+  <div class="auth-card">
+
+    <div class="auth-header">
+      <h1>Welcome Back</h1>
+      <p>Sign in to your account</p>
+    </div>
+
+    <div class="error-message" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+
+    <form class="auth-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input
+          type="email"
+          id="email"
+          class="form-input"
+          [class.input-error]="email?.invalid && email?.touched"
+          placeholder="Enter your email"
+          formControlName="email"
+        />
+        <span class="field-error" *ngIf="email?.invalid && email?.touched">
+          Please enter a valid email
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          class="form-input"
+          [class.input-error]="password?.invalid && password?.touched"
+          placeholder="Enter your password"
+          formControlName="password"
+        />
+        <span class="field-error" *ngIf="password?.invalid && password?.touched">
+          Password must be at least 6 characters
+        </span>
+      </div>
+
+      <div class="form-footer">
+        <a routerLink="/auth/forgot-password" class="link">
+          Forgot password?
+        </a>
+      </div>
+
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="loginForm.invalid || isLoading">
+        {{ isLoading ? 'Signing in...' : 'Sign In' }}
+      </button>
+
+      <div class="divider">
+        <span>or</span>
+      </div>
+
+      <button type="button" class="btn btn-google" (click)="loginWithGoogle()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+             alt="Google" width="20" height="20"/>
+        Continue with Google
+      </button>
+
+      <div class="auth-redirect">
+        <p>Don't have an account?
+          <a routerLink="/auth/register" class="link-bold">Sign up</a>
+        </p>
+      </div>
+
+    </form>
+  </div>
+</div>

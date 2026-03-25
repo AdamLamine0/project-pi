@@ -1,0 +1,37 @@
+<nav class="navbar">
+  <div class="navbar-container">
+    <div class="navbar-brand">
+      <a routerLink="/" class="logo">PIcloud</a>
+    </div>
+    <ul class="navbar-menu">
+      <ng-container *ngIf="authService.isLoggedIn(); else loggedOut">
+
+        <li>
+          <a routerLink="/user/profile" class="nav-link">Profile</a>
+        </li>
+
+        <li *ngIf="authService.isAdmin()">
+          <a routerLink="/user/list" class="nav-link">Users</a>
+        </li>
+
+        <li>
+          <button class="nav-link btn-logout" (click)="logout()">
+            Logout
+          </button>
+        </li>
+
+      </ng-container>
+
+      <ng-template #loggedOut>
+        <li>
+          <a routerLink="/auth/login" class="nav-link">Login</a>
+        </li>
+        <li>
+          <a routerLink="/auth/register" class="nav-link btn-register">
+            Register
+          </a>
+        </li>
+      </ng-template>
+    </ul>
+  </div>
+</nav>

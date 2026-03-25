@@ -1,0 +1,95 @@
+<div class="users-container">
+
+  <div class="users-header">
+    <div>
+      <h1>User Management</h1>
+      <p>Manage all users and their permissions</p>
+    </div>
+  </div>
+
+  <div class="success-message" *ngIf="successMessage">{{ successMessage }}</div>
+  <div class="error-message" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <div class="users-card">
+
+    <div class="table-controls">
+      <div class="search-box">
+        <input type="text" placeholder="Search by name or email..."
+          class="search-input"
+          [(ngModel)]="searchTerm"
+          (input)="filterUsers()"/>
+      </div>
+      <select class="filter-select"
+        [(ngModel)]="selectedRole"
+        (change)="filterUsers()">
+        <option value="">All Roles</option>
+        <option value="ADMIN">Admin</option>
+        <option value="USER">User</option>
+      </select>
+    </div>
+
+    <div class="loading" *ngIf="isLoading">Loading users...</div>
+
+    <div class="table-wrapper" *ngIf="!isLoading">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of paginatedUsers">
+            <td>{{ user.name }}</td>
+            <td>{{ user.prenom }}</td>
+            <td>{{ user.email }}</td>
+            <td>
+              <span class="badge"
+                [class.badge-admin]="user.role === 'ADMIN'"
+                [class.badge-user]="user.role === 'USER'">
+                {{ user.role }}
+              </span>
+            </td>
+            <td>{{ user.statut }}</td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn-action btn-update" (click)="editUser(user)">
+                  Update
+                </button>
+                <button class="btn-action btn-delete" (click)="deleteUser(user.id)">
+                  Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="paginatedUsers.length === 0">
+            <td colspan="6" class="no-data">No users found</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="table-footer">
+      <p>Showing {{ paginatedUsers.length }} of {{ filteredUsers.length }} users</p>
+      <div class="pagination">
+        <button class="btn-pagination"
+          [disabled]="currentPage === 1"
+          (click)="goToPage(currentPage - 1)">Previous</button>
+
+        <button *ngFor="let page of pages"
+          class="btn-pagination"
+          [class.active]="page === currentPage"
+          (click)="goToPage(page)">{{ page }}</button>
+
+        <button class="btn-pagination"
+          [disabled]="currentPage === totalPages"
+          (click)="goToPage(currentPage + 1)">Next</button>
+      </div>
+    </div>
+
+  </div>
+</div>
