@@ -5,31 +5,27 @@
     </div>
     <ul class="navbar-menu">
       <ng-container *ngIf="authService.isLoggedIn(); else loggedOut">
-
         <li>
-          <a routerLink="/user/profile" class="nav-link">Profile</a>
+          <a routerLink="/user/profile" routerLinkActive="active" class="nav-link">Profile</a>
         </li>
-
+        <li>
+          <a routerLink="/events" routerLinkActive="active" class="nav-link">
+            <i class="bi bi-calendar-event"></i> Events
+          </a>
+        </li>
         <li *ngIf="authService.isAdmin()">
-          <a routerLink="/user/list" class="nav-link">Users</a>
+          <a routerLink="/user/list" routerLinkActive="active" class="nav-link">Users</a>
         </li>
-
         <li>
-          <button class="nav-link btn-logout" (click)="logout()">
-            Logout
-          </button>
+          <button class="nav-link btn-logout" (click)="logout()">Logout</button>
         </li>
-
       </ng-container>
-
       <ng-template #loggedOut>
         <li>
           <a routerLink="/auth/login" class="nav-link">Login</a>
         </li>
         <li>
-          <a routerLink="/auth/register" class="nav-link btn-register">
-            Register
-          </a>
+          <a routerLink="/auth/register" class="nav-link btn-register">Register</a>
         </li>
       </ng-template>
     </ul>

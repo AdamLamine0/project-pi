@@ -18,7 +18,6 @@ import { RouterModule } from '@angular/router';
     BrowserModule,       // ← includes CommonModule (*ngIf, *ngFor)
     AppRoutingModule,
     RouterModule,
-    HttpClientModule,
     FormsModule
   ],
   providers: [

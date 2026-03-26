@@ -15,6 +15,12 @@ const routes: Routes = [
     loadChildren: () =>
       import('./modules/user/user.module').then(m => m.UserModule)
   },
+  {
+    path: 'events',
+    canActivate: [authGuard],
+    loadChildren: () =>
+      import('./modules/event/event.module').then(m => m.EventModule)
+  },
   { path: '**', redirectTo: 'auth/login' }
 ];
 

@@ -1,0 +1,44 @@
+<div class="card h-100 shadow-sm">
+  <img
+    [src]="event.coverImageUrl || 'assets/default-event.png'"
+    class="card-img-top"
+    style="height: 180px; object-fit: cover;"
+    [alt]="event.title"
+  />
+  <div class="card-body d-flex flex-column">
+    <div class="d-flex justify-content-between mb-2">
+      <span class="badge bg-primary">{{ event.type }}</span>
+      <span class="badge"
+        [ngClass]="{
+          'bg-secondary': event.status === 'BROUILLON',
+          'bg-success':   event.status === 'PUBLIE',
+          'bg-danger':    event.status === 'ANNULE',
+          'bg-dark':      event.status === 'TERMINE'
+        }">
+        {{ event.status }}
+      </span>
+    </div>
+    <h5 class="card-title">{{ event.title }}</h5>
+    <p class="card-text text-muted small flex-grow-1">{{ event.description }}</p>
+    <p class="small mb-1">
+      <i class="bi bi-calendar"></i>
+      {{ event.startDate | date:'dd MMM yyyy, HH:mm' }}
+    </p>
+    <p class="small mb-2">
+      <i class="bi bi-geo-alt"></i> {{ event.locationType }}
+      &nbsp;|&nbsp;
+      <i class="bi bi-people"></i> {{ event.capacityMax }} places
+    </p>
+    <div class="d-flex gap-2 mt-auto">
+      <a [routerLink]="['/events', event.id]" class="btn btn-outline-primary btn-sm flex-grow-1">
+        View
+      </a>
+      <a [routerLink]="['/events', event.id, 'edit']" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-pencil"></i>
+      </a>
+      <button class="btn btn-outline-danger btn-sm" (click)="onDelete()">
+        <i class="bi bi-trash"></i>
+      </button>
+    </div>
+  </div>
+</div>
