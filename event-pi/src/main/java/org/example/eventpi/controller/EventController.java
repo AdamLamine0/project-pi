@@ -9,11 +9,14 @@ import org.example.eventpi.exception.ForbiddenException;
 import org.example.eventpi.model.EventStatus;
 import org.example.eventpi.model.EventType;
 import org.example.eventpi.service.EventService;
+import org.example.eventpi.service.ImageStorageService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -22,9 +25,26 @@ import java.util.Set;
 public class EventController {
 
     private final EventService eventService;
+    private final ImageStorageService imageStorageService;
+
 
     private static final Set<String> WRITE_ROLES = Set.of("ROLE_ADMIN", "ROLE_MENTOR", "ROLE_PARTENAIRE");
     private static final Set<String> ADMIN_ROLES  = Set.of("ROLE_ADMIN");
+
+
+    // IMAGE UPLOAD
+    @PostMapping("/upload-image")
+    public ResponseEntity<Map<String, String>> uploadImage(
+            @RequestParam("file") MultipartFile file,
+            @RequestHeader("X-User-Role") String role) {
+
+        requireRole(role, WRITE_ROLES);
+        String url = imageStorageService.store(file);
+        return ResponseEntity.ok(Map.of("url", url));
+    }
+
+
+
 
     // CREATE
     @PostMapping
@@ -82,4 +102,8 @@ public class EventController {
             throw new ForbiddenException("Access denied for role: " + role);
         }
     }
+
+
+
+
 }

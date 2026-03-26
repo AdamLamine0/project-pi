@@ -20,6 +20,9 @@ import java.util.List;
 public class EventService {
 
     private final EventRepository eventRepository;
+    private final ImageStorageService imageStorageService;
+
+
 
     //CREATE
     @Transactional
@@ -68,16 +71,21 @@ public class EventService {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
 
-        if (request.getTitle() != null)         event.setTitle(request.getTitle());
-        if (request.getDescription() != null)   event.setDescription(request.getDescription());
-        if (request.getType() != null)          event.setType(request.getType());
-        if (request.getStatus() != null)        event.setStatus(request.getStatus());
-        if (request.getStartDate() != null)     event.setStartDate(request.getStartDate());
-        if (request.getLocationType() != null)  event.setLocationType(request.getLocationType());
-        if (request.getCapacityMax() != null)   event.setCapacityMax(request.getCapacityMax());
-        if (request.getCoverImageUrl() != null) event.setCoverImageUrl(request.getCoverImageUrl());
-        if (request.getTargetSector() != null)  event.setTargetSector(request.getTargetSector());
-        if (request.getTargetStage() != null)   event.setTargetStage(request.getTargetStage());
+        if (request.getTitle() != null)       event.setTitle(request.getTitle());
+        if (request.getDescription() != null) event.setDescription(request.getDescription());
+        if (request.getType() != null)        event.setType(request.getType());
+        if (request.getStatus() != null)      event.setStatus(request.getStatus());
+        if (request.getStartDate() != null)   event.setStartDate(request.getStartDate());
+        if (request.getLocationType() != null) event.setLocationType(request.getLocationType());
+        if (request.getCapacityMax() != null) event.setCapacityMax(request.getCapacityMax());
+        if (request.getTargetSector() != null) event.setTargetSector(request.getTargetSector());
+        if (request.getTargetStage() != null) event.setTargetStage(request.getTargetStage());
+
+        // Delete old image file if being replaced
+        if (request.getCoverImageUrl() != null) {
+            imageStorageService.delete(event.getCoverImageUrl());
+            event.setCoverImageUrl(request.getCoverImageUrl());
+        }
 
         return toResponse(eventRepository.save(event));
     }
@@ -85,10 +93,10 @@ public class EventService {
     //  DELETE
     @Transactional
     public void deleteEvent(Long id) {
-        if (!eventRepository.existsById(id)) {
-            throw new EventNotFoundException(id);
-        }
-        eventRepository.deleteById(id);
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new EventNotFoundException(id));
+        imageStorageService.delete(event.getCoverImageUrl());
+        eventRepository.delete(event);
     }
 
     // MAPPER
