@@ -45,15 +45,13 @@ public class Event {
     @Column(name = "cover_image_url")
     private String coverImageUrl;
 
-    @ElementCollection
-    @CollectionTable(name = "event_target_sectors",
-            joinColumns = @JoinColumn(name = "event_id"))
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "event_target_sectors", joinColumns = @JoinColumn(name = "event_id"))
     @Column(name = "sector")
     private List<String> targetSector;
 
-    @ElementCollection
-    @CollectionTable(name = "event_target_stages",
-            joinColumns = @JoinColumn(name = "event_id"))
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "event_target_stages", joinColumns = @JoinColumn(name = "event_id"))
     @Column(name = "stage")
     private List<String> targetStage;
 
