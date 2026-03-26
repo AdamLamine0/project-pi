@@ -1,192 +1,160 @@
-<section class="hero">
-  <div class="hero-bg">
-    <div class="grid-overlay"></div>
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-    <div class="orb orb-3"></div>
-  </div>
-  <div class="hero-content">
-    <div class="badge-pill">🇹🇳 Écosystème Startup Tunisien</div>
-    <h1 class="hero-title">
-      La plateforme qui<br>
-      <span class="accent-text">connecte & accélère</span><br>
-      les startups tunisiennes
-    </h1>
-    <p class="hero-subtitle">
-      Entrepreneurs, mentors, investisseurs et partenaires — réunis sur une seule plateforme intelligente pour transformer l'écosystème entrepreneurial de la Tunisie.
-    </p>
-    <div class="hero-actions">
-      <a routerLink="/auth/register" class="btn-primary-hero">Rejoindre la plateforme</a>
-      <a routerLink="/events" class="btn-ghost-hero">Voir les événements →</a>
-    </div>
-    <div class="hero-stats">
-      <div class="stat-item">
-        <span class="stat-number">500+</span>
-        <span class="stat-label">Startups</span>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <span class="stat-number">120+</span>
-        <span class="stat-label">Mentors</span>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <span class="stat-number">80+</span>
-        <span class="stat-label">Investisseurs</span>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-item">
-        <span class="stat-number">200+</span>
-        <span class="stat-label">Événements</span>
-      </div>
-    </div>
-  </div>
-</section>
+<div class="page">
 
-<section class="section-roles">
-  <div class="container">
-    <div class="section-header">
-      <span class="section-tag">Pour qui ?</span>
-      <h2 class="section-title">Une plateforme pour chaque acteur</h2>
-    </div>
-    <div class="roles-grid">
-      <div class="role-card role-entrepreneur">
-        <div class="role-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-            <path d="M2 17l10 5 10-5"/>
-            <path d="M2 12l10 5 10-5"/>
-          </svg>
-        </div>
-        <h3 class="role-title">Entrepreneurs</h3>
-        <p class="role-desc">Accédez à des mentors, financements et opportunités pour faire grandir votre startup.</p>
-        <ul class="role-features">
-          <li>Matching avec des mentors</li>
-          <li>Accès aux investisseurs</li>
-          <li>Événements & bootcamps</li>
-        </ul>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-label">Écosystème startup · Tunisie</div>
+      <h1 class="hero-h1">La plateforme qui connecte<br><em>entrepreneurs & investisseurs</em></h1>
+      <p class="hero-p">Mentors, partenaires et startups tunisiennes réunis pour accélérer la croissance et le financement des projets innovants.</p>
+      <div class="hero-btns">
+        <a routerLink="/auth/register" class="btn-dark">Créer un compte</a>
+        <a routerLink="/events" class="btn-light">Voir les événements</a>
       </div>
-      <div class="role-card role-mentor">
-        <div class="role-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <circle cx="12" cy="8" r="4"/>
-            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-            <path d="M18 14l2 2 4-4"/>
-          </svg>
-        </div>
-        <h3 class="role-title">Mentors</h3>
-        <p class="role-desc">Partagez votre expertise et guidez la prochaine génération d'entrepreneurs tunisiens.</p>
-        <ul class="role-features">
-          <li>Profil expert visible</li>
-          <li>Sessions de mentorat</li>
-          <li>Impact mesurable</li>
-        </ul>
-      </div>
-      <div class="role-card role-investor">
-        <div class="role-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <line x1="12" y1="1" x2="12" y2="23"/>
-            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-          </svg>
-        </div>
-        <h3 class="role-title">Investisseurs</h3>
-        <p class="role-desc">Découvrez les meilleures opportunités d'investissement dans l'écosystème startup tunisien.</p>
-        <ul class="role-features">
-          <li>Deal flow qualifié</li>
-          <li>Due diligence facilitée</li>
-          <li>Réseau d'experts</li>
-        </ul>
-      </div>
-      <div class="role-card role-partner">
-        <div class="role-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-          </svg>
-        </div>
-        <h3 class="role-title">Partenaires</h3>
-        <p class="role-desc">Collaborez avec l'écosystème, proposez des ressources et co-organisez des événements.</p>
-        <ul class="role-features">
-          <li>Visibilité accrue</li>
-          <li>Co-organisation d'events</li>
-          <li>Réseau stratégique</li>
-        </ul>
+      <div class="hero-metrics">
+        <div class="metric"><strong>500+</strong><span>Startups</span></div>
+        <div class="metric-sep"></div>
+        <div class="metric"><strong>120+</strong><span>Mentors</span></div>
+        <div class="metric-sep"></div>
+        <div class="metric"><strong>80+</strong><span>Investisseurs</span></div>
+        <div class="metric-sep"></div>
+        <div class="metric"><strong>200+</strong><span>Événements / an</span></div>
       </div>
     </div>
-  </div>
-</section>
+    <div class="hero-visual">
+      <div class="vis-card vc-1">
+        <div class="vc-dot" style="background:#2563eb"></div>
+        <div>
+          <div class="vc-name">Startup connectée</div>
+          <div class="vc-sub">Seed · FinTech</div>
+        </div>
+      </div>
+      <div class="vis-card vc-2">
+        <div class="vc-dot" style="background:#059669"></div>
+        <div>
+          <div class="vc-name">Mentor assigné</div>
+          <div class="vc-sub">10 ans d'expérience</div>
+        </div>
+      </div>
+      <div class="vis-card vc-3">
+        <div class="vc-dot" style="background:#d97706"></div>
+        <div>
+          <div class="vc-name">Levée de fonds</div>
+          <div class="vc-sub">250 000 TND · Série A</div>
+        </div>
+      </div>
+      <div class="vis-card vc-4">
+        <div class="vc-dot" style="background:#7c3aed"></div>
+        <div>
+          <div class="vc-name">Événement live</div>
+          <div class="vc-sub">Pitch Day · Tunis</div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<section class="section-features">
-  <div class="container">
-    <div class="section-header">
-      <span class="section-tag">Fonctionnalités</span>
-      <h2 class="section-title">Tout ce dont votre startup a besoin</h2>
-    </div>
-    <div class="features-grid">
-      <div class="feature-item">
-        <div class="feature-num">01</div>
-        <div class="feature-body">
-          <h3>Événements & Networking</h3>
-          <p>Webinaires, workshops, pitchs, bootcamps et conférences — accédez à l'agenda complet de l'écosystème.</p>
+  <!-- ACTORS -->
+  <section class="section">
+    <div class="container">
+      <div class="sec-label">Pour qui ?</div>
+      <h2 class="sec-h2">Chaque acteur a sa place</h2>
+      <div class="actors-grid">
+        <div class="actor-card">
+          <div class="actor-icon" style="background:#eff6ff;color:#2563eb">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="actor-role" style="color:#2563eb">Entrepreneur</div>
+          <p class="actor-desc">Accédez à des mentors, événements et investisseurs pour scaler votre projet.</p>
         </div>
-      </div>
-      <div class="feature-item">
-        <div class="feature-num">02</div>
-        <div class="feature-body">
-          <h3>Mentorat intelligent</h3>
-          <p>Algorithme de matching qui connecte entrepreneurs et mentors selon le secteur, le stade et les objectifs.</p>
+        <div class="actor-card">
+          <div class="actor-icon" style="background:#ecfdf5;color:#059669">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          </div>
+          <div class="actor-role" style="color:#059669">Mentor</div>
+          <p class="actor-desc">Partagez votre expertise et accompagnez les startups dans leur développement.</p>
         </div>
-      </div>
-      <div class="feature-item">
-        <div class="feature-num">03</div>
-        <div class="feature-body">
-          <h3>Financement & Investissement</h3>
-          <p>Accédez à des opportunités de financement, pitch devant des investisseurs et suivez vos dossiers.</p>
+        <div class="actor-card">
+          <div class="actor-icon" style="background:#fffbeb;color:#d97706">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div class="actor-role" style="color:#d97706">Investisseur</div>
+          <p class="actor-desc">Découvrez un deal flow qualifié et investissez dans les startups tunisiennes.</p>
         </div>
-      </div>
-      <div class="feature-item">
-        <div class="feature-num">04</div>
-        <div class="feature-body">
-          <h3>Tableau de bord analytique</h3>
-          <p>Suivez la croissance de votre startup avec des KPIs clairs, des rapports et des insights actionnables.</p>
-        </div>
-      </div>
-      <div class="feature-item">
-        <div class="feature-num">05</div>
-        <div class="feature-body">
-          <h3>Ressources & Formation</h3>
-          <p>Bibliothèque de contenus, templates juridiques, guides sectoriels et formations en ligne.</p>
-        </div>
-      </div>
-      <div class="feature-item">
-        <div class="feature-num">06</div>
-        <div class="feature-body">
-          <h3>Communauté & Collaboration</h3>
-          <p>Forums, groupes sectoriels et espaces de collaboration pour partager, apprendre et co-créer.</p>
+        <div class="actor-card">
+          <div class="actor-icon" style="background:#f5f3ff;color:#7c3aed">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="actor-role" style="color:#7c3aed">Partenaire</div>
+          <p class="actor-desc">Co-organisez des événements et développez votre visibilité dans l'écosystème.</p>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<section class="section-cta">
-  <div class="container">
-    <div class="cta-card">
-      <div class="cta-content">
-        <h2 class="cta-title">Prêt à rejoindre l'écosystème ?</h2>
-        <p class="cta-subtitle">Créez votre compte gratuitement et connectez-vous avec les acteurs qui feront grandir votre projet.</p>
-        <div class="cta-actions">
-          <a routerLink="/auth/register" class="btn-primary-hero">Créer un compte gratuit</a>
-          <a routerLink="/auth/login" class="btn-ghost-cta">Se connecter</a>
+  <!-- FEATURES -->
+  <section class="section" style="background:#fafafa">
+    <div class="container">
+      <div class="sec-label">Fonctionnalités</div>
+      <h2 class="sec-h2">Tout en un seul endroit</h2>
+      <div class="feat-grid">
+        <div class="feat-row">
+          <span class="feat-num">01</span>
+          <div>
+            <div class="feat-title">Événements & Networking</div>
+            <div class="feat-desc">Webinaires, workshops, pitchs, bootcamps — agenda complet de l'écosystème.</div>
+          </div>
+        </div>
+        <div class="feat-row">
+          <span class="feat-num">02</span>
+          <div>
+            <div class="feat-title">Mentorat intelligent</div>
+            <div class="feat-desc">Matching selon le secteur, le stade et les objectifs de votre startup.</div>
+          </div>
+        </div>
+        <div class="feat-row">
+          <span class="feat-num">03</span>
+          <div>
+            <div class="feat-title">Accès au financement</div>
+            <div class="feat-desc">Pitchez devant des investisseurs et suivez vos dossiers de financement.</div>
+          </div>
+        </div>
+        <div class="feat-row">
+          <span class="feat-num">04</span>
+          <div>
+            <div class="feat-title">Tableau de bord</div>
+            <div class="feat-desc">KPIs, rapports et insights pour suivre la croissance de votre projet.</div>
+          </div>
+        </div>
+        <div class="feat-row">
+          <span class="feat-num">05</span>
+          <div>
+            <div class="feat-title">Ressources & Formation</div>
+            <div class="feat-desc">Templates, guides sectoriels et formations en ligne pour progresser vite.</div>
+          </div>
+        </div>
+        <div class="feat-row">
+          <span class="feat-num">06</span>
+          <div>
+            <div class="feat-title">Communauté</div>
+            <div class="feat-desc">Forums et espaces de collaboration pour partager et co-créer.</div>
+          </div>
         </div>
       </div>
-      <div class="cta-visual">
-        <div class="cta-badge">🚀 Rejoignez 500+ startups</div>
-        <div class="cta-badge">💡 120+ mentors actifs</div>
-        <div class="cta-badge">📅 200+ événements/an</div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section-cta">
+    <div class="container">
+      <div class="cta-inner">
+        <div class="sec-label" style="color:#93c5fd">Commencer maintenant</div>
+        <h2 class="cta-h2">Rejoignez l'écosystème startup tunisien</h2>
+        <p class="cta-p">Créez votre compte en 30 secondes et accédez à toute la plateforme gratuitement.</p>
+        <div class="cta-btns">
+          <a routerLink="/auth/register" class="btn-blue">Créer un compte gratuit</a>
+          <a routerLink="/auth/login" class="btn-ghost">Se connecter</a>
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+
+</div>
