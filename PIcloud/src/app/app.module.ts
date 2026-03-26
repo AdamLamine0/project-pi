@@ -8,11 +8,13 @@ import { AppComponent } from './app.component';
 import { NavbarComponent } from './core/components/navbar/navbar.component';
 import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
 import { RouterModule } from '@angular/router';
+import { HomeComponent } from './modules/home/home.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    NavbarComponent
+    NavbarComponent,
+    HomeComponent
   ],
   imports: [
     BrowserModule,       // ← includes CommonModule (*ngIf, *ngFor)

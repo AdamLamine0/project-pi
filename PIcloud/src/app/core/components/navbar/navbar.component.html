@@ -6,12 +6,15 @@
     <ul class="navbar-menu">
       <ng-container *ngIf="authService.isLoggedIn(); else loggedOut">
         <li>
-          <a routerLink="/user/profile" routerLinkActive="active" class="nav-link">Profile</a>
+          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" class="nav-link">Accueil</a>
         </li>
         <li>
           <a routerLink="/events" routerLinkActive="active" class="nav-link">
             <i class="bi bi-calendar-event"></i> Events
           </a>
+        </li>
+        <li>
+          <a routerLink="/user/profile" routerLinkActive="active" class="nav-link">Profile</a>
         </li>
         <li *ngIf="authService.isAdmin()">
           <a routerLink="/user/list" routerLinkActive="active" class="nav-link">Users</a>
@@ -21,6 +24,9 @@
         </li>
       </ng-container>
       <ng-template #loggedOut>
+        <li>
+          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" class="nav-link">Accueil</a>
+        </li>
         <li>
           <a routerLink="/auth/login" class="nav-link">Login</a>
         </li>

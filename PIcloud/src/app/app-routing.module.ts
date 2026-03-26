@@ -1,9 +1,10 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { authGuard } from './core/services/auth.guard'; // ← your actual path
+import { authGuard } from './core/services/auth.guard';
+import { HomeComponent } from './modules/home/home.component';
 
 const routes: Routes = [
-  { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
+  { path: '', component: HomeComponent, pathMatch: 'full' },
   {
     path: 'auth',
     loadChildren: () =>
@@ -21,7 +22,7 @@ const routes: Routes = [
     loadChildren: () =>
       import('./modules/event/event.module').then(m => m.EventModule)
   },
-  { path: '**', redirectTo: 'auth/login' }
+  { path: '**', redirectTo: '' }
 ];
 
 @NgModule({
