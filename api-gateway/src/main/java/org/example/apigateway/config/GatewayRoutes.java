@@ -56,4 +56,14 @@ public class GatewayRoutes {
                 .filter(authFilter.jwtFilter());
     }
 
+    @Bean
+    public RouterFunction<ServerResponse> eventServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/events/**"), HandlerFunctions.http())
+                .filter(lb("event-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+
+
 }
