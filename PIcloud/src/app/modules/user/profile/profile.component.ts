@@ -19,6 +19,7 @@ export class ProfileComponent implements OnInit {
   successMessage: string = '';
   errorMessage: string = '';
   showPasswordForm: boolean = false;
+  activeTab: 'profile' | 'password' = 'profile';  // ← ADD THIS
 
   constructor(
     private fb: FormBuilder,
@@ -62,7 +63,6 @@ export class ProfileComponent implements OnInit {
   enableEdit(): void {
     this.isEditing = true;
     this.profileForm.enable();
-    // role is always disabled — cannot change role
     this.profileForm.get('id')?.disable();
     this.successMessage = '';
     this.errorMessage = '';
@@ -74,6 +74,19 @@ export class ProfileComponent implements OnInit {
     this.profileForm.disable();
     this.successMessage = '';
     this.errorMessage = '';
+  }
+
+  // ── TAB SWITCHING ──────────────────────────
+  switchTab(tab: 'profile' | 'password'): void {
+    this.activeTab = tab;
+    this.showPasswordForm = tab === 'password';
+    this.successMessage = '';
+    this.errorMessage = '';
+
+    // cancel any active edit when switching tabs
+    if (tab === 'password' && this.isEditing) {
+      this.cancelEdit();
+    }
   }
 
   async onSubmit(): Promise<void> {
@@ -91,9 +104,9 @@ export class ProfileComponent implements OnInit {
       this.isEditing = false;
       this.profileForm.patchValue(updatedUser);
       this.profileForm.disable();
-      this.successMessage = 'Profile updated successfully!';
+      this.successMessage = 'Profil mis à jour avec succès !';
     } catch (error: any) {
-      this.errorMessage = error.error?.error || 'Update failed';
+      this.errorMessage = error.error?.error || 'Échec de la mise à jour';
     } finally {
       this.isLoading = false;
     }
@@ -113,11 +126,12 @@ export class ProfileComponent implements OnInit {
         this.passwordForm.value.oldPassword,
         this.passwordForm.value.newPassword
       );
-      this.successMessage = 'Password changed successfully!';
+      this.successMessage = 'Mot de passe modifié avec succès !';
       this.passwordForm.reset();
       this.showPasswordForm = false;
+      this.activeTab = 'profile';   // ← go back to profile tab after success
     } catch (error: any) {
-      this.errorMessage = error.error?.error || 'Password change failed';
+      this.errorMessage = error.error?.error || 'Échec du changement de mot de passe';
     } finally {
       this.isLoading = false;
     }

@@ -5,11 +5,14 @@ export interface User {
   email: string;
   dateInscription: string;
   statut: string;
-  role: 'USER' | 'ADMIN';
+  role: 'USER' | 'ADMIN' | 'MENTOR' | 'PARTENAIRE';  // ← add the missing roles
 }
+
 export enum Role {
-  USER = 'ROLE_USER',
-  ADMIN = 'ROLE_ADMIN'
+  USER = 'USER',          // ← remove ROLE_ prefix, match what DB stores
+  ADMIN = 'ADMIN',
+  MENTOR = 'MENTOR',
+  PARTENAIRE = 'PARTENAIRE'
 }
 
 export interface AuthResponse {
