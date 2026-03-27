@@ -4,11 +4,15 @@ import lombok.RequiredArgsConstructor;
 import org.example.eventpi.dto.SpeakerRequest;
 import org.example.eventpi.dto.SpeakerResponse;
 import org.example.eventpi.exception.ForbiddenException;
+import org.example.eventpi.service.ImageStorageService;
 import org.example.eventpi.service.SpeakerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -16,10 +20,11 @@ import java.util.Set;
 public class SpeakerController {
 
     private final SpeakerService speakerService;
+    private final ImageStorageService imageStorageService; // ← ADD THIS
+
     private static final Set<String> WRITE_ROLES =
             Set.of("ROLE_ADMIN", "ROLE_MENTOR", "ROLE_PARTENAIRE");
 
-    // ── SPEAKER CRUD ──────────────────────────────
     @GetMapping("/api/speakers")
     public ResponseEntity<List<SpeakerResponse>> getAll() {
         return ResponseEntity.ok(speakerService.getAll());
@@ -57,7 +62,6 @@ public class SpeakerController {
         return ResponseEntity.noContent().build();
     }
 
-    // ── SPEAKER ↔ EVENT LINKING ───────────────────
     @GetMapping("/api/events/{eventId}/speakers")
     public ResponseEntity<List<SpeakerResponse>> getByEvent(
             @PathVariable Long eventId) {
@@ -82,6 +86,22 @@ public class SpeakerController {
         speakerService.unlinkFromEvent(speakerId, eventId);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/api/speakers/{id}/upload-photo")
+    public ResponseEntity<Map<String, String>> uploadPhoto(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file,
+            @RequestHeader("X-User-Role") String role) {
+
+        requireRole(role, WRITE_ROLES);
+        String url = imageStorageService.storeInFolder(file, "uploads/speakers");
+
+        // Update speaker's photoUrl directly via service
+        speakerService.updatePhoto(id, url); // ← cleaner than new SpeakerRequest()
+
+        return ResponseEntity.ok(Map.of("url", url));
+    }
+
 
     private void requireRole(String role, Set<String> allowed) {
         if (role == null || !allowed.contains(role)) {

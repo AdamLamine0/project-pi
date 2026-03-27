@@ -11,9 +11,15 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${app.upload.dir}")
     private String uploadDir;
 
+    @Value("${app.upload.speakers-dir}")
+    private String speakersUploadDir;
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/uploads/events/**")
                 .addResourceLocations("file:" + uploadDir + "/");
+
+        registry.addResourceHandler("/uploads/speakers/**")
+                .addResourceLocations("file:" + speakersUploadDir + "/");
     }
 }

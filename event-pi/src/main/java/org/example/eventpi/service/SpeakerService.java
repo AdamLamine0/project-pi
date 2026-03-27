@@ -74,7 +74,6 @@ public class SpeakerService {
         speakerRepository.deleteById(id);
     }
 
-    // Link speaker to event
     @Transactional
     public SpeakerResponse linkToEvent(Long speakerId, Long eventId) {
         Speaker speaker = speakerRepository.findById(speakerId)
@@ -89,7 +88,6 @@ public class SpeakerService {
         return toResponse(speaker);
     }
 
-    // Unlink speaker from event
     @Transactional
     public void unlinkFromEvent(Long speakerId, Long eventId) {
         Speaker speaker = speakerRepository.findById(speakerId)
@@ -111,5 +109,12 @@ public class SpeakerService {
                         ? s.getEvents().stream().map(Event::getId).toList()
                         : List.of())
                 .build();
+    }
+    @Transactional
+    public void updatePhoto(Long id, String photoUrl) {
+        Speaker speaker = speakerRepository.findById(id)
+                .orElseThrow(() -> new EventNotFoundException(id));
+        speaker.setPhotoUrl(photoUrl);
+        speakerRepository.save(speaker);
     }
 }
