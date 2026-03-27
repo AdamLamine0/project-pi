@@ -1,48 +1,79 @@
-<div class="container py-4">
+<div class="list-page">
 
-  <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold">Events</h2>
-    <a routerLink="/events/new" class="btn btn-primary">
-      <i class="bi bi-plus-lg"></i> New Event
+  <!-- Page header -->
+  <div class="list-header">
+    <div>
+      <div class="page-label">Plateforme PIcloud</div>
+      <h1 class="page-title">Événements</h1>
+    </div>
+    <a routerLink="/events/new" class="btn-new">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Nouvel événement
     </a>
   </div>
 
   <!-- Filters -->
-  <div class="row g-2 mb-4">
-    <div class="col-md-3">
-      <select class="form-select" [(ngModel)]="selectedType" (change)="onFilterChange()">
-        <option value="">All types</option>
+  <div class="filters-bar">
+    <div class="filter-group">
+      <label>Type</label>
+      <select class="filter-select" [(ngModel)]="selectedType" (change)="onFilterChange()">
+        <option value="">Tous les types</option>
         <option *ngFor="let t of eventTypes" [value]="t">{{ t }}</option>
       </select>
     </div>
-    <div class="col-md-3">
-      <select class="form-select" [(ngModel)]="selectedStatus" (change)="onFilterChange()">
-        <option value="">All statuses</option>
+    <div class="filter-group">
+      <label>Statut</label>
+      <select class="filter-select" [(ngModel)]="selectedStatus" (change)="onFilterChange()">
+        <option value="">Tous les statuts</option>
         <option *ngFor="let s of eventStatuses" [value]="s">{{ s }}</option>
       </select>
+    </div>
+    <div class="filter-count" *ngIf="!loading">
+      {{ events.length }} événement{{ events.length !== 1 ? 's' : '' }}
     </div>
   </div>
 
   <!-- Loading -->
-  <div *ngIf="loading" class="text-center py-5">
-    <div class="spinner-border text-primary"></div>
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner-lg"></div>
+    <span>Chargement des événements...</span>
   </div>
 
   <!-- Error -->
-  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <div class="alert-error" *ngIf="error && !loading">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ error }}
+  </div>
 
   <!-- Empty -->
-  <div *ngIf="!loading && !error && events.length === 0" class="text-center py-5 text-muted">
-    <i class="bi bi-calendar-x fs-1"></i>
-    <p class="mt-2">No events found.</p>
+  <div class="empty-state" *ngIf="!loading && !error && events.length === 0">
+    <div class="empty-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+    </div>
+    <p class="empty-title">Aucun événement trouvé</p>
+    <p class="empty-sub">Créez votre premier événement pour commencer.</p>
+    <a routerLink="/events/new" class="btn-new">Créer un événement</a>
   </div>
 
   <!-- Grid -->
-  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" *ngIf="!loading && events.length > 0">
-    <div class="col" *ngFor="let event of events">
-      <app-event-card [event]="event" (deleted)="onDelete($event)"></app-event-card>
-    </div>
+  <div class="events-grid" *ngIf="!loading && events.length > 0">
+    <app-event-card
+      *ngFor="let event of events"
+      [event]="event"
+      (deleted)="onDelete($event)">
+    </app-event-card>
   </div>
 
 </div>

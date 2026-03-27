@@ -1,0 +1,197 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Bricolage+Grotesque:wght@600;700&display=swap');
+
+.card {
+  background: #fff;
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Inter', sans-serif;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.card:hover {
+  border-color: #93c5fd;
+  box-shadow: 0 6px 24px rgba(37,99,235,0.07);
+}
+
+/* ── COVER ── */
+.card-cover {
+  position: relative;
+  height: 160px;
+  background: #f0f6ff;
+  overflow: hidden;
+}
+.card-cover.no-cover { background: #f8faff; }
+
+.cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s;
+}
+.card:hover .cover-img { transform: scale(1.03); }
+
+.cover-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c7d9f5;
+}
+
+.cover-badges {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  gap: 6px;
+}
+
+.type-pill {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: rgba(255,255,255,0.92);
+  color: #1d4ed8;
+  padding: 3px 9px;
+  border-radius: 5px;
+  backdrop-filter: blur(4px);
+}
+
+.status-pill {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 5px;
+  backdrop-filter: blur(4px);
+}
+.status-publie   { background: rgba(240,253,244,0.92); color: #15803d; }
+.status-brouillon{ background: rgba(248,250,255,0.92); color: #4b6890; }
+.status-annule   { background: rgba(254,242,242,0.92); color: #b91c1c; }
+.status-termine  { background: rgba(245,243,255,0.92); color: #6d28d9; }
+
+/* ── BODY ── */
+.card-body {
+  padding: 1.1rem 1.25rem 0.75rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.card-title {
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e3a6e;
+  margin: 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-desc {
+  font-size: 12.5px;
+  color: #8aaace;
+  line-height: 1.6;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #5a7396;
+  font-weight: 500;
+}
+.meta-item svg { flex-shrink: 0; color: #93c5fd; }
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.tag {
+  font-size: 11px;
+  font-weight: 500;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.tag-more {
+  background: #f8faff;
+  color: #8aaace;
+  border-color: #dbeafe;
+}
+
+/* ── FOOTER ── */
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid #f0f6ff;
+  gap: 8px;
+}
+
+.btn-view {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: #2563eb;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 6px 16px;
+  border-radius: 7px;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-view:hover { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; text-decoration: none; }
+
+.card-actions { display: flex; gap: 6px; }
+
+.btn-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-decoration: none;
+  background: none;
+}
+
+.btn-icon-edit {
+  color: #4b6890;
+  border-color: #dbeafe;
+}
+.btn-icon-edit:hover { background: #eff6ff; color: #1e3a6e; border-color: #93c5fd; }
+
+.btn-icon-delete {
+  color: #dc2626;
+  border-color: #fecaca;
+}
+.btn-icon-delete:hover { background: #fef2f2; }
