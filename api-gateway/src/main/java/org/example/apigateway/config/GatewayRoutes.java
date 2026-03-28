@@ -49,9 +49,25 @@ public class GatewayRoutes {
     }
 
     @Bean
-    public RouterFunction<ServerResponse> partnerServiceRoute() {
+    public RouterFunction<ServerResponse> conventionServiceRoute() {
         return RouterFunctions
-                .route(path("/api/partners/**"), HandlerFunctions.http())
+                .route(path("/api/conventions/**"), HandlerFunctions.http())
+                .filter(lb("partenariat-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> organisationServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/organisations/**"), HandlerFunctions.http())
+                .filter(lb("partenariat-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> objectifServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/objectifs/**"), HandlerFunctions.http())
                 .filter(lb("partenariat-pi"))
                 .filter(authFilter.jwtFilter());
     }

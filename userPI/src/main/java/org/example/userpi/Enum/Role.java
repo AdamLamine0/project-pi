@@ -5,5 +5,5 @@ public enum Role {
     ADMIN,
     MENTOR,
     INVESTOR,
-    PARTNER
+    PARTNER,
 }
