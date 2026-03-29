@@ -12,6 +12,12 @@
     </button>
   </header>
 
+  <section class="tabs panel">
+    <button class="tab-btn" [class.active]="activeView === 'projects'" (click)="switchToProjects()">Projects</button>
+    <button class="tab-btn" [class.active]="activeView === 'roadmap'" (click)="switchToRoadmap()">Roadmap</button>
+  </section>
+
+  <ng-container *ngIf="activeView === 'projects'">
   <section class="panel form-panel">
     <h2>{{ mode === 'create' ? 'Create Project' : 'Edit Project' }}</h2>
     <form class="grid" (ngSubmit)="submit()">
@@ -114,6 +120,7 @@
         </div>
 
         <div class="card-actions">
+          <button class="btn dark" (click)="openRoadmap(p)">Roadmap</button>
           <button class="btn light" (click)="edit(p)">Edit</button>
           <button class="btn danger" [disabled]="deletingId === p.id" (click)="remove(p)">
             {{ deletingId === p.id ? 'Deleting...' : 'Delete' }}
@@ -123,5 +130,114 @@
     </div>
 
     <p *ngIf="!loading && filteredProjects.length === 0">No projects yet.</p>
+  </section>
+  </ng-container>
+
+  <section class="panel roadmap-panel" *ngIf="activeView === 'roadmap' && roadmapProject as rp">
+    <div class="roadmap-head">
+      <div>
+        <h2>Roadmap Manager</h2>
+        <p class="subtitle">Project: <strong>{{ rp.titre }}</strong> ({{ rp.id }})</p>
+      </div>
+      <div class="roadmap-head-actions">
+        <button class="btn dark" (click)="generateRoadmap()" [disabled]="roadmapLoading">
+          {{ roadmapLoading ? 'Generating...' : 'Generate AI Roadmap' }}
+        </button>
+        <button class="btn light" (click)="fetchProgress()">Refresh Progress</button>
+        <button class="btn light" (click)="closeRoadmap()">Close</button>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <span>Progress: {{ roadmapProgress ?? rp.progressPercentage ?? 0 }}%</span>
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="roadmapProgress ?? rp.progressPercentage ?? 0"></div>
+      </div>
+    </div>
+
+    <form class="grid roadmap-form" (ngSubmit)="addRoadmapStep()">
+      <label>
+        Step Title
+        <input name="stepTitle" type="text" [(ngModel)]="roadmapForm.titre" placeholder="Planning" />
+      </label>
+
+      <label>
+        Order
+        <input name="stepOrder" type="number" min="1" [(ngModel)]="roadmapForm.ordre" />
+      </label>
+
+      <label>
+        Status
+        <select name="stepStatus" [(ngModel)]="roadmapForm.statut">
+          <option value="PENDING">PENDING</option>
+          <option value="IN_PROGRESS">IN_PROGRESS</option>
+          <option value="DONE">DONE</option>
+        </select>
+      </label>
+
+      <label>
+        Parent Step ID (optional)
+        <input name="stepParent" type="text" [(ngModel)]="roadmapForm.parent" placeholder="root or step id" />
+      </label>
+
+      <label class="full">
+        Description
+        <textarea name="stepDescription" rows="2" [(ngModel)]="roadmapForm.description" placeholder="Step details"></textarea>
+      </label>
+
+      <div class="actions full">
+        <button class="btn" type="submit" [disabled]="roadmapSubmitting">
+          {{ roadmapSubmitting ? 'Adding...' : 'Add Step' }}
+        </button>
+      </div>
+    </form>
+
+    <div class="cards" *ngIf="rp.roadmapSteps?.length; else noRoadmapSteps">
+      <article class="card" *ngFor="let step of rp.roadmapSteps">
+        <div class="top">
+          <h3>#{{ step.ordre }} - {{ step.titre }}</h3>
+          <span class="badge">{{ step.statut }}</span>
+        </div>
+        <p class="desc">{{ step.description }}</p>
+        <div class="meta">
+          <span><strong>Step ID:</strong> {{ step.id }}</span>
+          <span><strong>Parent:</strong> {{ step.parent || 'None' }}</span>
+          <span><strong>Created By:</strong> {{ step.creePar || 'N/A' }}</span>
+        </div>
+        <div class="card-actions">
+          <button
+            class="btn light"
+            [disabled]="roadmapStatusUpdatingKey === (rp.id + '-' + step.id)"
+            (click)="updateStepStatus(step, 'PENDING')"
+          >PENDING</button>
+          <button
+            class="btn light"
+            [disabled]="roadmapStatusUpdatingKey === (rp.id + '-' + step.id)"
+            (click)="updateStepStatus(step, 'IN_PROGRESS')"
+          >IN_PROGRESS</button>
+          <button
+            class="btn light"
+            [disabled]="roadmapStatusUpdatingKey === (rp.id + '-' + step.id)"
+            (click)="updateStepStatus(step, 'DONE')"
+          >DONE</button>
+          <button
+            class="btn danger"
+            [disabled]="roadmapDeletingKey === (rp.id + '-' + step.id)"
+            (click)="deleteStep(step)"
+          >{{ roadmapDeletingKey === (rp.id + '-' + step.id) ? 'Deleting...' : 'Delete' }}</button>
+        </div>
+      </article>
+    </div>
+    <ng-template #noRoadmapSteps>
+      <p>No roadmap steps yet. Add one manually or generate AI roadmap.</p>
+    </ng-template>
+  </section>
+
+  <section class="panel roadmap-empty" *ngIf="activeView === 'roadmap' && !roadmapProject">
+    <h2>No Roadmap Selected</h2>
+    <p>
+      Open the Projects tab and click the <strong>Roadmap</strong> button on any project to manage its roadmap steps.
+    </p>
+    <button class="btn dark" (click)="switchToProjects()">Go To Projects</button>
   </section>
 </main>

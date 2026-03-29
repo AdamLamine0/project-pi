@@ -53,6 +53,28 @@ h1 {
 	padding: 1rem;
 }
 
+.tabs {
+	display: flex;
+	gap: 0.5rem;
+	margin-bottom: 0.8rem;
+}
+
+.tab-btn {
+	border: 1px solid #d7e2ea;
+	border-radius: 999px;
+	padding: 0.5rem 0.95rem;
+	background: #f2f6fa;
+	color: var(--ink-800);
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.tab-btn.active {
+	border-color: #0f766e;
+	background: linear-gradient(135deg, #0f766e, #14b8a6);
+	color: #fff;
+}
+
 .form-panel {
 	margin-bottom: 0.8rem;
 }
@@ -226,6 +248,56 @@ select:focus {
 	gap: 0.5rem;
 }
 
+.roadmap-panel {
+	margin-top: 1rem;
+}
+
+.roadmap-head {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 0.7rem;
+	margin-bottom: 0.8rem;
+}
+
+.roadmap-head-actions {
+	display: flex;
+	gap: 0.45rem;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+}
+
+.progress-wrap {
+	margin-bottom: 0.9rem;
+}
+
+.progress-bar {
+	margin-top: 0.3rem;
+	height: 10px;
+	border-radius: 999px;
+	background: #e2e8f0;
+	overflow: hidden;
+}
+
+.progress-fill {
+	height: 100%;
+	background: linear-gradient(135deg, #0f766e, #14b8a6);
+	transition: width 0.35s ease;
+}
+
+.roadmap-form {
+	margin-bottom: 0.8rem;
+}
+
+.roadmap-empty {
+	margin-top: 0.8rem;
+}
+
+.roadmap-empty p {
+	margin: 0.55rem 0 0.9rem;
+	color: var(--ink-700);
+}
+
 @media (max-width: 880px) {
 	.hero {
 		flex-direction: column;
@@ -234,5 +306,13 @@ select:focus {
 
 	.grid {
 		grid-template-columns: 1fr;
+	}
+
+	.roadmap-head {
+		flex-direction: column;
+	}
+
+	.roadmap-head-actions {
+		justify-content: flex-start;
 	}
 }

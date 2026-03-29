@@ -12,6 +12,25 @@ export interface ProjectItem {
   priorite: string;
   categorie?: string;
   progressPercentage?: number;
+  roadmapSteps?: RoadmapStepItem[];
+}
+
+export interface RoadmapStepItem {
+  id: string;
+  titre: string;
+  description: string;
+  statut: 'PENDING' | 'IN_PROGRESS' | 'DONE' | string;
+  ordre: number;
+  parent?: string;
+  creePar?: string;
+}
+
+export interface CreateRoadmapStepPayload {
+  titre: string;
+  description: string;
+  ordre: number;
+  parent?: string;
+  statut: 'PENDING' | 'IN_PROGRESS' | 'DONE' | string;
 }
 
 export interface CreateProjectPayload {
