@@ -7,8 +7,13 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -23,7 +28,9 @@ public class SecurityConfiguration {
             throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/", "/index.html", "/ui/**", "/favicon.ico").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/projects/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
@@ -38,4 +45,17 @@ public class SecurityConfiguration {
 
         return http.build();
     }
+
+        @Bean
+        public CorsConfigurationSource corsConfigurationSource() {
+                CorsConfiguration configuration = new CorsConfiguration();
+                configuration.setAllowedOrigins(List.of("http://localhost:4200"));
+                configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                configuration.setAllowedHeaders(List.of("*"));
+                configuration.setAllowCredentials(true);
+
+                UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+                source.registerCorsConfiguration("/**", configuration);
+                return source;
+        }
 }

@@ -1,0 +1,127 @@
+<main class="page">
+  <header class="hero">
+    <div>
+      <p class="label">gestionprojets / angular ui</p>
+      <h1>Project CRUD Dashboard</h1>
+      <p class="subtitle">
+        Beautiful and focused interface to create, update, search, and delete projects from your backend.
+      </p>
+    </div>
+    <button class="btn dark" (click)="loadProjects()" [disabled]="loading">
+      {{ loading ? 'Refreshing...' : 'Refresh' }}
+    </button>
+  </header>
+
+  <section class="panel form-panel">
+    <h2>{{ mode === 'create' ? 'Create Project' : 'Edit Project' }}</h2>
+    <form class="grid" (ngSubmit)="submit()">
+      <label>
+        Title
+        <input name="titre" type="text" [(ngModel)]="form.titre" placeholder="Platform Modernization" />
+      </label>
+
+      <label>
+        Manager ID
+        <input name="managerId" type="text" [(ngModel)]="form.managerId" placeholder="manager-1" />
+      </label>
+
+      <label class="full">
+        Description
+        <textarea name="description" [(ngModel)]="form.description" rows="3" placeholder="Describe project scope"></textarea>
+      </label>
+
+      <label>
+        Start Date
+        <input name="dateDebut" type="date" [(ngModel)]="form.dateDebut" />
+      </label>
+
+      <label>
+        End Date
+        <input name="dateFin" type="date" [(ngModel)]="form.dateFin" />
+      </label>
+
+      <label>
+        Budget
+        <input name="budget" type="number" min="1" [(ngModel)]="form.budget" />
+      </label>
+
+      <label>
+        Priority
+        <select name="priorite" [(ngModel)]="form.priorite">
+          <option value="LOW">LOW</option>
+          <option value="MEDIUM">MEDIUM</option>
+          <option value="HIGH">HIGH</option>
+          <option value="CRITICAL">CRITICAL</option>
+        </select>
+      </label>
+
+      <label class="full">
+        Category
+        <input name="categorie" type="text" [(ngModel)]="form.categorie" placeholder="Web, Mobile, Data" />
+      </label>
+
+      <label class="full">
+        Member IDs (comma separated)
+        <input name="memberIds" type="text" [(ngModel)]="memberIdsInput" placeholder="u1, u2, u3" />
+      </label>
+
+      <div class="actions full">
+        <button class="btn" type="submit" [disabled]="submitting">
+          {{ submitting ? 'Saving...' : (mode === 'create' ? 'Create' : 'Update') }}
+        </button>
+        <button class="btn light" type="button" *ngIf="mode === 'edit'" (click)="cancelEdit()">Cancel</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="feedback" *ngIf="message || error">
+    <p class="ok" *ngIf="message">{{ message }}</p>
+    <p class="bad" *ngIf="error">{{ error }}</p>
+  </section>
+
+  <section class="panel">
+    <div class="toolbar">
+      <h2>Projects</h2>
+      <input
+        type="text"
+        name="search"
+        [(ngModel)]="search"
+        (ngModelChange)="applyFilter()"
+        placeholder="Search title, manager, description"
+      />
+    </div>
+
+    <p *ngIf="loading">Loading projects...</p>
+
+    <div class="cards" *ngIf="!loading && filteredProjects.length > 0">
+      <article class="card" *ngFor="let p of filteredProjects; trackBy: trackByProject">
+        <div class="top">
+          <h3>{{ p.titre }}</h3>
+          <span class="badge">{{ p.priorite || 'N/A' }}</span>
+        </div>
+
+        <p class="desc">{{ p.description }}</p>
+
+        <div class="meta">
+          <span><strong>Manager:</strong> {{ p.managerId }}</span>
+          <span><strong>Status:</strong> {{ p.statut || 'N/A' }}</span>
+          <span><strong>Budget:</strong> {{ p.budget }}</span>
+          <span><strong>Dates:</strong> {{ p.dateDebut }} to {{ p.dateFin }}</span>
+        </div>
+
+        <div class="members" *ngIf="p.memberIds?.length">
+          <span *ngFor="let m of p.memberIds">{{ m }}</span>
+        </div>
+
+        <div class="card-actions">
+          <button class="btn light" (click)="edit(p)">Edit</button>
+          <button class="btn danger" [disabled]="deletingId === p.id" (click)="remove(p)">
+            {{ deletingId === p.id ? 'Deleting...' : 'Delete' }}
+          </button>
+        </div>
+      </article>
+    </div>
+
+    <p *ngIf="!loading && filteredProjects.length === 0">No projects yet.</p>
+  </section>
+</main>
