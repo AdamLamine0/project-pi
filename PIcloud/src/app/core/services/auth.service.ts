@@ -53,7 +53,10 @@ export class AuthService {
     const payload = this.decodeToken(token);
     if (payload) {
       localStorage.setItem('userId', String(payload.userId));
-      localStorage.setItem('role', payload.role);
+      // Strip ROLE_ prefix so getRole() returns 'ADMIN' not 'ROLE_ADMIN'
+      const rawRole: string = payload.role || '';
+      const role = rawRole.startsWith('ROLE_') ? rawRole.slice(5) : rawRole;
+      localStorage.setItem('role', role);
       localStorage.setItem('email', payload.sub);
     }
   }

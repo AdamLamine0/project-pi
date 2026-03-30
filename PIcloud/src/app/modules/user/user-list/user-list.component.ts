@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserService } from '../../../core/services/user.service';
-import { User } from '../../../core/models/user.model';
+import { Role, User } from '../../../core/models/user.model';
 
 @Component({
   selector: 'app-user-list',
@@ -12,15 +12,15 @@ export class UserListComponent implements OnInit {
 
   users: User[] = [];
   filteredUsers: User[] = [];
-  searchTerm: string = '';
-  selectedRole: string = '';
-  isLoading: boolean = false;
-  errorMessage: string = '';
-  successMessage: string = '';
+  searchTerm   = '';
+  selectedRole = '';
+  isLoading    = false;
+  errorMessage  = '';
+  successMessage = '';
+  roles = Object.values(Role);
 
-  // pagination
-  currentPage: number = 1;
-  pageSize: number = 5;
+  currentPage = 1;
+  pageSize    = 8;
 
   constructor(
     private userService: UserService,
@@ -33,27 +33,26 @@ export class UserListComponent implements OnInit {
 
   async loadUsers(): Promise<void> {
     this.isLoading = true;
+    this.errorMessage = '';
     try {
       this.users = await this.userService.getAllUsers();
-      this.filteredUsers = [...this.users];
-    } catch (error: any) {
-      this.errorMessage = 'Failed to load users';
+      this.applyFilter();
+    } catch {
+      this.errorMessage = 'Impossible de charger les utilisateurs.';
     } finally {
       this.isLoading = false;
     }
   }
 
-  filterUsers(): void {
-    this.filteredUsers = this.users.filter(user => {
-      const matchesSearch =
-        user.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        user.prenom.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(this.searchTerm.toLowerCase());
-
-      const matchesRole = this.selectedRole === '' ||
-        user.role === this.selectedRole;
-
-      return matchesSearch && matchesRole;
+  applyFilter(): void {
+    const t = this.searchTerm.toLowerCase();
+    this.filteredUsers = this.users.filter(u => {
+      const matchText =
+        u.name.toLowerCase().includes(t) ||
+        u.prenom.toLowerCase().includes(t) ||
+        u.email.toLowerCase().includes(t);
+      const matchRole = !this.selectedRole || u.role === this.selectedRole;
+      return matchText && matchRole;
     });
     this.currentPage = 1;
   }
@@ -62,34 +61,46 @@ export class UserListComponent implements OnInit {
     const start = (this.currentPage - 1) * this.pageSize;
     return this.filteredUsers.slice(start, start + this.pageSize);
   }
-
   get totalPages(): number {
     return Math.ceil(this.filteredUsers.length / this.pageSize);
   }
-
-  get pages(): number[] {
+  get pageNumbers(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
+  goToPage(p: number): void { this.currentPage = p; }
 
-  goToPage(page: number): void {
-    this.currentPage = page;
+  // ── navigate to FormUser for CREATE ────────────────────────────
+  goToCreate(): void {
+    this.router.navigate(['/user/form']);
   }
 
-  editUser(user: User): void {
-    this.router.navigate(['/user/edit', user.id]);
+  // ── navigate to FormUser for EDIT ──────────────────────────────
+  goToEdit(id: number): void {
+    this.router.navigate(['/user/form', id]);
   }
 
   async deleteUser(id: number): Promise<void> {
-    if (!confirm('Are you sure you want to delete this user?')) return;
-
+    if (!confirm('Supprimer cet utilisateur ?')) return;
     try {
       await this.userService.deleteUser(id);
-      this.successMessage = 'User deleted successfully';
       this.users = this.users.filter(u => u.id !== id);
-      this.filterUsers();
-      setTimeout(() => this.successMessage = '', 3000);
-    } catch (error: any) {
-      this.errorMessage = error.error?.error || 'Delete failed';
+      this.applyFilter();
+      this.flash('Utilisateur supprimé avec succès.');
+    } catch {
+      this.errorMessage = 'Échec de la suppression.';
     }
+  }
+
+  flash(msg: string): void {
+    this.successMessage = msg;
+    setTimeout(() => (this.successMessage = ''), 4000);
+  }
+
+  badgeClass(role: string): string {
+    const map: Record<string, string> = {
+      ADMIN: 'badge-admin', USER: 'badge-user',
+      MENTOR: 'badge-mentor', INVESTOR: 'badge-investor', PARTNER: 'badge-partner'
+    };
+    return map[role] ?? 'badge-user';
   }
 }

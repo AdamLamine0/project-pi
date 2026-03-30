@@ -9,6 +9,7 @@ import { NavbarComponent } from './core/components/navbar/navbar.component';
 import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
 import { RouterModule } from '@angular/router';
 import { HomeComponent } from './modules/home/home.component';
+import { PartenaireModule } from './modules/partenaire/partenaire.module';
 
 @NgModule({
   declarations: [
@@ -20,7 +21,8 @@ import { HomeComponent } from './modules/home/home.component';
     BrowserModule,       // ← includes CommonModule (*ngIf, *ngFor)
     AppRoutingModule,
     RouterModule,
-    FormsModule
+    FormsModule,
+    PartenaireModule
   ],
   providers: [
     provideHttpClient(withInterceptors([jwtInterceptor]))
