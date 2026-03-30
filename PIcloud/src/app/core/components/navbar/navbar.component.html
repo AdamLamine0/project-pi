@@ -7,6 +7,7 @@
       <ng-container *ngIf="authService.isLoggedIn(); else loggedOut">
         <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" class="nl">Accueil</a></li>
         <li><a routerLink="/events" routerLinkActive="active" class="nl">Événements</a></li>
+        <li><a routerLink="/partenariat/list" routerLinkActive="active" class="nl">Partenaires</a></li>
         <li><a routerLink="/user/profile" routerLinkActive="active" class="nl">Profil</a></li>
         <li *ngIf="authService.isAdmin()"><a routerLink="/user/list" routerLinkActive="active" class="nl">Utilisateurs</a></li>
         <li><button class="nav-btn-logout" (click)="logout()">Déconnexion</button></li>
