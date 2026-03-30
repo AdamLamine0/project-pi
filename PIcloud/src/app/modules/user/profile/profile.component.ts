@@ -89,28 +89,36 @@ export class ProfileComponent implements OnInit {
     }
   }
 
-  async onSubmit(): Promise<void> {
-    if (this.profileForm.invalid) return;
+ async onSubmit(): Promise<void> {
+  if (this.profileForm.invalid) return;
 
-    this.isLoading = true;
-    this.errorMessage = '';
-    this.successMessage = '';
+  this.isLoading = true;
+  this.errorMessage = '';
+  this.successMessage = '';
 
-    try {
-      const updatedUser = await this.userService.updateUser(
-        this.profileForm.getRawValue()
-      );
-      this.user = updatedUser;
-      this.isEditing = false;
-      this.profileForm.patchValue(updatedUser);
-      this.profileForm.disable();
-      this.successMessage = 'Profil mis à jour avec succès !';
-    } catch (error: any) {
-      this.errorMessage = error.error?.error || 'Échec de la mise à jour';
-    } finally {
-      this.isLoading = false;
-    }
+  try {
+    const userId = this.authService.getUserId();
+
+    // Merge form values with the existing user's role and dateInscription
+    // so they are never sent as null/undefined to the backend
+    const payload: User = {
+      ...this.profileForm.getRawValue(),
+      role: this.user!.role,
+      dateInscription: this.user!.dateInscription
+    };
+
+    const updatedUser = await this.userService.updateUser(payload, userId);
+    this.user = updatedUser;
+    this.isEditing = false;
+    this.profileForm.patchValue(updatedUser);
+    this.profileForm.disable();
+    this.successMessage = 'Profil mis à jour avec succès !';
+  } catch (error: any) {
+    this.errorMessage = error.error?.error || 'Échec de la mise à jour';
+  } finally {
+    this.isLoading = false;
   }
+}
 
   async onChangePassword(): Promise<void> {
     if (this.passwordForm.invalid) return;
