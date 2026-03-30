@@ -75,4 +75,15 @@ public class Event {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<EventRegistration> registrations;
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OrderBy("orderIndex ASC")
+    private List<EventProgram> program;
+
+    @ManyToMany(mappedBy = "events", fetch = FetchType.LAZY)
+    private List<Speaker> speakers;
+
 }
