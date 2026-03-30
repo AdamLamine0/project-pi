@@ -22,6 +22,12 @@ const routes: Routes = [
     loadChildren: () =>
       import('./modules/event/event.module').then(m => m.EventModule)
   },
+  {
+    path: 'partenariat',          // ← add this
+    canActivate: [authGuard],
+    loadChildren: () =>
+      import('./modules/partenaire/partenaire.module').then(m => m.PartenaireModule)
+  },
   { path: '**', redirectTo: '' }
 ];
 
