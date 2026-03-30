@@ -25,5 +25,11 @@ public class EventResponse {
     private List<String> targetSector;
     private List<String> targetStage;
     private Integer organizerId;
+    private String organizerRole;
     private LocalDateTime createdAt;
+
+    private String rejectionReason;
+    private Integer validatedBy;
+    private LocalDateTime validatedAt;
+    private LocalDateTime submittedAt;
 }

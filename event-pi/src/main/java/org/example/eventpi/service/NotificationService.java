@@ -2,6 +2,8 @@ package org.example.eventpi.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.eventpi.dto.UserResponse;
+import org.example.eventpi.feign.UserClient;
 import org.example.eventpi.model.Event;
 import org.example.eventpi.model.EventRegistration;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,6 +20,7 @@ import jakarta.mail.internet.MimeMessage;
 public class NotificationService {
 
     private final JavaMailSender mailSender;
+    private final UserClient userClient;
 
     @Value("${app.name}")
     private String appName;
@@ -180,6 +183,53 @@ public class NotificationService {
             log.info("Email sent to {} — {}", to, subject);
         } catch (Exception e) {
             log.error("Failed to send email to {}: {}", to, e.getMessage());
+        }
+    }
+    @Async
+    public void sendEventApproved(Integer organizerId, Event event) {
+        try {
+            UserResponse user = userClient.getUserById(organizerId);
+            String subject = "✅ Événement approuvé — " + event.getTitle();
+            String body = baseTemplate(
+                    "Votre événement est approuvé !",
+                    "Bonjour " + user.getName() + ",",
+                    "Votre événement <strong>" + event.getTitle() +
+                            "</strong> a été approuvé par notre équipe. " +
+                            "Vous pouvez maintenant le publier.",
+                    "",
+                    "Publier l'événement",
+                    frontendUrl + "/events/" + event.getId()
+            );
+            sendHtml(user.getEmail(), subject, body);
+        } catch (Exception e) {
+            log.error("Could not send approval email: {}", e.getMessage());
+        }
+    }
+
+    // ── EVENT REJECTED ────────────────────────────────────────────────────
+    @Async
+    public void sendEventRejected(Integer organizerId, Event event,
+                                  String reason) {
+        try {
+            UserResponse user = userClient.getUserById(organizerId);
+            String subject = "❌ Événement rejeté — " + event.getTitle();
+            String details = "<div style='background:#fef2f2;border-radius:8px;" +
+                    "padding:16px;margin:16px 0;border-left:4px solid #dc2626;'>" +
+                    "<p style='margin:0;font-size:13px;color:#b91c1c'>" +
+                    "<strong>Motif:</strong> " + reason + "</p></div>";
+            String body = baseTemplate(
+                    "Votre événement a été rejeté",
+                    "Bonjour " + user.getName() + ",",
+                    "Votre événement <strong>" + event.getTitle() +
+                            "</strong> n'a pas été approuvé. " +
+                            "Vous pouvez le modifier et le soumettre à nouveau.",
+                    details,
+                    "Modifier l'événement",
+                    frontendUrl + "/events/" + event.getId() + "/edit"
+            );
+            sendHtml(user.getEmail(), subject, body);
+        } catch (Exception e) {
+            log.error("Could not send rejection email: {}", e.getMessage());
         }
     }
 }
