@@ -36,16 +36,12 @@ public class GatewayRoutes {
                 .filter(authFilter.jwtFilter());
     }
 
-    // OAuth2 routes — NO JWT filter needed
-    // these have no token yet — it's the login flow
     @Bean
     public RouterFunction<ServerResponse> oauth2Route() {
         return RouterFunctions
-                .route(path("/login/oauth2/**")
-                                .or(path("/oauth2/**")),
+                .route(path("/login/oauth2/**").or(path("/oauth2/**")),
                         HandlerFunctions.http())
                 .filter(lb("user-pi"));
-        // ← no .filter(authFilter.jwtFilter()) here
     }
 
     @Bean
@@ -80,6 +76,12 @@ public class GatewayRoutes {
                 .filter(authFilter.jwtFilter());
     }
 
-
-
+    // ← ADD THIS
+    @Bean
+    public RouterFunction<ServerResponse> speakerServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/speakers/**"), HandlerFunctions.http())
+                .filter(lb("event-pi"))
+                .filter(authFilter.jwtFilter());
+    }
 }
