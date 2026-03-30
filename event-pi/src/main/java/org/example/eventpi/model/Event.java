@@ -7,10 +7,13 @@ import java.util.List;
 
 @Entity
 @Table(name = "events")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"registrations", "program", "speakers"})
+@EqualsAndHashCode(exclude = {"registrations", "program", "speakers"})
 public class Event {
 
     @Id
@@ -46,17 +49,38 @@ public class Event {
     private String coverImageUrl;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "event_target_sectors", joinColumns = @JoinColumn(name = "event_id"))
+    @CollectionTable(name = "event_target_sectors",
+            joinColumns = @JoinColumn(name = "event_id"))
     @Column(name = "sector")
     private List<String> targetSector;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "event_target_stages", joinColumns = @JoinColumn(name = "event_id"))
+    @CollectionTable(name = "event_target_stages",
+            joinColumns = @JoinColumn(name = "event_id"))
     @Column(name = "stage")
     private List<String> targetStage;
 
     @Column(name = "organizer_id")
     private Integer organizerId;
+
+
+
+    @Column(name = "organizer_role", length = 50)
+    private String organizerRole;
+
+    @Column(name = "rejection_reason", columnDefinition = "TEXT")
+    private String rejectionReason;
+
+    @Column(name = "validated_by")
+    private Integer validatedBy;
+
+    @Column(name = "validated_at")
+    private LocalDateTime validatedAt;
+
+    @Column(name = "submitted_at")
+    private LocalDateTime submittedAt;
+
+
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -76,14 +100,15 @@ public class Event {
         updatedAt = LocalDateTime.now();
     }
 
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY)
     private List<EventRegistration> registrations;
 
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
     private List<EventProgram> program;
 
     @ManyToMany(mappedBy = "events", fetch = FetchType.LAZY)
     private List<Speaker> speakers;
-
 }
