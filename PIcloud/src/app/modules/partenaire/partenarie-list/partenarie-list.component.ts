@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { PartenaireService } from '../../../services/partenaire.service';
-import { TypePartenaire, OrganisationPartenaire,StatutPartenaire } from '../../../models/partenaire';
+import { TypePartenaire, OrganisationPartenaire, StatutPartenaire } from '../../../models/partenaire';
 
 @Component({
   selector: 'app-partenarie-list',
@@ -14,12 +14,12 @@ export class PartenarieListComponent implements OnInit {
   organisations: OrganisationPartenaire[] = [];
   filtered: OrganisationPartenaire[] = [];
 
-  searchTerm    = '';
-  selectedType  = '';
+  searchTerm     = '';
+  selectedType   = '';
   selectedStatut = '';
 
-  isLoading    = false;
-  errorMessage = '';
+  isLoading      = false;
+  errorMessage   = '';
   successMessage = '';
 
   isAdmin = false;
@@ -88,8 +88,14 @@ export class PartenarieListComponent implements OnInit {
     this.router.navigate(['/partenariat/form']);
   }
 
+  /** Admin: go to edit form */
   goToDetail(id: number): void {
     this.router.navigate(['/partenariat/form', id]);
+  }
+
+  /** Non-admin user: go to read-only view */
+  goToView(id: number): void {
+    this.router.navigate(['/partenariat/mon-organisation', id]);
   }
 
   async delete(id: number): Promise<void> {

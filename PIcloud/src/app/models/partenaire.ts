@@ -19,9 +19,10 @@ export interface OrganisationPartenaire{
     type: TypePartenaire;
     description: string;
     siteWeb: string;
+    contactNom: string;
     contactEmail: string;
     region: string;
-    userID : number|null;
+    userId : number|null;
     statut: StatutPartenaire;
 }
 
@@ -36,10 +37,13 @@ export interface OrganisationPartenaireRequest {
   userId?: number | null;
 }
 
+// partenaire.ts
 export interface ContactInfoRequest {
-  nom: string;          // still required by @NotBlank on the backend
-  type: TypePartenaire; // still required by @NotNull on the backend
+  nom: string;
+  type: TypePartenaire;
+  description?: string;
+  siteWeb?: string;
   contactNom: string;
   contactEmail: string;
-  siteWeb?: string;
+  region?: string;
 }

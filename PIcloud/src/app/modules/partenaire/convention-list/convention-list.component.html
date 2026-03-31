@@ -1,21 +1,19 @@
-<p>partenarie-list works!</p>
-<div class="pl-page">
+<div class="cl-page">
 
   <!-- ── HEADER ─────────────────────────────────────────────────── -->
-  <div class="pl-header">
-    <div class="pl-header-text">
-      <p class="pl-eyebrow">Réseau</p>
-      <h1 class="pl-title">Organisations partenaires</h1>
-      <p class="pl-sub">{{ filtered.length }} organisation{{ filtered.length !== 1 ? 's' : '' }} trouvée{{ filtered.length !== 1 ? 's' : '' }}</p>
+  <div class="cl-header">
+    <div class="cl-header-text">
+      <p class="cl-eyebrow">Partenariat</p>
+      <h1 class="cl-title">Mes conventions</h1>
+      <p class="cl-sub">{{ filtered.length }} convention{{ filtered.length !== 1 ? 's' : '' }} trouvée{{ filtered.length !== 1 ? 's' : '' }}</p>
     </div>
 
-    <!-- ADMIN only: create button -->
-    <button class="btn-primary" *ngIf="isAdmin" (click)="goToCreate()">
+    <!-- USER: create new convention -->
+    <button class="btn-primary" *ngIf="isUser" (click)="goToCreate()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <line x1="12" y1="5" x2="12" y2="19"/>
-        <line x1="5"  y1="12" x2="19" y2="12"/>
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
-      Ajouter un partenaire
+      Faire une demande
     </button>
   </div>
 
@@ -34,19 +32,14 @@
   </div>
 
   <!-- ── FILTERS ─────────────────────────────────────────────────── -->
-  <div class="pl-filters">
+  <div class="cl-filters">
     <div class="search-box">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
-      <input type="text" placeholder="Rechercher par nom, email, région…"
+      <input type="text" placeholder="Rechercher par numéro, organisation…"
         [(ngModel)]="searchTerm" (input)="applyFilter()"/>
     </div>
-
-    <select [(ngModel)]="selectedType" (change)="applyFilter()">
-      <option value="">Tous les types</option>
-      <option *ngFor="let t of types" [value]="t">{{ t }}</option>
-    </select>
 
     <select [(ngModel)]="selectedStatut" (change)="applyFilter()">
       <option value="">Tous les statuts</option>
@@ -60,86 +53,92 @@
   </div>
 
   <!-- ── GRID ────────────────────────────────────────────────────── -->
-  <div class="pl-grid" *ngIf="!isLoading">
+  <div class="cl-grid" *ngIf="!isLoading">
 
-    <div class="org-card" *ngFor="let o of paginated">
+    <div class="conv-card" *ngFor="let c of paginated"
+      [class.pending]="isPendingMyAction(c)">
 
-      <!-- card top band with type icon -->
+      <!-- Card top: statut + pending indicator -->
       <div class="card-top">
-        <span class="type-icon">{{ typeIcon(o.type) }}</span>
-        <span class="type-label">{{ o.type }}</span>
-        <span class="badge" [ngClass]="statutClass(o.statut)">{{ o.statut }}</span>
+        <span class="badge" [ngClass]="statutClass(c.statut)">{{ c.statut }}</span>
+        <span class="pending-pill" *ngIf="isPendingMyAction(c)">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          Action requise
+        </span>
+        <span class="conv-num" *ngIf="c.numeroConvention">{{ c.numeroConvention }}</span>
       </div>
 
-      <!-- card body -->
+      <!-- Card body -->
       <div class="card-body">
-        <h3 class="org-nom">{{ o.nom }}</h3>
-        <p class="org-desc">{{ o.description || '—' }}</p>
+        <h3 class="org-nom">{{ c.organisationPartenaireNom }}</h3>
 
-        <div class="org-meta">
-          <span *ngIf="o.region">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
-            </svg>
-            {{ o.region }}
-          </span>
+        <div class="conv-dates">
           <span>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-              <polyline points="22,6 12,13 2,6"/>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
             </svg>
-            {{ o.contactEmail }}
+            {{ c.dateDebut | date:'dd/MM/yyyy' }}
           </span>
+          <span class="dates-arrow">→</span>
+          <span>{{ c.dateFin | date:'dd/MM/yyyy' }}</span>
+        </div>
+
+        <!-- Objectifs count summary -->
+        <div class="obj-summary" *ngIf="c.objectifs?.length">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 11 12 14 22 4"/>
+            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          {{ c.objectifs.length }} objectif{{ c.objectifs.length > 1 ? 's' : '' }}
         </div>
       </div>
 
-      <!-- card footer: actions -->
+      <!-- Card footer -->
       <div class="card-footer">
-        <a *ngIf="o.siteWeb" [href]="o.siteWeb" target="_blank" class="btn-site">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="2" y1="12" x2="22" y2="12"/>
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-          </svg>
-          Site web
-        </a>
 
-        <!-- NON-ADMIN: view details button -->
-        <button class="btn-view" *ngIf="!isAdmin" (click)="goToView(o.id)" title="Voir les détails">
+        <!-- Edit button: only for BROUILLON -->
+        <button class="btn-edit" *ngIf="canEdit(c)" (click)="goToEdit(c.id)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+          Modifier
+        </button>
+
+        <!-- View button: for SIGNEE / ACTIVE / EXPIREE -->
+        <button class="btn-view" *ngIf="!canEdit(c) || isPendingMyAction(c)" (click)="goToView(c.id)">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
             <circle cx="12" cy="12" r="3"/>
           </svg>
-          Voir
+          {{ isPendingMyAction(c) ? 'Voir & Confirmer' : 'Voir' }}
         </button>
 
-        <!-- ADMIN actions -->
-        <div class="admin-actions" *ngIf="isAdmin">
-          <button class="btn-edit" (click)="goToDetail(o.id)" title="Modifier">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-            </svg>
-            Modifier
-          </button>
-          <button class="btn-del" (click)="delete(o.id)" title="Supprimer">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="3 6 5 6 21 6"/>
-              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-              <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
-            </svg>
-          </button>
-        </div>
+        <!-- Delete: only BROUILLON -->
+        <button class="btn-del" *ngIf="canEdit(c)" (click)="delete(c.id)" title="Supprimer">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+            <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+          </svg>
+        </button>
       </div>
 
     </div>
 
-    <!-- empty state -->
+    <!-- Empty state -->
     <div class="empty-state" *ngIf="paginated.length === 0">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10 9 9 9 8 9"/>
       </svg>
-      <p>Aucune organisation trouvée</p>
+      <p>Aucune convention trouvée</p>
+      <button class="btn-primary" *ngIf="isUser" (click)="goToCreate()">Créer une demande</button>
     </div>
 
   </div>
