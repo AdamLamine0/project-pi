@@ -146,17 +146,34 @@
       </div>
 
       <!-- section 03: utilisateur lié (optional) -->
-      <div class="form-section">
-        <h3 class="section-title"><span class="section-num">03</span> Utilisateur partenaire</h3>
-        <div class="fg">
-          <label for="fo-user">
-            ID utilisateur
-            <span class="label-hint">(optionnel — peut être assigné plus tard)</span>
-          </label>
-          <input id="fo-user" type="number" formControlName="userId"
-            placeholder="Ex : 42"/>
-        </div>
-      </div>
+<!-- section 03: utilisateur partenaire -->
+<div class="form-section">
+  <h3 class="section-title"><span class="section-num">03</span> Utilisateur partenaire</h3>
+  <div class="fg">
+    <label for="fo-user">
+      Utilisateur partenaire
+      <span class="label-hint">(optionnel — peut être assigné plus tard)</span>
+    </label>
+    <div class="sel-wrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+      </svg>
+      <select id="fo-user" formControlName="userId">
+        <option [ngValue]="null">— Aucun utilisateur —</option>
+        <option *ngFor="let u of availablePartners" [ngValue]="u.id">
+          {{ u.name }} {{ u.prenom }} · {{ u.email }}
+        </option>
+      </select>
+      <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </div>
+    <span class="field-hint" *ngIf="availablePartners.length === 0">
+      Aucun utilisateur PARTNER disponible.
+    </span>
+  </div>
+</div>
 
       <!-- ── actions ────────────────────────────────────────────── -->
       <div class="form-actions">

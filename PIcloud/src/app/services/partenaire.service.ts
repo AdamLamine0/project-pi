@@ -16,11 +16,11 @@ export class PartenaireService {
     return firstValueFrom(this.http.get<OrganisationPartenaire[]>(this.apiUrl));
   }
 
-  getById(id: number): Promise<OrganisationPartenaire> {
-    return firstValueFrom(
-      this.http.get<OrganisationPartenaire>(`${this.apiUrl}/${id}`)
-    );
-  }
+ async getById(id: number): Promise<OrganisationPartenaire> {
+  return firstValueFrom(
+    this.http.get<OrganisationPartenaire>(`${this.apiUrl}/${id}`)
+  );
+}
 
   getByStatut(statut: StatutPartenaire): Promise<OrganisationPartenaire[]> {
     return firstValueFrom(
