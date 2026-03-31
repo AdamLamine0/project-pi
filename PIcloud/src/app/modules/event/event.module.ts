@@ -13,6 +13,7 @@ import { SpeakerListComponent } from './pages/speaker-list/speaker-list.componen
 import { ProgramSlotComponent } from './components/program-slot/program-slot.component';
 import { ProgramFormComponent } from './components/program-form/program-form.component';
 import { RegistrationListComponent } from './components/registration-list/registration-list.component';
+import { PendingEventsComponent } from './pages/pending-events/pending-events.component';
 
 @NgModule({
   declarations: [
@@ -25,7 +26,8 @@ import { RegistrationListComponent } from './components/registration-list/regist
     SpeakerListComponent,
     ProgramSlotComponent,
     ProgramFormComponent,
-    RegistrationListComponent
+    RegistrationListComponent,
+    PendingEventsComponent
   ],
   imports: [
     CommonModule,

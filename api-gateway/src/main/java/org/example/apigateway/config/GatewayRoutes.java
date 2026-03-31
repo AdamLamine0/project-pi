@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.RouterFunctions;
+import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
@@ -73,10 +74,18 @@ public class GatewayRoutes {
         return RouterFunctions
                 .route(path("/api/events/**"), HandlerFunctions.http())
                 .filter(lb("event-pi"))
-                .filter(authFilter.jwtFilter());
+                .filter(authFilter.jwtFilter())
+                .filter((request, next) -> {
+                    ServerRequest modified = ServerRequest.from(request)
+                            .uri(java.net.URI.create(
+                                    request.uri().toString()
+                                            .replaceFirst("/api/events", "/api/events")))
+                            .build();
+                    return next.handle(modified);
+                });
     }
 
-    // ← ADD THIS
+
     @Bean
     public RouterFunction<ServerResponse> speakerServiceRoute() {
         return RouterFunctions

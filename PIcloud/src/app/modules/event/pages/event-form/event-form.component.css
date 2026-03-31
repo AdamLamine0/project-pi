@@ -359,3 +359,22 @@ select.field-input { appearance: none; cursor: pointer; }
   .fields-row { grid-template-columns: 1fr; }
   .form-page { padding: 1rem 1rem 3rem; padding-top: calc(56px + 1rem); }
 }
+.workflow-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 8px;
+}
+
+.workflow-link {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: underline;
+}

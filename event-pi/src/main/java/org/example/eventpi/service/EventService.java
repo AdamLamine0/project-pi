@@ -5,8 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.eventpi.dto.EventRequest;
 import org.example.eventpi.dto.EventResponse;
 import org.example.eventpi.dto.UpdateEventRequest;
+import org.example.eventpi.dto.UserResponse;
 import org.example.eventpi.exception.EventNotFoundException;
 import org.example.eventpi.exception.ForbiddenException;
+import org.example.eventpi.feign.UserClient;
 import org.example.eventpi.model.Event;
 import org.example.eventpi.model.EventStatus;
 import org.example.eventpi.model.EventType;
@@ -26,21 +28,18 @@ public class EventService {
     private final EventRepository eventRepository;
     private final ImageStorageService imageStorageService;
     private final NotificationService notificationService;
+    private final UserClient userClient;
 
     // ── CREATE ────────────────────────────────────────────────────────────
     @Transactional
     public EventResponse createEvent(EventRequest request,
                                      Integer organizerId,
                                      String organizerRole) {
-        // ADMIN → BROUILLON (can publish directly)
-        // MENTOR / PARTENAIRE → BROUILLON (must submit for validation first)
-        EventStatus initialStatus = EventStatus.BROUILLON;
-
         Event event = Event.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .type(request.getType())
-                .status(initialStatus)
+                .status(EventStatus.BROUILLON)
                 .startDate(request.getStartDate())
                 .locationType(request.getLocationType())
                 .capacityMax(request.getCapacityMax())
@@ -54,35 +53,28 @@ public class EventService {
         return toResponse(eventRepository.save(event));
     }
 
-    // ── SUBMIT FOR VALIDATION (MENTOR / PARTENAIRE only) ──────────────────
+    // ── SUBMIT FOR VALIDATION ─────────────────────────────────────────────
     @Transactional
-    public EventResponse submitForValidation(Long id, Integer userId,
-                                             String role) {
+    public EventResponse submitForValidation(Long id, Integer userId, String role) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
 
-        // Only the owner can submit
         if (!event.getOrganizerId().equals(userId)) {
-            throw new ForbiddenException(
-                    "Vous ne pouvez soumettre que vos propres événements.");
+            throw new ForbiddenException("Vous ne pouvez soumettre que vos propres événements.");
         }
 
-        // Only BROUILLON events can be submitted
         if (event.getStatus() != EventStatus.BROUILLON) {
-            throw new ForbiddenException(
-                    "Seuls les événements en brouillon peuvent être soumis.");
+            throw new ForbiddenException("Seuls les événements en brouillon peuvent être soumis.");
         }
 
-        // ADMIN can publish directly without validation
-        if ("ROLE_ADMIN".equals(role)) {
+        // Gateway sends "ADMIN" not "ROLE_ADMIN"
+        if ("ADMIN".equals(role)) {
             event.setStatus(EventStatus.PUBLIE);
             log.info("Admin {} published event {} directly", userId, id);
         } else {
-            // MENTOR / PARTENAIRE must wait for admin approval
             event.setStatus(EventStatus.EN_ATTENTE_VALIDATION);
             event.setSubmittedAt(LocalDateTime.now());
-            log.info("Event {} submitted for validation by userId {} ({})",
-                    id, userId, role);
+            log.info("Event {} submitted for validation by userId {} ({})", id, userId, role);
         }
 
         return toResponse(eventRepository.save(event));
@@ -95,8 +87,7 @@ public class EventService {
                 .orElseThrow(() -> new EventNotFoundException(id));
 
         if (event.getStatus() != EventStatus.EN_ATTENTE_VALIDATION) {
-            throw new ForbiddenException(
-                    "Seuls les événements en attente peuvent être approuvés.");
+            throw new ForbiddenException("Seuls les événements en attente peuvent être approuvés.");
         }
 
         event.setStatus(EventStatus.APPROUVE);
@@ -107,10 +98,8 @@ public class EventService {
         Event saved = eventRepository.save(event);
         log.info("Event {} approved by admin {}", id, adminId);
 
-        // Notify organizer
         try {
-            notificationService.sendEventApproved(
-                    event.getOrganizerId(), event);
+            notificationService.sendEventApproved(event.getOrganizerId(), event);
         } catch (Exception e) {
             log.warn("Could not send approval notification: {}", e.getMessage());
         }
@@ -120,14 +109,12 @@ public class EventService {
 
     // ── REJECT (ADMIN only) ───────────────────────────────────────────────
     @Transactional
-    public EventResponse rejectEvent(Long id, Integer adminId,
-                                     String reason) {
+    public EventResponse rejectEvent(Long id, Integer adminId, String reason) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
 
         if (event.getStatus() != EventStatus.EN_ATTENTE_VALIDATION) {
-            throw new ForbiddenException(
-                    "Seuls les événements en attente peuvent être rejetés.");
+            throw new ForbiddenException("Seuls les événements en attente peuvent être rejetés.");
         }
 
         event.setStatus(EventStatus.REJETE);
@@ -138,10 +125,8 @@ public class EventService {
         Event saved = eventRepository.save(event);
         log.info("Event {} rejected by admin {} — reason: {}", id, adminId, reason);
 
-        // Notify organizer
         try {
-            notificationService.sendEventRejected(
-                    event.getOrganizerId(), event, reason);
+            notificationService.sendEventRejected(event.getOrganizerId(), event, reason);
         } catch (Exception e) {
             log.warn("Could not send rejection notification: {}", e.getMessage());
         }
@@ -149,30 +134,26 @@ public class EventService {
         return toResponse(saved);
     }
 
-    // ── PUBLISH (after approval) ──────────────────────────────────────────
+    // ── PUBLISH ───────────────────────────────────────────────────────────
     @Transactional
     public EventResponse publishEvent(Long id, Integer userId, String role) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
 
-        // ADMIN can publish from BROUILLON or APPROUVE
-        // MENTOR/PARTENAIRE can only publish from APPROUVE
-        boolean isAdmin = "ROLE_ADMIN".equals(role);
+        // Gateway sends "ADMIN" not "ROLE_ADMIN"
+        boolean isAdmin = "ADMIN".equals(role);
         boolean isOwner = event.getOrganizerId().equals(userId);
 
         if (!isAdmin && !isOwner) {
-            throw new ForbiddenException(
-                    "Vous ne pouvez publier que vos propres événements.");
+            throw new ForbiddenException("Vous ne pouvez publier que vos propres événements.");
         }
 
         if (isAdmin) {
             if (event.getStatus() != EventStatus.BROUILLON &&
                     event.getStatus() != EventStatus.APPROUVE) {
-                throw new ForbiddenException(
-                        "L'événement ne peut pas être publié depuis ce statut.");
+                throw new ForbiddenException("L'événement ne peut pas être publié depuis ce statut.");
             }
         } else {
-            // Non-admin must have admin approval first
             if (event.getStatus() != EventStatus.APPROUVE) {
                 throw new ForbiddenException(
                         "Votre événement doit être approuvé par un admin avant publication.");
@@ -183,15 +164,14 @@ public class EventService {
         return toResponse(eventRepository.save(event));
     }
 
-    // ── GET PENDING EVENTS (admin validation queue) ───────────────────────
+    // ── GET PENDING ───────────────────────────────────────────────────────
     public List<EventResponse> getPendingEvents() {
         return eventRepository
-                .findByStatusOrderBySubmittedAtAsc(
-                        EventStatus.EN_ATTENTE_VALIDATION)
+                .findByStatusOrderBySubmittedAtAsc(EventStatus.EN_ATTENTE_VALIDATION)
                 .stream().map(this::toResponse).toList();
     }
 
-    // ── READ ONE ─────────────────────────────────────────────────────────
+    // ── READ ONE ──────────────────────────────────────────────────────────
     public EventResponse getEventById(Long id) {
         return eventRepository.findById(id)
                 .map(this::toResponse)
@@ -199,14 +179,24 @@ public class EventService {
     }
 
     // ── READ ALL ──────────────────────────────────────────────────────────
-    public List<EventResponse> getAllEvents(EventStatus status,
-                                            EventType type,
-                                            Integer organizerId) {
+    public List<EventResponse> getAllEvents(EventStatus status, EventType type, Integer organizerId) {
         List<Event> events;
-        if (status != null)            events = eventRepository.findByStatus(status);
-        else if (type != null)         events = eventRepository.findByType(type);
-        else if (organizerId != null)  events = eventRepository.findByOrganizerId(organizerId);
-        else                           events = eventRepository.findAll();
+
+        // Support combined filters: organizerId + status or type
+        if (organizerId != null && status != null) {
+            events = eventRepository.findByOrganizerIdAndStatus(organizerId, status);
+        } else if (organizerId != null && type != null) {
+            events = eventRepository.findByOrganizerIdAndType(organizerId, type);
+        } else if (organizerId != null) {
+            events = eventRepository.findByOrganizerId(organizerId);
+        } else if (status != null) {
+            events = eventRepository.findByStatus(status);
+        } else if (type != null) {
+            events = eventRepository.findByType(type);
+        } else {
+            events = eventRepository.findAll();
+        }
+
         return events.stream().map(this::toResponse).toList();
     }
 
@@ -217,16 +207,14 @@ public class EventService {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
 
-        boolean isAdmin = "ROLE_ADMIN".equals(role);
+        // Gateway sends "ADMIN" not "ROLE_ADMIN"
+        boolean isAdmin = "ADMIN".equals(role);
         boolean isOwner = event.getOrganizerId().equals(userId);
 
         if (!isAdmin && !isOwner) {
-            throw new ForbiddenException(
-                    "Vous ne pouvez modifier que vos propres événements.");
+            throw new ForbiddenException("Vous ne pouvez modifier que vos propres événements.");
         }
 
-        // Prevent editing events that are pending/approved/published
-        // unless you are admin
         if (!isAdmin && event.getStatus() == EventStatus.EN_ATTENTE_VALIDATION) {
             throw new ForbiddenException(
                     "Vous ne pouvez pas modifier un événement en cours de validation.");
@@ -241,7 +229,6 @@ public class EventService {
         if (request.getTargetSector() != null) event.setTargetSector(request.getTargetSector());
         if (request.getTargetStage() != null)  event.setTargetStage(request.getTargetStage());
 
-        // Admin can change status directly
         if (isAdmin && request.getStatus() != null) {
             event.setStatus(request.getStatus());
         }
@@ -265,6 +252,26 @@ public class EventService {
 
     // ── MAPPER ────────────────────────────────────────────────────────────
     private EventResponse toResponse(Event event) {
+        String organizerName = "Organisateur #" + event.getOrganizerId();
+        String organizerEmail = null;
+
+        try {
+            UserResponse user = userClient.getUserById(event.getOrganizerId());
+            if (user != null) {
+                String name = user.getName() != null ? user.getName() : "";
+                String prenom = user.getPrenom() != null ? user.getPrenom() : "";
+                String fullName = (name + " " + prenom).trim();
+                organizerName = fullName.isEmpty()
+                        ? "Organisateur #" + event.getOrganizerId()
+                        : fullName;
+                organizerEmail = user.getEmail();
+            }
+        } catch (Throwable t) {
+            // Catches FeignException, HystrixRuntimeException, etc.
+            log.warn("Could not resolve organizer {} for event {}: {}",
+                    event.getOrganizerId(), event.getId(), t.getMessage());
+        }
+
         return EventResponse.builder()
                 .id(event.getId())
                 .title(event.getTitle())
@@ -279,6 +286,8 @@ public class EventService {
                 .targetStage(event.getTargetStage())
                 .organizerId(event.getOrganizerId())
                 .organizerRole(event.getOrganizerRole())
+                .organizerName(organizerName)
+                .organizerEmail(organizerEmail)
                 .createdAt(event.getCreatedAt())
                 .rejectionReason(event.getRejectionReason())
                 .validatedBy(event.getValidatedBy())
