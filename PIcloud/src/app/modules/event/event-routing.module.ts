@@ -8,9 +8,19 @@ import { PendingEventsComponent } from './pages/pending-events/pending-events.co
 import { authGuard } from '../../core/services/auth.guard';
 
 const routes: Routes = [
-  { path: '',         component: EventListComponent },
-  { path: 'new',      component: EventFormComponent },
-  { path: 'speakers', component: SpeakerListComponent },
+  { path: '', component: EventListComponent },
+  {
+    path: 'new',
+    component: EventFormComponent,
+    canActivate: [authGuard],
+    data: { roles: ['ADMIN', 'MENTOR', 'PARTENAIRE'] }
+  },
+  {
+    path: 'speakers',
+    component: SpeakerListComponent,
+    canActivate: [authGuard],
+    data: { roles: ['ADMIN', 'MENTOR', 'PARTENAIRE'] }
+  },
   {
     path: 'pending',
     component: PendingEventsComponent,

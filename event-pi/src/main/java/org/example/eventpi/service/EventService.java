@@ -182,7 +182,6 @@ public class EventService {
     public List<EventResponse> getAllEvents(EventStatus status, EventType type, Integer organizerId) {
         List<Event> events;
 
-        // Support combined filters: organizerId + status or type
         if (organizerId != null && status != null) {
             events = eventRepository.findByOrganizerIdAndStatus(organizerId, status);
         } else if (organizerId != null && type != null) {

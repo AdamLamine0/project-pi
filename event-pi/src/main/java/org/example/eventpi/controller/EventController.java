@@ -121,9 +121,15 @@ public class EventController {
     public ResponseEntity<List<EventResponse>> getAllEvents(
             @RequestParam(required = false) EventStatus status,
             @RequestParam(required = false) EventType type,
-            @RequestParam(required = false) Integer organizerId) {
-        return ResponseEntity.ok(
-                eventService.getAllEvents(status, type, organizerId));
+            @RequestParam(required = false) Integer organizerId,
+            @RequestHeader(value = "X-User-Role", required = false) String role) {
+
+        // Regular users (USER, INVESTISSEUR, or unknown) only see published events
+        if (role == null || (!role.equals("ADMIN") && !role.equals("MENTOR") && !role.equals("PARTENAIRE"))) {
+            return ResponseEntity.ok(eventService.getAllEvents(EventStatus.PUBLIE, type, organizerId));
+        }
+
+        return ResponseEntity.ok(eventService.getAllEvents(status, type, organizerId));
     }
 
     // ── UPDATE ────────────────────────────────────────────────────────────

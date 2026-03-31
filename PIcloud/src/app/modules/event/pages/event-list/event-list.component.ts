@@ -18,9 +18,17 @@ export class EventListComponent implements OnInit {
   selectedStatus: EventStatus | '' = '';
 
   eventTypes: EventType[] = ['WEBINAIRE', 'WORKSHOP', 'PITCH', 'BOOTCAMP', 'CONFERENCE'];
-  eventStatuses: EventStatus[] = [
-    'BROUILLON', 'EN_ATTENTE_VALIDATION', 'APPROUVE', 'PUBLIE', 'REJETE', 'ANNULE', 'TERMINE'
-  ];
+
+  // Admins see all statuses, regular users only see PUBLIE
+  get eventStatuses(): EventStatus[] {
+    if (this.isAdmin()) {
+      return ['BROUILLON', 'EN_ATTENTE_VALIDATION', 'APPROUVE', 'PUBLIE', 'REJETE', 'ANNULE', 'TERMINE'];
+    }
+    if (this.canCreate()) {
+      return ['BROUILLON', 'EN_ATTENTE_VALIDATION', 'APPROUVE', 'PUBLIE', 'REJETE', 'ANNULE', 'TERMINE'];
+    }
+    return ['PUBLIE']; // regular users only
+  }
 
   constructor(
     private eventService: EventService,
@@ -37,16 +45,19 @@ export class EventListComponent implements OnInit {
 
     const role = this.authService.getRole();
     const userId = this.authService.getUserId();
-
     const filters: any = {
-      type:   this.selectedType   || undefined,
+      type:   this.selectedType  || undefined,
       status: this.selectedStatus || undefined
     };
 
-    // Mentor/Partenaire only see their own events
     if (role === 'MENTOR' || role === 'PARTENAIRE') {
+      // Mentor/Partenaire see only their own events
       filters.organizerId = userId;
+    } else if (role === 'USER' || role === '' || !role) {
+      // Regular users and guests see only published events
+      if (!filters.status) filters.status = 'PUBLIE';
     }
+    // ADMIN sees everything — no extra filter
 
     this.eventService.getAll(filters).subscribe({
       next: (data) => { this.events = data; this.loading = false; },
@@ -63,5 +74,9 @@ export class EventListComponent implements OnInit {
 
   onFilterChange(): void { this.loadEvents(); }
 
-  isAdmin(): boolean { return this.authService.getRole() === 'ADMIN'; }
+  isAdmin(): boolean   { return this.authService.getRole() === 'ADMIN'; }
+  canCreate(): boolean {
+    const role = this.authService.getRole();
+    return ['ADMIN', 'MENTOR', 'PARTENAIRE'].includes(role);
+  }
 }
