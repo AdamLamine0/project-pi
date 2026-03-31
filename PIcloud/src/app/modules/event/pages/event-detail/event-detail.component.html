@@ -19,6 +19,27 @@
         Retour
       </button>
       <div class="header-actions" *ngIf="canEdit()">
+
+        <!-- Rejection banner -->
+        <div class="rejection-banner" *ngIf="event.status === 'REJETE' && event.rejectionReason">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Rejeté : {{ event.rejectionReason }}
+        </div>
+
+        <!-- Submit for validation — Mentor/Partenaire on BROUILLON -->
+        <button class="btn-submit-validation" *ngIf="canSubmit()"
+                (click)="submitForValidation()" [disabled]="isSubmitting">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          {{ isSubmitting ? 'Soumission...' : 'Soumettre pour validation' }}
+        </button>
+
+        <!-- Publish — Admin on BROUILLON/APPROUVE, owner on APPROUVE -->
+        <button class="btn-publish" *ngIf="canPublish()"
+                (click)="publishEvent()" [disabled]="isPublishing">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          {{ isPublishing ? 'Publication...' : 'Publier' }}
+        </button>
+
         <button class="btn-edit" (click)="editEvent()">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           Modifier
@@ -51,22 +72,16 @@
 
     <!-- Tabs -->
     <div class="tabs-bar">
-      <button class="tab-btn" [class.active]="activeTab === 'apercu'"
-        (click)="activeTab = 'apercu'">Aperçu</button>
-      <button class="tab-btn" [class.active]="activeTab === 'programme'"
-        (click)="activeTab = 'programme'">
-        Programme
-        <span class="tab-count" *ngIf="program.length">{{ program.length }}</span>
+      <button class="tab-btn" [class.active]="activeTab === 'apercu'" (click)="activeTab = 'apercu'">Aperçu</button>
+      <button class="tab-btn" [class.active]="activeTab === 'programme'" (click)="activeTab = 'programme'">
+        Programme <span class="tab-count" *ngIf="program.length">{{ program.length }}</span>
       </button>
-      <button class="tab-btn" [class.active]="activeTab === 'intervenants'"
-        (click)="activeTab = 'intervenants'">
-        Intervenants
-        <span class="tab-count" *ngIf="speakers.length">{{ speakers.length }}</span>
+      <button class="tab-btn" [class.active]="activeTab === 'intervenants'" (click)="activeTab = 'intervenants'">
+        Intervenants <span class="tab-count" *ngIf="speakers.length">{{ speakers.length }}</span>
       </button>
       <button class="tab-btn" [class.active]="activeTab === 'inscriptions'"
         *ngIf="canEdit()" (click)="activeTab = 'inscriptions'">
-        Inscriptions
-        <span class="tab-count" *ngIf="registrations.length">{{ registrations.length }}</span>
+        Inscriptions <span class="tab-count" *ngIf="registrations.length">{{ registrations.length }}</span>
       </button>
     </div>
 
@@ -113,16 +128,31 @@
         <aside class="detail-sidebar">
           <div class="sidebar-card">
             <div class="sidebar-title">Détails</div>
-            <div class="sidebar-row"><span class="sr-label">Statut</span>
-              <span class="status-badge sm" [ngClass]="getStatusClass()">{{ getStatusLabel() }}</span></div>
+            <div class="sidebar-row">
+              <span class="sr-label">Statut</span>
+              <span class="status-badge sm" [ngClass]="getStatusClass()">{{ getStatusLabel() }}</span>
+            </div>
             <div class="sidebar-row" *ngIf="event.locationType">
-              <span class="sr-label">Format</span><span class="sr-value">{{ event.locationType }}</span></div>
+              <span class="sr-label">Format</span><span class="sr-value">{{ event.locationType }}</span>
+            </div>
             <div class="sidebar-row" *ngIf="event.capacityMax">
-              <span class="sr-label">Places</span><span class="sr-value">{{ event.capacityMax }}</span></div>
+              <span class="sr-label">Places</span><span class="sr-value">{{ event.capacityMax }}</span>
+            </div>
             <div class="sidebar-row">
-              <span class="sr-label">Intervenants</span><span class="sr-value">{{ speakers.length }}</span></div>
+              <span class="sr-label">Intervenants</span><span class="sr-value">{{ speakers.length }}</span>
+            </div>
             <div class="sidebar-row">
-              <span class="sr-label">Créneaux</span><span class="sr-value">{{ program.length }}</span></div>
+              <span class="sr-label">Créneaux</span><span class="sr-value">{{ program.length }}</span>
+            </div>
+            <!-- Submitted/validated info -->
+            <div class="sidebar-row" *ngIf="event.submittedAt">
+              <span class="sr-label">Soumis le</span>
+              <span class="sr-value">{{ formatDate(event.submittedAt) }}</span>
+            </div>
+            <div class="sidebar-row" *ngIf="event.validatedAt">
+              <span class="sr-label">Validé le</span>
+              <span class="sr-value">{{ formatDate(event.validatedAt) }}</span>
+            </div>
           </div>
 
           <!-- Registration button -->
@@ -130,12 +160,12 @@
             <div *ngIf="!myRegistration">
               <button class="btn-register-event" (click)="register()" [disabled]="isRegistering">
                 <span class="spinner-sm" *ngIf="isRegistering"></span>
-                {{ isRegistering ? 'Inscription...' : 'S\'inscrire à l\'événement' }}
+                {{ isRegistering ? 'Inscription...' : "S'inscrire à l'événement" }}
               </button>
             </div>
             <div *ngIf="myRegistration" class="my-reg-card">
               <div class="my-reg-status" [ngClass]="getRegistrationStatusClass(myRegistration.status)">
-                {{ myRegistration.status === 'LISTE_ATTENTE' ? 'Sur la liste d\'attente' :
+                {{ myRegistration.status === 'LISTE_ATTENTE' ? "Sur la liste d'attente" :
                    myRegistration.status === 'PRESENT' ? 'Présence confirmée' :
                    myRegistration.status === 'ANNULE' ? 'Inscription annulée' : 'Inscrit' }}
               </div>
@@ -146,6 +176,18 @@
               </button>
             </div>
           </ng-container>
+
+          <!-- Pending validation notice for owner -->
+          <div class="pending-notice" *ngIf="event.status === 'EN_ATTENTE_VALIDATION'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            En attente de validation par un administrateur.
+          </div>
+
+          <!-- Approved notice for owner -->
+          <div class="approved-notice" *ngIf="event.status === 'APPROUVE' && !isAdmin">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            Approuvé ! Vous pouvez maintenant publier l'événement.
+          </div>
         </aside>
       </div>
     </div>
@@ -159,8 +201,6 @@
           Ajouter un créneau
         </button>
       </div>
-
-      <!-- Program form -->
       <div class="inline-form" *ngIf="showProgramForm">
         <div class="inline-form-grid">
           <div class="field-group full">
@@ -192,18 +232,10 @@
         </div>
         <div class="inline-form-actions">
           <button class="btn-cancel-sm" (click)="showProgramForm = false">Annuler</button>
-          <button class="btn-save-sm" (click)="saveSlot()">
-            {{ editingSlot ? 'Mettre à jour' : 'Ajouter' }}
-          </button>
+          <button class="btn-save-sm" (click)="saveSlot()">{{ editingSlot ? 'Mettre à jour' : 'Ajouter' }}</button>
         </div>
       </div>
-
-      <!-- Empty -->
-      <div class="empty-tab" *ngIf="program.length === 0 && !showProgramForm">
-        <p>Aucun créneau pour l'instant.</p>
-      </div>
-
-      <!-- Slots list -->
+      <div class="empty-tab" *ngIf="program.length === 0 && !showProgramForm"><p>Aucun créneau pour l'instant.</p></div>
       <div class="program-list">
         <div class="program-slot" *ngFor="let slot of program">
           <div class="slot-time">
@@ -234,20 +266,12 @@
     <div class="tab-content" *ngIf="activeTab === 'intervenants'">
       <div class="tab-header">
         <h2 class="tab-title">Intervenants</h2>
-       <a class="btn-add" [routerLink]="['/events/speakers']"
-   [queryParams]="{eventId: event.id}">
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <line x1="12" y1="5" x2="12" y2="19"/>
-    <line x1="5" y1="12" x2="19" y2="12"/>
-  </svg>
-  Gérer les intervenants
-</a>
+        <a class="btn-add" [routerLink]="['/events/speakers']" [queryParams]="{eventId: event.id}">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Gérer les intervenants
+        </a>
       </div>
-
-      <div class="empty-tab" *ngIf="speakers.length === 0">
-        <p>Aucun intervenant assigné.</p>
-      </div>
-
+      <div class="empty-tab" *ngIf="speakers.length === 0"><p>Aucun intervenant assigné.</p></div>
       <div class="speakers-grid">
         <div class="speaker-card" *ngFor="let speaker of speakers">
           <div class="speaker-avatar">
@@ -274,31 +298,19 @@
         <h2 class="tab-title">Inscriptions</h2>
         <span class="reg-summary">{{ registrations.length }} inscrits</span>
       </div>
-
-      <div class="empty-tab" *ngIf="registrations.length === 0">
-        <p>Aucune inscription pour l'instant.</p>
-      </div>
-
+      <div class="empty-tab" *ngIf="registrations.length === 0"><p>Aucune inscription pour l'instant.</p></div>
       <div class="reg-table" *ngIf="registrations.length > 0">
         <div class="reg-row reg-header">
-          <span>Utilisateur</span>
-          <span>Statut</span>
-          <span>Inscription</span>
-          <span>Check-in</span>
-          <span *ngIf="isAdmin">Actions</span>
+          <span>Utilisateur</span><span>Statut</span><span>Inscription</span>
+          <span>Check-in</span><span *ngIf="isAdmin">Actions</span>
         </div>
         <div class="reg-row" *ngFor="let reg of registrations">
           <span class="reg-user">#{{ reg.userId }}</span>
-          <span class="reg-status-badge" [ngClass]="getRegistrationStatusClass(reg.status)">
-            {{ reg.status }}
-          </span>
+          <span class="reg-status-badge" [ngClass]="getRegistrationStatusClass(reg.status)">{{ reg.status }}</span>
           <span class="reg-date">{{ formatDate(reg.registeredAt) }}</span>
-          <span class="reg-checkin">
-            {{ reg.attended ? formatTime(reg.checkInTime!) : '—' }}
-          </span>
+          <span class="reg-checkin">{{ reg.attended ? formatTime(reg.checkInTime!) : '—' }}</span>
           <span *ngIf="isAdmin">
-            <button class="btn-checkin" *ngIf="!reg.attended && reg.status === 'INSCRIT'"
-              (click)="checkIn(reg.id)">Check-in</button>
+            <button class="btn-checkin" *ngIf="!reg.attended && reg.status === 'INSCRIT'" (click)="checkIn(reg.id)">Check-in</button>
             <span class="checked-badge" *ngIf="reg.attended">✓</span>
           </span>
         </div>

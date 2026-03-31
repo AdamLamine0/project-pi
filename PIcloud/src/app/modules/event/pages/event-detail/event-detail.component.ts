@@ -28,6 +28,8 @@ export class EventDetailComponent implements OnInit {
   successMessage = '';
   isAdmin = false;
   isDeleting = false;
+  isSubmitting = false;
+  isPublishing = false;
   showDeleteConfirm = false;
   isRegistering = false;
 
@@ -54,8 +56,8 @@ export class EventDetailComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const role = this.authService.getRole();
-    this.isAdmin = role === 'ROLE_ADMIN' || role === 'ADMIN';
+    // role is now always normalized: 'ADMIN', 'MENTOR', 'PARTENAIRE', 'USER'
+    this.isAdmin = this.authService.getRole() === 'ADMIN';
     const id = this.route.snapshot.paramMap.get('id');
     if (id) this.loadAll(+id);
   }
@@ -79,36 +81,25 @@ export class EventDetailComponent implements OnInit {
   }
 
   loadSpeakers(id: number): void {
-    this.speakerService.getByEvent(id).subscribe({
-      next: (s) => this.speakers = s,
-      error: () => {}
-    });
+    this.speakerService.getByEvent(id).subscribe({ next: (s) => this.speakers = s, error: () => {} });
   }
 
   loadProgram(id: number): void {
-    this.programService.getByEvent(id).subscribe({
-      next: (p) => this.program = p,
-      error: () => {}
-    });
+    this.programService.getByEvent(id).subscribe({ next: (p) => this.program = p, error: () => {} });
   }
 
   loadRegistrations(id: number): void {
-    this.registrationService.getByEvent(id).subscribe({
-      next: (r) => this.registrations = r,
-      error: () => {}
-    });
+    this.registrationService.getByEvent(id).subscribe({ next: (r) => this.registrations = r, error: () => {} });
   }
 
   loadMyRegistration(id: number): void {
     this.registrationService.getMyRegistrations().subscribe({
-      next: (regs) => {
-        this.myRegistration = regs.find(r => r.eventId === id) || null;
-      },
+      next: (regs) => { this.myRegistration = regs.find(r => r.eventId === id) || null; },
       error: () => {}
     });
   }
 
-  // ── REGISTRATION ───────────────────────────────
+  // ── REGISTRATION ──────────────────────────────────────────────────────
   register(): void {
     if (!this.event) return;
     this.isRegistering = true;
@@ -117,14 +108,11 @@ export class EventDetailComponent implements OnInit {
         this.myRegistration = reg;
         this.isRegistering = false;
         this.successMessage = reg.status === 'LISTE_ATTENTE'
-          ? 'Vous êtes sur la liste d\'attente.'
+          ? "Vous êtes sur la liste d'attente."
           : 'Inscription confirmée !';
         if (this.canEdit()) this.loadRegistrations(this.event!.id);
       },
-      error: () => {
-        this.errorMessage = 'Échec de l\'inscription.';
-        this.isRegistering = false;
-      }
+      error: () => { this.errorMessage = "Échec de l'inscription."; this.isRegistering = false; }
     });
   }
 
@@ -138,10 +126,7 @@ export class EventDetailComponent implements OnInit {
         this.successMessage = 'Inscription annulée.';
         if (this.canEdit()) this.loadRegistrations(this.event!.id);
       },
-      error: () => {
-        this.errorMessage = 'Échec de l\'annulation.';
-        this.isRegistering = false;
-      }
+      error: () => { this.errorMessage = "Échec de l'annulation."; this.isRegistering = false; }
     });
   }
 
@@ -155,7 +140,7 @@ export class EventDetailComponent implements OnInit {
     });
   }
 
-  // ── PROGRAM ─────────────────────────────────────
+  // ── PROGRAM ───────────────────────────────────────────────────────────
   openAddSlot(): void {
     this.editingSlot = null;
     this.programForm = { title: '', description: '', type: 'PRESENTATION', startTime: '', endTime: '', orderIndex: this.program.length };
@@ -165,9 +150,7 @@ export class EventDetailComponent implements OnInit {
   openEditSlot(slot: EventProgram): void {
     this.editingSlot = slot;
     this.programForm = {
-      title: slot.title,
-      description: slot.description,
-      type: slot.type,
+      title: slot.title, description: slot.description, type: slot.type,
       startTime: slot.startTime ? slot.startTime.substring(0, 16) : '',
       endTime: slot.endTime ? slot.endTime.substring(0, 16) : '',
       orderIndex: slot.orderIndex
@@ -178,7 +161,6 @@ export class EventDetailComponent implements OnInit {
   saveSlot(): void {
     if (!this.event || !this.programForm.title) return;
     const request = { ...this.programForm, type: this.programForm.type as any };
-
     if (this.editingSlot) {
       this.programService.update(this.event.id, this.editingSlot.id, request).subscribe({
         next: (updated) => {
@@ -207,7 +189,7 @@ export class EventDetailComponent implements OnInit {
     });
   }
 
-  // ── SPEAKERS ────────────────────────────────────
+  // ── SPEAKERS ──────────────────────────────────────────────────────────
   unlinkSpeaker(speakerId: number): void {
     if (!this.event) return;
     this.speakerService.unlinkFromEvent(this.event.id, speakerId).subscribe({
@@ -216,15 +198,64 @@ export class EventDetailComponent implements OnInit {
     });
   }
 
-  // ── EVENT CRUD ──────────────────────────────────
+  // ── EVENT WORKFLOW ────────────────────────────────────────────────────
+  // role is normalized so no ROLE_ prefix needed anywhere
   canEdit(): boolean {
     const role = this.authService.getRole();
-    return ['ROLE_ADMIN', 'ADMIN', 'ROLE_MENTOR', 'MENTOR', 'ROLE_PARTENAIRE', 'PARTENAIRE'].includes(role);
+    return ['ADMIN', 'MENTOR', 'PARTENAIRE'].includes(role);
+  }
+
+  canSubmit(): boolean {
+    if (!this.event) return false;
+    const role = this.authService.getRole();
+    const isOwner = this.event.organizerId === this.authService.getUserId();
+    return isOwner
+      && ['MENTOR', 'PARTENAIRE'].includes(role)
+      && this.event.status === 'BROUILLON';
+  }
+
+  canPublish(): boolean {
+    if (!this.event) return false;
+    const role = this.authService.getRole();
+    const isOwner = this.event.organizerId === this.authService.getUserId();
+    if (role === 'ADMIN') {
+      return this.event.status === 'BROUILLON' || this.event.status === 'APPROUVE';
+    }
+    return isOwner && this.event.status === 'APPROUVE';
+  }
+
+  submitForValidation(): void {
+    if (!this.event) return;
+    this.isSubmitting = true;
+    this.errorMessage = '';
+    this.eventService.submit(this.event.id).subscribe({
+      next: (updated) => {
+        this.event = updated;
+        this.isSubmitting = false;
+        this.successMessage = 'Événement soumis pour validation. Vous serez notifié par email.';
+      },
+      error: () => { this.errorMessage = 'Échec de la soumission.'; this.isSubmitting = false; }
+    });
+  }
+
+  publishEvent(): void {
+    if (!this.event) return;
+    this.isPublishing = true;
+    this.errorMessage = '';
+    this.eventService.publish(this.event.id).subscribe({
+      next: (updated) => {
+        this.event = updated;
+        this.isPublishing = false;
+        this.successMessage = 'Événement publié avec succès !';
+      },
+      error: () => { this.errorMessage = 'Échec de la publication.'; this.isPublishing = false; }
+    });
   }
 
   editEvent(): void { this.router.navigate(['/events', this.event?.id, 'edit']); }
   confirmDelete(): void { this.showDeleteConfirm = true; }
   cancelDelete(): void { this.showDeleteConfirm = false; }
+  goBack(): void { this.router.navigate(['/events']); }
 
   deleteEvent(): void {
     if (!this.event) return;
@@ -239,34 +270,38 @@ export class EventDetailComponent implements OnInit {
     });
   }
 
-  goBack(): void { this.router.navigate(['/events']); }
-
-  // ── HELPERS ─────────────────────────────────────
+  // ── HELPERS ───────────────────────────────────────────────────────────
   getStatusClass(): string {
     switch (this.event?.status) {
-      case 'PUBLIE':  return 'status-publie';
-      case 'ANNULE':  return 'status-annule';
-      case 'TERMINE': return 'status-termine';
-      default:        return 'status-brouillon';
+      case 'PUBLIE':                return 'status-publie';
+      case 'ANNULE':                return 'status-annule';
+      case 'TERMINE':               return 'status-termine';
+      case 'EN_ATTENTE_VALIDATION': return 'status-pending';
+      case 'APPROUVE':              return 'status-approuve';
+      case 'REJETE':                return 'status-rejete';
+      default:                      return 'status-brouillon';
     }
   }
 
   getStatusLabel(): string {
     switch (this.event?.status) {
-      case 'PUBLIE':  return 'Publié';
-      case 'ANNULE':  return 'Annulé';
-      case 'TERMINE': return 'Terminé';
-      default:        return 'Brouillon';
+      case 'PUBLIE':                return 'Publié';
+      case 'ANNULE':                return 'Annulé';
+      case 'TERMINE':               return 'Terminé';
+      case 'EN_ATTENTE_VALIDATION': return 'En attente de validation';
+      case 'APPROUVE':              return 'Approuvé';
+      case 'REJETE':                return 'Rejeté';
+      default:                      return 'Brouillon';
     }
   }
 
   getSlotTypeColor(type: string): string {
     switch (type) {
-      case 'KEYNOTE':      return 'slot-keynote';
-      case 'WORKSHOP':     return 'slot-workshop';
-      case 'BREAK':        return 'slot-break';
-      case 'QA':           return 'slot-qa';
-      default:             return 'slot-presentation';
+      case 'KEYNOTE':  return 'slot-keynote';
+      case 'WORKSHOP': return 'slot-workshop';
+      case 'BREAK':    return 'slot-break';
+      case 'QA':       return 'slot-qa';
+      default:         return 'slot-presentation';
     }
   }
 
@@ -282,8 +317,8 @@ export class EventDetailComponent implements OnInit {
   formatDate(date: string): string {
     if (!date) return '—';
     return new Date(date).toLocaleDateString('fr-FR', {
-      weekday: 'long', year: 'numeric', month: 'long',
-      day: 'numeric', hour: '2-digit', minute: '2-digit'
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+      hour: '2-digit', minute: '2-digit'
     });
   }
 

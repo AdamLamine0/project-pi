@@ -18,21 +18,15 @@ export class EventService {
     return this.http.get<Event[]>(this.api, { params });
   }
 
-  getById(id: number): Observable<Event> {
-    return this.http.get<Event>(`${this.api}/${id}`);
-  }
-
-  create(event: EventRequest): Observable<Event> {
-    return this.http.post<Event>(this.api, event);
-  }
-
-  update(id: number, event: UpdateEventRequest): Observable<Event> {
-    return this.http.put<Event>(`${this.api}/${id}`, event);
-  }
-
-  delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.api}/${id}`);
-  }
+  getById(id: number): Observable<Event>  { return this.http.get<Event>(`${this.api}/${id}`); }
+  create(event: EventRequest): Observable<Event> { return this.http.post<Event>(this.api, event); }
+  update(id: number, event: UpdateEventRequest): Observable<Event> { return this.http.put<Event>(`${this.api}/${id}`, event); }
+  delete(id: number): Observable<void>    { return this.http.delete<void>(`${this.api}/${id}`); }
+  submit(id: number): Observable<Event>   { return this.http.patch<Event>(`${this.api}/${id}/submit`, {}); }
+  publish(id: number): Observable<Event>  { return this.http.patch<Event>(`${this.api}/${id}/publish`, {}); }
+  getPending(): Observable<Event[]>       { return this.http.get<Event[]>(`${this.api}/pending`); }
+  approve(id: number): Observable<Event>  { return this.http.patch<Event>(`${this.api}/${id}/approve`, {}); }
+  reject(id: number, reason: string): Observable<Event> { return this.http.patch<Event>(`${this.api}/${id}/reject`, { reason }); }
 
   uploadImage(file: File): Observable<{ url: string }> {
     const formData = new FormData();

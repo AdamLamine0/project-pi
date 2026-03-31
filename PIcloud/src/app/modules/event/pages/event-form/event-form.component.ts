@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EventService } from '../../../../services/event.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { EventType, LocationType, EventStatus } from '../../../../models/event';
 
 @Component({
@@ -22,7 +23,11 @@ export class EventFormComponent implements OnInit {
 
   eventTypes: EventType[] = ['WEBINAIRE', 'WORKSHOP', 'PITCH', 'BOOTCAMP', 'CONFERENCE'];
   locationTypes: LocationType[] = ['PRESENTIEL', 'DISTANCIEL', 'HYBRIDE'];
-  eventStatuses: EventStatus[] = ['BROUILLON', 'PUBLIE', 'ANNULE', 'TERMINE'];
+
+  // All statuses — only shown to admin
+  eventStatuses: EventStatus[] = [
+    'BROUILLON', 'EN_ATTENTE_VALIDATION', 'APPROUVE', 'PUBLIE', 'REJETE', 'ANNULE', 'TERMINE'
+  ];
 
   sectorInput = '';
   stageInput = '';
@@ -31,7 +36,8 @@ export class EventFormComponent implements OnInit {
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private eventService: EventService
+    private eventService: EventService,
+    public authService: AuthService
   ) {
     this.form = this.fb.group({
       title:        ['', [Validators.required, Validators.maxLength(200)]],
@@ -56,6 +62,11 @@ export class EventFormComponent implements OnInit {
     }
   }
 
+  // Only admins can change status directly
+  isAdmin(): boolean {
+    return this.authService.getRole() === 'ADMIN';
+  }
+
   loadEvent(id: number): void {
     this.isLoading = true;
     this.eventService.getById(id).subscribe({
@@ -64,40 +75,29 @@ export class EventFormComponent implements OnInit {
           ...event,
           startDate: event.startDate ? event.startDate.substring(0, 16) : ''
         });
-        if (event.coverImageUrl) {
-          this.imagePreview = event.coverImageUrl;
-        }
+        if (event.coverImageUrl) this.imagePreview = event.coverImageUrl;
         this.isLoading = false;
       },
       error: () => {
-        this.errorMessage = 'Impossible de charger l\'événement.';
+        this.errorMessage = "Impossible de charger l'événement.";
         this.isLoading = false;
       }
     });
   }
 
-  // ── IMAGE UPLOAD ──────────────────────────
-  onFileSelected(event: Event): void {
+  onFileSelected(event: any): void {
     const input = event.target as HTMLInputElement;
     if (!input.files?.length) return;
     const file = input.files[0];
 
-    // Preview
     const reader = new FileReader();
     reader.onload = () => this.imagePreview = reader.result as string;
     reader.readAsDataURL(file);
 
-    // Upload
     this.isUploading = true;
     this.eventService.uploadImage(file).subscribe({
-      next: (res) => {
-        this.form.patchValue({ coverImageUrl: res.url });
-        this.isUploading = false;
-      },
-      error: () => {
-        this.errorMessage = 'Échec du téléchargement de l\'image.';
-        this.isUploading = false;
-      }
+      next: (res) => { this.form.patchValue({ coverImageUrl: res.url }); this.isUploading = false; },
+      error: () => { this.errorMessage = "Échec du téléchargement de l'image."; this.isUploading = false; }
     });
   }
 
@@ -106,14 +106,11 @@ export class EventFormComponent implements OnInit {
     this.form.patchValue({ coverImageUrl: '' });
   }
 
-  // ── TAGS (sector / stage) ─────────────────
   addSector(): void {
     const val = this.sectorInput.trim();
     if (!val) return;
     const current: string[] = this.form.value.targetSector || [];
-    if (!current.includes(val)) {
-      this.form.patchValue({ targetSector: [...current, val] });
-    }
+    if (!current.includes(val)) this.form.patchValue({ targetSector: [...current, val] });
     this.sectorInput = '';
   }
 
@@ -126,9 +123,7 @@ export class EventFormComponent implements OnInit {
     const val = this.stageInput.trim();
     if (!val) return;
     const current: string[] = this.form.value.targetStage || [];
-    if (!current.includes(val)) {
-      this.form.patchValue({ targetStage: [...current, val] });
-    }
+    if (!current.includes(val)) this.form.patchValue({ targetStage: [...current, val] });
     this.stageInput = '';
   }
 
@@ -137,20 +132,11 @@ export class EventFormComponent implements OnInit {
     this.form.patchValue({ targetStage: current.filter(x => x !== s) });
   }
 
-  onSectorKeydown(e: KeyboardEvent): void {
-    if (e.key === 'Enter') { e.preventDefault(); this.addSector(); }
-  }
+  onSectorKeydown(e: KeyboardEvent): void { if (e.key === 'Enter') { e.preventDefault(); this.addSector(); } }
+  onStageKeydown(e: KeyboardEvent): void  { if (e.key === 'Enter') { e.preventDefault(); this.addStage(); } }
 
-  onStageKeydown(e: KeyboardEvent): void {
-    if (e.key === 'Enter') { e.preventDefault(); this.addStage(); }
-  }
-
-  // ── SUBMIT ────────────────────────────────
   onSubmit(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
+    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
 
     this.isLoading = true;
     this.errorMessage = '';
@@ -176,7 +162,5 @@ export class EventFormComponent implements OnInit {
     });
   }
 
-  cancel(): void {
-    this.router.navigate(['/events']);
-  }
+  cancel(): void { this.router.navigate(['/events']); }
 }
