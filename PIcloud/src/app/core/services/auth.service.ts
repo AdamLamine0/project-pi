@@ -88,6 +88,25 @@ export class AuthService {
   isUser(): boolean {
     return this.getRole() === Role.USER;
   }
+  isEntrepreneur(): boolean {
+  return this.getRole() === Role.ENTREPRENEUR;
+}
+
+isInvestisseur(): boolean {
+  return this.getRole() === Role.INVESTISSEUR;
+}
+
+isEtudiant(): boolean {
+  return this.getRole() === Role.ETUDIANT;
+}
+
+isMentor(): boolean {
+  return this.getRole() === Role.MENTOR;
+}
+
+isPartenaire(): boolean {
+  return this.getRole() === Role.PARTENAIRE;
+}
 
   private decodeToken(token: string): any {
     try {

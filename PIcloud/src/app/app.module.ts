@@ -9,6 +9,7 @@ import { NavbarComponent } from './core/components/navbar/navbar.component';
 import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
 import { RouterModule } from '@angular/router';
 import { HomeComponent } from './modules/home/home.component';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 
 @NgModule({
   declarations: [
@@ -23,7 +24,8 @@ import { HomeComponent } from './modules/home/home.component';
     FormsModule
   ],
   providers: [
-    provideHttpClient(withInterceptors([jwtInterceptor]))
+    provideHttpClient(withInterceptors([jwtInterceptor])),
+    provideAnimationsAsync('noop')
   ],
   bootstrap: [AppComponent]
 })

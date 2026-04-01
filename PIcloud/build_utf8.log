@@ -1,0 +1,1433 @@
+﻿[33mΓ¥»[39m Building...
+[32mΓ£ö[39m Building...
+Application bundle generation failed. [4.833 seconds]
+
+node.exe : 
+[1m[31m[31mX [41;31m
+[[41;97mERROR[41;31m]
+[0m [1mNG8001: 
+'mat-icon' is not a 
+known element:
+At C:\Program 
+Files\nodejs\npx.ps1:29 
+char:3
++   & $NODE_EXE 
+$NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~
+    + CategoryInfo      
+        : NotSpecified  
+  : ([1m[31m[31mX.   
+ .. known element::S    
+tring) [], RemoteEx    
+ception
+    + FullyQualifiedErr 
+   orId : NativeComman  
+  dError
+ 
+1. If 'mat-icon' is an 
+Angular component, then 
+verify that it is part 
+of this module.
+2. If 'mat-icon' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/g
+roup-list/group-list.com
+ponent.ts:21:12:
+[37m      21 Γöé       
+      [32m<mat-icon cla
+ss="hero-icon">[37mwork
+spaces</mat-icon>
+         Γò╡            
+ [32m~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8004: No pipe 
+found with name 
+'slice'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/g
+roup-list/group-list.com
+ponent.ts:28:57:
+[37m      28 Γöé 
+...desc">{{ 
+group.description | 
+[32mslice[37m:0:100 
+}}{{ 
+group.description...
+         Γò╡            
+                     
+[32m~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 'mat-icon' 
+is not a known element:
+1. If 'mat-icon' is an 
+Angular component, then 
+verify that it is part 
+of this module.
+2. If 'mat-icon' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/g
+roup-list/group-list.com
+ponent.ts:33:14:
+[37m      33 Γöé       
+        [32m<mat-icon>
+[37mpeople</mat-icon>
+         Γò╡            
+   [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 'mat-icon' 
+is not a known element:
+1. If 'mat-icon' is an 
+Angular component, then 
+verify that it is part 
+of this module.
+2. If 'mat-icon' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-card/post-card.compo
+nent.ts:9:35:
+[37m      9 Γöé        
+ <div class="author-avat
+ar">[32m<mat-icon>[37m
+person</mat-icon></div>
+        Γò╡             
+                       
+[32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8004: No pipe 
+found with name 
+'date'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-card/post-card.compo
+nent.ts:14:51:
+[37m      14 Γöé 
+...span class="date">{{ 
+post.createdAt | 
+[32mdate[37m:'dd MMM 
+yyyy' }}</span>
+         Γò╡            
+                        
+      [32m~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8004: No pipe 
+found with name 
+'slice'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-card/post-card.compo
+nent.ts:23:29:
+[37m      23 Γöé       
+  <p>{{ post.content | 
+[32mslice[37m:0:150 
+}}{{ 
+post.content.length ...
+         Γò╡            
+                  
+[32m~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 'mat-icon' 
+is not a known element:
+1. If 'mat-icon' is an 
+Angular component, then 
+verify that it is part 
+of this module.
+2. If 'mat-icon' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-card/post-card.compo
+nent.ts:31:10:
+[37m      31 Γöé       
+    [32m<mat-icon [clas
+s.liked]="post.likesCoun
+t > 
+0">[37mthumb_up</...
+         Γò╡           
+[32m~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
+~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 'mat-icon' 
+is not a known element:
+1. If 'mat-icon' is an 
+Angular component, then 
+verify that it is part 
+of this module.
+2. If 'mat-icon' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-card/post-card.compo
+nent.ts:35:10:
+[37m      35 Γöé       
+    [32m<mat-icon>[37m
+chat_bubble_outline</mat
+-icon>
+         Γò╡           
+[32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 'mat-icon' 
+is not a known element:
+1. If 'mat-icon' is an 
+Angular component, then 
+verify that it is part 
+of this module.
+2. If 'mat-icon' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-card/post-card.compo
+nent.ts:39:10:
+[37m      39 Γöé       
+    [32m<mat-icon>[37m
+visibility</mat-icon>
+         Γò╡           
+[32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 'mat-icon' 
+is not a known element:
+1. If 'mat-icon' is an 
+Angular component, then 
+verify that it is part 
+of this module.
+2. If 'mat-icon' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-create/post-create.c
+omponent.ts:13:8:
+[37m      13 Γöé       
+  [32m<mat-icon>[37mar
+row_back</mat-icon>
+         Γò╡         
+[32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 'mat-icon' 
+is not a known element:
+1. If 'mat-icon' is an 
+Angular component, then 
+verify that it is part 
+of this module.
+2. If 'mat-icon' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-create/post-create.c
+omponent.ts:18:10:
+[37m      18 Γöé       
+    [32m<mat-icon class
+="header-icon">[37medit
+_square</mat-icon>
+         Γò╡           
+[32m~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8002: Can't bind 
+to 'formGroup' since it 
+isn't a known property 
+of 'form'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-create/post-create.c
+omponent.ts:26:16:
+[37m      26 Γöé       
+    <form [32m[formGrou
+p]="form"[37m 
+(ngSubmit)="submit()" 
+class="po...
+         Γò╡            
+     [32m~~~~~~~~~~~~~~
+~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 
+'mat-form-field' is not 
+a known element:
+1. If 'mat-form-field' 
+is an Angular 
+component, then verify 
+that it is part of this 
+module.
+2. If 'mat-form-field' 
+is a Web Component then 
+add 'CUSTOM_ELEMENTS_SCH
+EMA' to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-create/post-create.c
+omponent.ts:28:12:
+[37m      28 Γöé       
+      
+[32m<mat-form-field 
+appearance="outline" cla
+ss="full-width[37m...
+         Γò╡            
+ [32m~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 'mat-label' 
+is not a known element:
+1. If 'mat-label' is an 
+Angular component, then 
+verify that it is part 
+of this module.
+2. If 'mat-label' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-create/post-create.c
+omponent.ts:29:14:
+[37m      29 Γöé       
+        [32m<mat-label>
+[37mTitre de votre 
+post</mat-label>
+         Γò╡            
+   [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 'mat-error' 
+is not a known element:
+1. If 'mat-error' is an 
+Angular component, then 
+verify that it is part 
+of this module.
+2. If 'mat-error' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-create/post-create.c
+omponent.ts:31:14:
+[37m      31 Γöé ...   
+       [32m<mat-error *
+ngIf="form.get('title')?
+.hasError('requir[37m..
+.
+         Γò╡            
+  [32m~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 
+'mat-form-field' is not 
+a known element:
+1. If 'mat-form-field' 
+is an Angular 
+component, then verify 
+that it is part of this 
+module.
+2. If 'mat-form-field' 
+is a Web Component then 
+add 'CUSTOM_ELEMENTS_SCH
+EMA' to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-create/post-create.c
+omponent.ts:34:12:
+[37m      34 Γöé       
+      
+[32m<mat-form-field 
+appearance="outline" cla
+ss="full-width[37m...
+         Γò╡            
+ [32m~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 'mat-label' 
+is not a known element:
+1. If 'mat-label' is an 
+Angular component, then 
+verify that it is part 
+of this module.
+2. If 'mat-label' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-create/post-create.c
+omponent.ts:35:14:
+[37m      35 Γöé       
+        [32m<mat-label>
+[37mSecteur 
+d'activit├⌐</mat-label>
+         Γò╡            
+   [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 
+'mat-select' is not a 
+known element:
+1. If 'mat-select' is 
+an Angular component, 
+then verify that it is 
+part of this module.
+2. If 'mat-select' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-create/post-create.c
+omponent.ts:36:14:
+[37m      36 Γöé ...   
+       [32m<mat-select 
+formControlName="sector"
+ 
+placeholder="Cho[37m...
+         Γò╡            
+  [32m~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 
+'mat-option' is not a 
+known element:
+1. If 'mat-option' is 
+an Angular component, 
+then verify that it is 
+part of this module.
+2. If 'mat-option' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-create/post-create.c
+omponent.ts:37:16:
+[37m      37 Γöé ...   
+       [32m<mat-option 
+*ngFor="let s of 
+sectors" 
+[value]="s">[37m{{ ...
+         Γò╡            
+  [32m~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8002: Can't bind 
+to 'value' since it 
+isn't a known property 
+of 'mat-option'.
+1. If 'mat-option' is 
+an Angular component 
+and it has 'value' 
+input, then verify that 
+it is part of this 
+module.
+2. If 'mat-option' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this message.
+3. To allow any 
+property add 
+'NO_ERRORS_SCHEMA' to 
+the '@NgModule.schemas' 
+of this component.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-create/post-create.c
+omponent.ts:37:54:
+[37m      37 Γöé 
+...-option *ngFor="let 
+s of sectors" [32m[valu
+e]="s"[37m>{{ s 
+}}</mat-option>
+         Γò╡            
+                        
+  [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 
+'mat-form-field' is not 
+a known element:
+1. If 'mat-form-field' 
+is an Angular 
+component, then verify 
+that it is part of this 
+module.
+2. If 'mat-form-field' 
+is a Web Component then 
+add 'CUSTOM_ELEMENTS_SCH
+EMA' to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-create/post-create.c
+omponent.ts:41:12:
+[37m      41 Γöé       
+      
+[32m<mat-form-field 
+appearance="outline" cla
+ss="full-width[37m...
+         Γò╡            
+ [32m~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 'mat-label' 
+is not a known element:
+1. If 'mat-label' is an 
+Angular component, then 
+verify that it is part 
+of this module.
+2. If 'mat-label' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-create/post-create.c
+omponent.ts:42:14:
+[37m      42 Γöé       
+        [32m<mat-label>
+[37mContenu 
+d├⌐taill├⌐</mat-label>
+         Γò╡            
+   [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 'mat-error' 
+is not a known element:
+1. If 'mat-error' is an 
+Angular component, then 
+verify that it is part 
+of this module.
+2. If 'mat-error' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-create/post-create.c
+omponent.ts:44:14:
+[37m      44 Γöé ...   
+       [32m<mat-error *
+ngIf="form.get('content'
+)?.hasError('requ[37m..
+.
+         Γò╡            
+  [32m~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 'mat-icon' 
+is not a known element:
+1. If 'mat-icon' is an 
+Angular component, then 
+verify that it is part 
+of this module.
+2. If 'mat-icon' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-create/post-create.c
+omponent.ts:50:16:
+[37m      50 Γöé       
+          
+[32m<mat-icon *ngIf="!l
+oading">[37msend</mat-i
+con>
+         Γò╡            
+     [32m~~~~~~~~~~~~~~
+~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 'mat-icon' 
+is not a known element:
+1. If 'mat-icon' is an 
+Angular component, then 
+verify that it is part 
+of this module.
+2. If 'mat-icon' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-detail/post-detail.c
+omponent.ts:13:8:
+[37m      13 Γöé       
+  [32m<mat-icon>[37mar
+row_back</mat-icon>
+         Γò╡         
+[32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 'mat-icon' 
+is not a known element:
+1. If 'mat-icon' is an 
+Angular component, then 
+verify that it is part 
+of this module.
+2. If 'mat-icon' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-detail/post-detail.c
+omponent.ts:18:37:
+[37m      18 Γöé ...   
+   <div class="author-av
+atar">[32m<mat-icon>[3
+7mperson</mat-icon></div
+>
+         Γò╡            
+                        
+ [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG1: Object is 
+possibly 'null'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-detail/post-detail.c
+omponent.ts:20:47:
+[37m      20 Γöé       
+      <span 
+class="sector-badge">{{ 
+post.[32msector[37m 
+}}</span>
+         Γò╡            
+                        
+            
+[32m~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG1: Object is 
+possibly 'null'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-detail/post-detail.c
+omponent.ts:21:39:
+[37m      21 Γöé 
+...<span 
+class="date">{{ post.[3
+2mcreatedAt[37m | 
+date:'dd MMM yyyy, 
+HH:mm...
+         Γò╡            
+                   
+[32m~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8004: No pipe 
+found with name 
+'date'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-detail/post-detail.c
+omponent.ts:21:51:
+[37m      21 Γöé 
+...ass="date">{{ 
+post.createdAt | 
+[32mdate[37m:'dd MMM 
+yyyy, HH:mm' }}</span>
+         Γò╡            
+                       
+[32m~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG1: Object is 
+possibly 'null'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-detail/post-detail.c
+omponent.ts:25:39:
+[37m      25 Γöé       
+  <h1 
+class="post-title">{{ 
+post.[32mtitle[37m 
+}}</h1>
+         Γò╡            
+                        
+    [32m~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG1: Object is 
+possibly 'null'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-detail/post-detail.c
+omponent.ts:28:21:
+[37m      28 Γöé       
+    <p>{{ 
+post.[32mcontent[37m 
+}}</p>
+         Γò╡            
+          
+[32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG1: Object is 
+possibly 'null'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-detail/post-detail.c
+omponent.ts:36:87:
+[37m      36 Γöé 
+...ike-btn" 
+(click)="likePost()" [cl
+ass.liked]="post.[32mli
+kesCount[37m > 0">
+         Γò╡            
+                        
+                  
+[32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 'mat-icon' 
+is not a known element:
+1. If 'mat-icon' is an 
+Angular component, then 
+verify that it is part 
+of this module.
+2. If 'mat-icon' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-detail/post-detail.c
+omponent.ts:37:12:
+[37m      37 Γöé       
+      [32m<mat-icon>[3
+7mthumb_up</mat-icon> 
+<span>{{ 
+post.likesCount...
+         Γò╡            
+ [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG1: Object is 
+possibly 'null'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-detail/post-detail.c
+omponent.ts:37:56:
+[37m      37 Γöé ...ico
+n>thumb_up</mat-icon> 
+<span>{{ post.[32mlikes
+Count[37m }} 
+J'aime</span>
+         Γò╡            
+                        
+       
+[32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG1: Object is 
+possibly 'null'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-detail/post-detail.c
+omponent.ts:44:57:
+[37m      44 Γöé ...omm
+ents-title">Commentaires
+ ({{ post.[32mcomments
+[37m.length || 0 
+}})</h3>
+         Γò╡            
+                        
+     [32m~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 'mat-icon' 
+is not a known element:
+1. If 'mat-icon' is an 
+Angular component, then 
+verify that it is part 
+of this module.
+2. If 'mat-icon' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-detail/post-detail.c
+omponent.ts:49:14:
+[37m      49 Γöé       
+        [32m<mat-icon c
+lass="comment-avatar">[
+37maccount_circle</mat..
+.
+         Γò╡            
+   [32m~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8004: No pipe 
+found with name 
+'date'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-detail/post-detail.c
+omponent.ts:51:64:
+[37m      51 Γöé 
+...nt-date">{{ 
+comment.createdAt | 
+[32mdate[37m:'dd MMM 
+yyyy HH:mm' }}</span>
+         Γò╡            
+                        
+[32m~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 
+'mat-form-field' is not 
+a known element:
+1. If 'mat-form-field' 
+is an Angular 
+component, then verify 
+that it is part of this 
+module.
+2. If 'mat-form-field' 
+is a Web Component then 
+add 'CUSTOM_ELEMENTS_SCH
+EMA' to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-detail/post-detail.c
+omponent.ts:59:10:
+[37m      59 Γöé       
+    
+[32m<mat-form-field 
+appearance="outline" 
+class="full-width 
+n[37m...
+         Γò╡           
+[32m~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 'mat-label' 
+is not a known element:
+1. If 'mat-label' is an 
+Angular component, then 
+verify that it is part 
+of this module.
+2. If 'mat-label' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-detail/post-detail.c
+omponent.ts:60:12:
+[37m      60 Γöé       
+      [32m<mat-label>[
+37mVotre 
+r├⌐ponse...</mat-label>
+         Γò╡            
+ [32m~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8002: Can't bind 
+to 'ngModel' since it 
+isn't a known property 
+of 'textarea'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-detail/post-detail.c
+omponent.ts:61:31:
+[37m      61 Γöé ...  
+<textarea matInput [32m
+[(ngModel)]="newComment"
+[37m 
+rows="3"></textarea>
+         Γò╡            
+             [32m~~~~~~
+~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 'mat-icon' 
+is not a known element:
+1. If 'mat-icon' is an 
+Angular component, then 
+verify that it is part 
+of this module.
+2. If 'mat-icon' is a 
+Web Component then add '
+CUSTOM_ELEMENTS_SCHEMA' 
+to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-detail/post-detail.c
+omponent.ts:67:14:
+[37m      67 Γöé       
+        [32m<mat-icon>
+[37msend</mat-icon> 
+R├⌐pondre
+         Γò╡            
+   [32m~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG8001: 
+'mat-progress-spinner' 
+is not a known element:
+1. If 
+'mat-progress-spinner' 
+is an Angular 
+component, then verify 
+that it is part of this 
+module.
+2. If 
+'mat-progress-spinner' 
+is a Web Component then 
+add 'CUSTOM_ELEMENTS_SCH
+EMA' to the 
+'@NgModule.schemas' of 
+this component to 
+suppress this 
+message.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-detail/post-detail.c
+omponent.ts:76:6:
+[37m      76 Γöé       
+[32m<mat-progress-spinn
+er mode="indeterminate">
+[37m</mat-progress-sp..
+.
+         Γò╡       [32m
+~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mTS1127: Invalid 
+character.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-list/post-list.compo
+nent.ts:63:11:
+[37m      63 Γöé   
+styles: [[32m[37m\`
+         Γò╡            
+[32m^[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mSyntax error "`"[0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-list/post-list.compo
+nent.ts:63:12:
+[37m      63 Γöé   
+styles: [\[32m[37m`
+         Γò╡            
+ [32m^[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mTS1160: 
+Unterminated template 
+literal.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/components/p
+ost-list/post-list.compo
+nent.ts:149:1:
+[37m      149 Γöé 
+}[32m[37m
+          Γò╡  
+[32m^[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mTS2305: Module '"./c
+omponents/post-list/post
+-list.component"' has 
+no exported member 'Post
+ListComponent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/forum-routin
+g.module.ts:3:9:
+[37m      3 Γöé import 
+{ [32mPostListComponent
+[37m } from './componen
+ts/post-list/post-list..
+.
+        Γò╡          [3
+2m~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mTS2305: Module '"./c
+omponents/post-list/post
+-list.component"' has 
+no exported member 'Post
+ListComponent'.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/forum.module
+.ts:5:9:
+[37m      5 Γöé import 
+{ [32mPostListComponent
+[37m } from './componen
+ts/post-list/post-list..
+.
+        Γò╡          [3
+2m~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mTS-991010: Value at 
+position 0 in the 
+NgModule.declarations 
+of ForumModule is not a 
+reference
+  Value could not be 
+determined 
+statically.[0m 
+[1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/forum/forum.module
+.ts:12:16:
+[37m      12 Γöé   
+declarations: 
+[32m[[37m
+         Γò╡            
+     [32m^[0m
+
+  Unknown reference.
+
+    src/app/modules/comm
+unity/forum/forum.module
+.ts:13:4:
+[37m      13 Γöé     [
+32mPostListComponent[37
+m,
+         Γò╡     [32m~~
+~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG5002: Unexpected 
+closing tag "div". It 
+may happen when the tag 
+has already been closed 
+by another tag. For 
+more info see https://ww
+w.w3.org/TR/html5/syntax
+.html#closing-elements-t
+hat-have-implied-end-tag
+s[0m [1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/reputation/compone
+nts/leaderboard/leaderbo
+ard.component.ts:15:6:
+[37m      15 Γöé       
+[32m</div>[37m
+         Γò╡       
+[32m~~~~~~[0m
+
+
+[31mX [41;31m[[41;97m
+ERROR[41;31m][0m 
+[1mNG5002: Unexpected 
+closing tag "div". It 
+may happen when the tag 
+has already been closed 
+by another tag. For 
+more info see https://ww
+w.w3.org/TR/html5/syntax
+.html#closing-elements-t
+hat-have-implied-end-tag
+s[0m [1m[35m[plugin 
+angular-compiler][0m
+
+    src/app/modules/comm
+unity/reputation/compone
+nts/leaderboard/leaderbo
+ard.component.ts:51:4:
+[37m      51 Γöé     
+[32m</div>[37m
+         Γò╡     
+[32m~~~~~~[0m
+
+[39m[22m
