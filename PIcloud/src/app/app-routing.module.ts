@@ -16,6 +16,11 @@ const routes: Routes = [
     loadChildren: () =>
       import('./modules/user/user.module').then(m => m.UserModule)
   },
+   {
+    path: 'legal-procedures',
+    loadChildren: () =>
+      import('./modules/legal/legal.module').then(m => m.LegalModule)
+  },
   {
     path: 'events',
     canActivate: [authGuard],

@@ -93,4 +93,19 @@ public class GatewayRoutes {
                 .filter(lb("event-pi"))
                 .filter(authFilter.jwtFilter());
     }
+    @Bean
+    public RouterFunction<ServerResponse> legalProcedureRoute() {
+        return RouterFunctions
+                .route(path("/api/legal-procedures/**"), HandlerFunctions.http())
+                .filter(lb("legal-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> legalFilesRoute() {
+        return RouterFunctions
+                .route(path("/api/files/**"), HandlerFunctions.http())
+                .filter(lb("legal-pi"));
+        // No JWT filter — file serving is public
+    }
 }
