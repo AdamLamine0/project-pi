@@ -115,7 +115,7 @@
           <span><strong>Dates:</strong> {{ p.dateDebut }} to {{ p.dateFin }}</span>
         </div>
 
-        <div class="members" *ngIf="p.memberIds?.length">
+        <div class="members" *ngIf="p.memberIds.length">
           <span *ngFor="let m of p.memberIds">{{ m }}</span>
         </div>
 
