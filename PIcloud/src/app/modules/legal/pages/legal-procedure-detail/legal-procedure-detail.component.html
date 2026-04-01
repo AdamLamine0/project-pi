@@ -1,0 +1,117 @@
+<div class="page-container" *ngIf="procedure as p">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Détail du dossier juridique</h1>
+      <p class="page-subtitle">Consultation, suivi et gestion documentaire du dossier.</p>
+    </div>
+
+    <button class="btn btn-outline-secondary" type="button" (click)="goBack()">
+      Retour
+    </button>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+
+  <div class="card-custom p-4 mb-4">
+    <div class="row g-3">
+      <div class="col-md-6"><strong>ID :</strong> {{ p.id }}</div>
+      <div class="col-md-6"><strong>Entrepreneur :</strong> {{ p.entrepreneurId }}</div>
+      <div class="col-md-6"><strong>Expert :</strong> {{ p.expertId || 'Non assigné' }}</div>
+      <div class="col-md-6"><strong>Type :</strong> {{ p.procedureType }}</div>
+      <div class="col-md-6">
+        <strong>Statut :</strong>
+        <span class="badge-status ms-2" [ngClass]="'status-' + p.status">{{ p.status }}</span>
+      </div>
+      <div class="col-md-6"><strong>Progression :</strong> {{ p.completionRate }} %</div>
+      <div class="col-12"><strong>Notes :</strong> {{ p.notes || '-' }}</div>
+    </div>
+  </div>
+
+  <div class="card-custom p-4 mb-4">
+    <h5 class="mb-3">Mettre à jour le statut</h5>
+    <form [formGroup]="statusForm" (ngSubmit)="updateStatus()" class="row g-3 align-items-end">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Statut</label>
+        <select class="form-select select-modern" formControlName="status">
+          <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <button class="btn btn-primary-custom w-100" type="submit">Mettre à jour</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card-custom p-4 mb-4">
+    <h5 class="mb-3">Téléverser un document</h5>
+    <form [formGroup]="documentForm" (ngSubmit)="uploadDocument()" class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Type de document</label>
+        <input class="form-control input-modern" formControlName="documentType" />
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Fichier</label>
+        <input type="file" class="form-control input-modern" (change)="onFileSelected($event)" />
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label fw-semibold">Date d’expiration</label>
+        <input type="datetime-local" class="form-control input-modern" formControlName="expiresAt" />
+      </div>
+
+      <div class="col-12">
+        <button class="btn btn-primary-custom" type="submit">Téléverser</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card-custom p-4">
+    <h5 class="mb-3">Documents associés</h5>
+
+    <div class="table-responsive" *ngIf="p.documents?.length; else noDocs">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Fichier</th>
+            <th>Statut</th>
+            <th>Date upload</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let doc of p.documents">
+            <td class="fw-semibold">{{ doc.documentType }}</td>
+            <td>
+              <a [href]="doc.fileUrl" target="_blank" class="text-decoration-none">Voir le document</a>
+            </td>
+            <td>{{ doc.status }}</td>
+            <td>{{ doc.uploadedAt | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td class="text-end">
+              <div class="d-flex justify-content-end gap-2 flex-wrap">
+                <button class="btn btn-sm btn-outline-success" (click)="updateDocumentStatus(doc.id, 'VALIDE_PAR_EXPERT')">
+                  Valider
+                </button>
+                <button class="btn btn-sm btn-outline-warning" (click)="updateDocumentStatus(doc.id, 'REJETE')">
+                  Rejeter
+                </button>
+                <button class="btn btn-sm btn-outline-danger" (click)="deleteDocument(doc.id)">
+                  Supprimer
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #noDocs>
+      <div class="empty-state">
+        <h6 class="mb-2">Aucun document</h6>
+        <p class="mb-0">Ajoute un document pour compléter ce dossier.</p>
+      </div>
+    </ng-template>
+  </div>
+</div>
