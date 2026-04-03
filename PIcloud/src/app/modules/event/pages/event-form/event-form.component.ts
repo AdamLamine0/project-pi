@@ -17,14 +17,14 @@ export class EventFormComponent implements OnInit {
   eventId: number | null = null;
   isLoading = false;
   isUploading = false;
+  isGenerating = false;
+  aiError = '';
   successMessage = '';
   errorMessage = '';
   imagePreview: string | null = null;
 
   eventTypes: EventType[] = ['WEBINAIRE', 'WORKSHOP', 'PITCH', 'BOOTCAMP', 'CONFERENCE'];
   locationTypes: LocationType[] = ['PRESENTIEL', 'DISTANCIEL', 'HYBRIDE'];
-
-  // All statuses — only shown to admin
   eventStatuses: EventStatus[] = [
     'BROUILLON', 'EN_ATTENTE_VALIDATION', 'APPROUVE', 'PUBLIE', 'REJETE', 'ANNULE', 'TERMINE'
   ];
@@ -62,7 +62,6 @@ export class EventFormComponent implements OnInit {
     }
   }
 
-  // Only admins can change status directly
   isAdmin(): boolean {
     return this.authService.getRole() === 'ADMIN';
   }
@@ -150,14 +149,48 @@ export class EventFormComponent implements OnInit {
 
     request$.subscribe({
       next: () => {
+        // ✅ Reset loading BEFORE navigation
+        this.isLoading = false;
         this.successMessage = this.isEdit
           ? 'Événement mis à jour avec succès !'
           : 'Événement créé avec succès !';
-        setTimeout(() => this.router.navigate(['/events']), 1200);
+
+        setTimeout(() => {
+          // ✅ Clean navigation — timestamp queryParam forces EventList to detect
+          // a real navigation change and re-run ngOnInit via ActivatedRoute subscription
+          this.router.navigate(['/events'], {
+            queryParams: { refresh: Date.now() }
+          });
+        }, 1200);
       },
       error: (err) => {
         this.errorMessage = err.error?.message || 'Une erreur est survenue.';
         this.isLoading = false;
+      }
+    });
+  }
+
+  generateDescription(): void {
+    const title = this.form.get('title')?.value?.trim();
+    const date  = this.form.get('startDate')?.value;
+    const type  = this.form.get('type')?.value;
+
+    if (!title) {
+      this.aiError = 'Renseignez le titre avant de générer une description.';
+      return;
+    }
+
+    this.aiError = '';
+    this.isGenerating = true;
+
+    this.eventService.generateDescription(title, date || '', type || '').subscribe({
+      next: (res) => {
+        this.form.patchValue({ description: res.description });
+        this.isGenerating = false;
+      },
+      error: () => {
+        this.aiError = 'La génération a échoué. Vérifiez votre connexion et réessayez.';
+        this.isGenerating = false;
       }
     });
   }
