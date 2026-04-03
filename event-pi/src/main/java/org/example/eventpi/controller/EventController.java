@@ -2,14 +2,12 @@ package org.example.eventpi.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.eventpi.dto.EventRequest;
-import org.example.eventpi.dto.EventResponse;
-import org.example.eventpi.dto.UpdateEventRequest;
-import org.example.eventpi.dto.ValidationRequest;
+import org.example.eventpi.dto.*;
 import org.example.eventpi.exception.ForbiddenException;
 import org.example.eventpi.model.EventStatus;
 import org.example.eventpi.model.EventType;
 import org.example.eventpi.service.EventService;
+import org.example.eventpi.service.GeminiService;
 import org.example.eventpi.service.ImageStorageService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,11 +25,12 @@ public class EventController {
 
     private final EventService eventService;
     private final ImageStorageService imageStorageService;
+    private final GeminiService geminiService;
 
     private static final Set<String> WRITE_ROLES =
-            Set.of("ROLE_ADMIN", "ROLE_MENTOR", "ROLE_PARTNER");
+            Set.of("ADMIN", "MENTOR", "PARTENAIRE");
     private static final Set<String> ADMIN_ROLES =
-            Set.of("ROLE_ADMIN");
+            Set.of("ADMIN");
 
     // ── IMAGE UPLOAD ──────────────────────────────────────────────────────
     @PostMapping("/upload-image")
@@ -124,14 +123,14 @@ public class EventController {
             @RequestParam(required = false) Integer organizerId,
             @RequestHeader(value = "X-User-Role", required = false) String role) {
 
-        // Regular users (USER, INVESTISSEUR, or unknown) only see published events
-        if (role == null || (!role.equals("ADMIN") && !role.equals("MENTOR") && !role.equals("PARTENAIRE"))) {
+        String r = normalize(role);   // ← normalize first
+
+        if (r.isEmpty() || (!r.equals("ADMIN") && !r.equals("MENTOR") && !r.equals("PARTENAIRE"))) {
             return ResponseEntity.ok(eventService.getAllEvents(EventStatus.PUBLIE, type, organizerId));
         }
 
         return ResponseEntity.ok(eventService.getAllEvents(status, type, organizerId));
     }
-
     // ── UPDATE ────────────────────────────────────────────────────────────
     @PutMapping("/{id}")
     public ResponseEntity<EventResponse> updateEvent(
@@ -156,8 +155,31 @@ public class EventController {
 
     // ── ROLE HELPER ───────────────────────────────────────────────────────
     private void requireRole(String role, Set<String> allowed) {
-        if (role == null || !allowed.contains(role)) {
+        if (role == null || !allowed.contains(normalize(role))) {
             throw new ForbiddenException("Access denied for role: " + role);
         }
     }
+
+    private String normalize(String role) {
+        if (role == null) return "";
+        return role.startsWith("ROLE_") ? role.substring(5) : role;
+    }
+
+
+    @PostMapping("/generate-description")
+    public ResponseEntity<DescriptionResponse> generateDescription(
+            @RequestBody DescriptionRequest request,
+            @RequestHeader("X-User-Role") String role) {
+        requireRole(role, WRITE_ROLES);
+        String description = geminiService.generateEventDescription(
+                request.getTitle(),
+                request.getDate(),
+                request.getEventType()
+        );
+        return ResponseEntity.ok(new DescriptionResponse(description));
+    }
+
+
+
+
 }

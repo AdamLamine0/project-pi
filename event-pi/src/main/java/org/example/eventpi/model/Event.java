@@ -2,6 +2,8 @@ package org.example.eventpi.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -48,16 +50,18 @@ public class Event {
     @Column(name = "cover_image_url")
     private String coverImageUrl;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "event_target_sectors",
             joinColumns = @JoinColumn(name = "event_id"))
     @Column(name = "sector")
+    @BatchSize(size = 50)
     private List<String> targetSector;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "event_target_stages",
             joinColumns = @JoinColumn(name = "event_id"))
     @Column(name = "stage")
+    @BatchSize(size = 50)
     private List<String> targetStage;
 
     @Column(name = "organizer_id")
