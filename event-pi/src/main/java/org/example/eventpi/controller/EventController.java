@@ -69,7 +69,18 @@ public class EventController {
     public ResponseEntity<List<EventResponse>> getAllEvents(
             @RequestParam(required = false) EventStatus status,
             @RequestParam(required = false) EventType type,
+<<<<<<< Updated upstream
             @RequestParam(required = false) Integer organizerId) {
+=======
+            @RequestParam(required = false) Integer organizerId,
+            @RequestHeader(value = "X-User-Role", required = false) String role) {
+
+        String r = normalize(role);
+
+        if (r.isEmpty() || (!r.equals("ADMIN") && !r.equals("MENTOR") && !r.equals("PARTENAIRE"))) {
+            return ResponseEntity.ok(eventService.getAllEvents(EventStatus.PUBLIE, type, organizerId));
+        }
+>>>>>>> Stashed changes
 
         return ResponseEntity.ok(eventService.getAllEvents(status, type, organizerId));
     }

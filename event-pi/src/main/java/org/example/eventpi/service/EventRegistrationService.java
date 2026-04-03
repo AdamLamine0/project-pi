@@ -27,6 +27,8 @@ public class EventRegistrationService {
     private final EventRepository eventRepository;
     private final NotificationService notificationService;
     private final UserClient userClient;
+    private final BadgeService badgeService;
+
 
     // ── REGISTER ──────────────────────────────────────────────────────────
     @Transactional
@@ -155,7 +157,18 @@ public class EventRegistrationService {
         reg.setAttended(true);
         reg.setCheckInTime(LocalDateTime.now());
         reg.setStatus(RegistrationStatus.PRESENT);
-        return toResponse(registrationRepository.save(reg));
+        EventRegistration saved = registrationRepository.save(reg);
+
+        // ── Trigger badge + certificate generation ──────────────────────────
+        try {
+            badgeService.onAttendanceConfirmed(
+                    saved.getUserId(), saved.getEvent().getId());
+        } catch (Exception e) {
+            log.warn("Badge/certificate generation failed for userId={}: {}",
+                    saved.getUserId(), e.getMessage());
+        }
+
+        return toResponse(saved);
     }
 
     // ── READ ──────────────────────────────────────────────────────────────
@@ -221,4 +234,8 @@ public class EventRegistrationService {
                 .registeredAt(r.getRegisteredAt())
                 .build();
     }
+
+
+
+
 }
