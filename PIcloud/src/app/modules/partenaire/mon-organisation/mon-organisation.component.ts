@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
 import { PartenaireService } from '../../../services/partenaire.service';
 import {
   OrganisationPartenaire,
@@ -19,8 +20,9 @@ export class MonOrganisationComponent implements OnInit {
   form!: FormGroup;
   types = Object.values(TypePartenaire);
 
-  /** true when the route contains an :id — pure read-only view for other users */
-  viewOnly = false;
+  viewOnly   = false;
+  isUser     = false;
+  isPartner  = false;
 
   isEditing    = false;
   isLoading    = false;
@@ -31,21 +33,25 @@ export class MonOrganisationComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
+    private router: Router,
+    private authService: AuthService,
     private partenaireService: PartenaireService
   ) {}
 
   ngOnInit(): void {
+    this.isUser    = this.authService.getRole() === 'USER';
+    this.isPartner = this.authService.getRole() === 'PARTNER';
     this.buildForm();
 
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      // Visiting someone else's org — read-only
+      // Viewing another org (read-only)
       this.viewOnly = true;
       this.loadById(+id);
     } else {
-      // PARTNER visiting their own dashboard
+      // PARTNER viewing their own org
       this.viewOnly = false;
-      this.load();
+      this.loadMyOrg();
     }
   }
 
@@ -64,12 +70,21 @@ export class MonOrganisationComponent implements OnInit {
 
   get f() { return this.form.controls; }
 
-  /** Load own organisation via dashboard endpoint */
-  async load(): Promise<void> {
+  // PARTNER: find their org by matching userId from all orgs
+  async loadMyOrg(): Promise<void> {
     this.isLoading = true;
     this.errorMessage = '';
     try {
-      this.org = await this.partenaireService.getMyDashboard();
+      const myUserId = Number(this.authService.getUserId());
+      const allOrgs  = await this.partenaireService.getAll();
+      const myOrg    = allOrgs.find(o => Number(o.userId) === myUserId) ?? null;
+
+      if (!myOrg) {
+        this.errorMessage = 'Aucune organisation trouvée pour votre compte. Contactez un administrateur.';
+        return;
+      }
+
+      this.org = myOrg;
       this.patchForm(this.org);
     } catch {
       this.errorMessage = 'Impossible de charger votre organisation.';
@@ -78,7 +93,6 @@ export class MonOrganisationComponent implements OnInit {
     }
   }
 
-  /** Load any organisation by id — view-only */
   async loadById(id: number): Promise<void> {
     this.isLoading = true;
     this.errorMessage = '';
@@ -102,6 +116,14 @@ export class MonOrganisationComponent implements OnInit {
       contactEmail: org.contactEmail,
       siteWeb:      org.siteWeb
     });
+  }
+
+  faireDemandeConvention(): void {
+    if (!this.org) return;
+    this.router.navigate(
+      ['/partenariat/conventions/form'],
+      { queryParams: { orgId: this.org.id } }
+    );
   }
 
   enableEdit(): void {

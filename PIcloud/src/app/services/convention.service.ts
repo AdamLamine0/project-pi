@@ -14,15 +14,17 @@ import {
 @Injectable({ providedIn: 'root' })
 export class ConventionService {
 
-  private base     = 'http://localhost:8090/api/conventions';
-  private objBase  = 'http://localhost:8090/api/objectifs';
+  private base    = 'http://localhost:8090/api/conventions';
+  private objBase = 'http://localhost:8090/api/objectifs';
 
   constructor(
     private http: HttpClient,
     private auth: AuthService
   ) {}
 
-  // ── headers helper ────────────────────────────────────────────────────────
+  // ── Headers ───────────────────────────────────────────────────────────────
+  // Backend checks exact strings: "ROLE_USER", "ROLE_PARTNER", "ROLE_ADMIN"
+  // These MUST be sent on every request or the backend throws 500/403.
 
   private headers(): HttpHeaders {
     return new HttpHeaders({
@@ -83,6 +85,16 @@ export class ConventionService {
     );
   }
 
+  // ── Confirm ───────────────────────────────────────────────────────────────
+
+  confirmer(id: number): Promise<ConventionResponse> {
+    return firstValueFrom(
+      this.http.post<ConventionResponse>(
+        `${this.base}/${id}/confirmer`, {}, { headers: this.headers() }
+      )
+    );
+  }
+
   // ── Renewal ───────────────────────────────────────────────────────────────
 
   demanderRenouvellement(id: number): Promise<ConventionResponse> {
@@ -99,17 +111,6 @@ export class ConventionService {
         `${this.base}/${id}/renouvellement/accepter`, newTerms, { headers: this.headers() }
       )
     );
-  }
-
-  // ── Confirm / Sign ────────────────────────────────────────────────────────
-  // BROUILLON → SIGNEE: called by the party that did NOT create (partner confirms user's draft, or vice versa)
-  // SIGNEE → ACTIVE: called by the remaining party to fully activate
-  confirmer(id: number): Promise<ConventionResponse> {
-    return this.updateStatut(id, StatutConvention.SIGNEE);
-  }
-
-  activer(id: number): Promise<ConventionResponse> {
-    return this.updateStatut(id, StatutConvention.ACTIVE);
   }
 
   // ── Objectifs ─────────────────────────────────────────────────────────────

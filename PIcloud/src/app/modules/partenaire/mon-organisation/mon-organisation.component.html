@@ -1,6 +1,6 @@
 <div class="mo-page">
 
-  <!-- header -->
+  <!-- ── HEADER ─────────────────────────────────────────────────── -->
   <div class="mo-header">
     <p class="mo-eyebrow">{{ viewOnly ? 'Réseau partenaire' : 'Espace partenaire' }}</p>
     <h1 class="mo-title">{{ viewOnly ? (org?.nom || 'Organisation') : 'Mon organisation' }}</h1>
@@ -9,14 +9,27 @@
         ? 'Détails de cette organisation partenaire.'
         : 'Consultez les informations de votre organisation et mettez à jour vos coordonnées.' }}
     </p>
+
+    <!-- ✅ CTA button: shown to USER only, when viewing another org (viewOnly) -->
+    <button class="btn-demande"
+      *ngIf="viewOnly && isUser && org"
+      (click)="faireDemandeConvention()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="12" y1="11" x2="12" y2="17"/>
+        <line x1="9" y1="14" x2="15" y2="14"/>
+      </svg>
+      Faire une demande de convention
+    </button>
   </div>
 
-  <!-- loading -->
+  <!-- ── LOADING ─────────────────────────────────────────────────── -->
   <div class="loading-row" *ngIf="isLoading">
     <span class="ring"></span> Chargement…
   </div>
 
-  <!-- alerts — only shown in own-org mode -->
+  <!-- ── ALERTS ──────────────────────────────────────────────────── -->
   <ng-container *ngIf="!viewOnly">
     <div class="alert success" *ngIf="successMessage">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -32,7 +45,6 @@
     </div>
   </ng-container>
 
-  <!-- view-only error (e.g. org not found) -->
   <div class="alert error" *ngIf="viewOnly && errorMessage">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
@@ -42,7 +54,7 @@
 
   <div class="mo-body" *ngIf="!isLoading && org">
 
-    <!-- READ-ONLY info card (always visible) -->
+    <!-- ── READ-ONLY info card (always visible) ────────────────── -->
     <div class="info-card">
       <div class="info-card-header">
         <div class="org-icon">{{ org.nom.charAt(0) }}</div>
@@ -75,7 +87,7 @@
       </div>
     </div>
 
-    <!-- CONTACT card — view-only variant (no form, no edit button) -->
+    <!-- ── VIEW-ONLY contact card ──────────────────────────────── -->
     <div class="contact-card" *ngIf="viewOnly">
       <div class="contact-card-header">
         <div>
@@ -115,9 +127,26 @@
           <span *ngIf="!org.siteWeb" class="info-val">—</span>
         </div>
       </div>
+
+      <!-- ── Bottom CTA banner (second entry point, more prominent) ── -->
+      <div class="cta-banner" *ngIf="isUser">
+        <div class="cta-banner-text">
+          <p class="cta-title">Intéressé par un partenariat ?</p>
+          <p class="cta-sub">Envoyez une demande de convention à {{ org.nom }} et définissez vos engagements mutuels.</p>
+        </div>
+        <button class="btn-demande" (click)="faireDemandeConvention()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="11" x2="12" y2="17"/>
+            <line x1="9" y1="14" x2="15" y2="14"/>
+          </svg>
+          Faire une demande de convention
+        </button>
+      </div>
     </div>
 
-    <!-- EDITABLE contact card — only for own org (not viewOnly) -->
+    <!-- ── EDITABLE contact card (own org, PARTNER only) ──────── -->
     <div class="contact-card" *ngIf="!viewOnly">
       <div class="contact-card-header">
         <div>

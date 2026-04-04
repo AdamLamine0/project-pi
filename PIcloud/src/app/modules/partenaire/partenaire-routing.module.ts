@@ -9,22 +9,14 @@ import { FormConventionComponent } from './form-convention/form-convention.compo
 
 
 const routes: Routes = [
-  // in your partenariat-routing.module.ts
-{ path: 'list', component: PartenarieListComponent, canActivate: [authGuard] },
-{ path: 'mon-organisation', component: MonOrganisationComponent, canActivate: [authGuard], data: { role: 'PARTNER' } },
-{ path: 'mon-organisation/:id', component: MonOrganisationComponent, canActivate: [authGuard] },
-{ path: 'form', component: FormOrganisationComponent, canActivate: [authGuard], data: { role: 'ADMIN' } },
-{ path: 'form/:id', component: FormOrganisationComponent, canActivate: [authGuard], data: { role: 'ADMIN' } },
- { path: 'list',                component: PartenarieListComponent,   canActivate: [authGuard] },
-  { path: 'mon-organisation',    component: MonOrganisationComponent,  canActivate: [authGuard], data: { role: 'PARTNER' } },
-  { path: 'mon-organisation/:id',component: MonOrganisationComponent,  canActivate: [authGuard] },
-  { path: 'form',                component: FormOrganisationComponent, canActivate: [authGuard], data: { role: 'ADMIN' } },
-  { path: 'form/:id',            component: FormOrganisationComponent, canActivate: [authGuard], data: { role: 'ADMIN' } },
- 
-  // ── Conventions ────────────────────────────────────────────────────────
-  { path: 'conventions',          component: ConventionListComponent,  canActivate: [authGuard] },
-  { path: 'conventions/form',     component: FormConventionComponent,  canActivate: [authGuard] },
-  { path: 'conventions/form/:id', component: FormConventionComponent,  canActivate: [authGuard] },
+  { path: 'list',                  component: PartenarieListComponent,   canActivate: [authGuard] },
+  { path: 'mon-organisation',      component: MonOrganisationComponent,  canActivate: [authGuard], data: { role: 'PARTNER' } },
+  { path: 'mon-organisation/:id',  component: MonOrganisationComponent,  canActivate: [authGuard] },
+  { path: 'form',                  component: FormOrganisationComponent,  canActivate: [authGuard], data: { role: 'ADMIN' } },
+  { path: 'form/:id',              component: FormOrganisationComponent,  canActivate: [authGuard], data: { role: 'ADMIN' } },
+  { path: 'conventions',           component: ConventionListComponent,    canActivate: [authGuard] },
+  { path: 'conventions/form',      component: FormConventionComponent,    canActivate: [authGuard] },
+  { path: 'conventions/form/:id',  component: FormConventionComponent,    canActivate: [authGuard] },
 ];
 
 @NgModule({
