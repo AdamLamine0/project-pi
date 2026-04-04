@@ -93,4 +93,32 @@ public class GatewayRoutes {
                 .filter(lb("event-pi"))
                 .filter(authFilter.jwtFilter());
     }
+
+    @Bean
+    public RouterFunction<ServerResponse> badgeServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/badges/**"), HandlerFunctions.http())
+                .filter(lb("event-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> certificateServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/certificates/**"), HandlerFunctions.http())
+                .filter(lb("event-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> verifyRoute() {
+        return RouterFunctions
+                .route(path("/api/verify/**"), HandlerFunctions.http())
+                .filter(lb("event-pi"));
+        // no authFilter — public endpoint for QR code scanning
+    }
+
+
+
+
 }
