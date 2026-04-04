@@ -3,10 +3,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ConventionService } from '../../../services/convention.service';
 import { PartenaireService } from '../../../services/partenaire.service';
-import {
-  ConventionResponse,
-  StatutConvention
-} from '../../../models/convention';
+import { ConventionResponse, StatutConvention } from '../../../models/convention';
 
 @Component({
   selector: 'app-convention-list',
@@ -30,9 +27,8 @@ export class ConventionListComponent implements OnInit {
   isPartner = false;
   isAdmin   = false;
   myUserId  = 0;
-  myOrgId   = 0;   // PARTNER's organisation id
+  myOrgId   = 0;
 
-  // Pagination
   currentPage = 1;
   pageSize    = 6;
 
@@ -44,32 +40,69 @@ export class ConventionListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const role    = this.authService.getRole();
-    this.myUserId = this.authService.getUserId();
-    this.isUser   = role === 'USER';
+    const role    = this.authService.getRole(); // 'USER' | 'PARTNER' | 'ADMIN'
+    this.myUserId = Number(this.authService.getUserId()); // force Number
+    this.isUser    = role === 'USER';
     this.isPartner = role === 'PARTNER';
-    this.isAdmin  = role === 'ADMIN';
+    this.isAdmin   = role === 'ADMIN';
 
+    console.log('Role:', role, 'UserId:', this.myUserId);
     this.load();
   }
 
   async load(): Promise<void> {
     this.isLoading = true;
     this.errorMessage = '';
+
     try {
       if (this.isAdmin) {
         this.conventions = await this.conventionService.getAll();
+
       } else if (this.isUser) {
         this.conventions = await this.conventionService.getByUser(this.myUserId);
+
       } else if (this.isPartner) {
-        // Load partner's org first
-        const org = await this.partenaireService.getMyDashboard();
-        this.myOrgId = org.id;
-        this.conventions = await this.conventionService.getByOrganisation(org.id);
+        // Step 1: get all orgs and find mine by userId
+        const allOrgs = await this.partenaireService.getAll();
+        console.log('All orgs:', allOrgs);
+        console.log('Looking for userId:', this.myUserId);
+
+        // Force Number on both sides — API might return string or number
+        const myOrg = allOrgs.find(o => Number(o.userId) === Number(this.myUserId));
+        console.log('Found org:', myOrg);
+
+        if (!myOrg) {
+          this.errorMessage = 'Aucune organisation trouvée pour votre compte. Contactez un administrateur.';
+          this.conventions = [];
+          this.filtered = [];
+          this.applyFilter();
+          return;
+        }
+
+        this.myOrgId = Number(myOrg.id);
+        console.log('myOrgId:', this.myOrgId);
+
+        if (!this.myOrgId || isNaN(this.myOrgId)) {
+          this.errorMessage = 'ID organisation invalide.';
+          return;
+        }
+
+        // Step 2: get conventions of that org
+        this.conventions = await this.conventionService.getByOrganisation(this.myOrgId);
       }
+
       this.applyFilter();
-    } catch {
-      this.errorMessage = 'Impossible de charger les conventions.';
+
+    } catch (err: any) {
+      console.error('Load error:', err);
+      const msg = err?.error?.message || err?.message || '';
+      if (msg.toLowerCase().includes('not found')) {
+        this.errorMessage = 'Aucune organisation trouvée pour votre compte.';
+        this.conventions = [];
+        this.filtered = [];
+      } else {
+        this.errorMessage = 'Impossible de charger les conventions. ' + (err?.error?.message || '');
+      }
     } finally {
       this.isLoading = false;
     }
@@ -79,15 +112,13 @@ export class ConventionListComponent implements OnInit {
     const t = this.searchTerm.toLowerCase();
     this.filtered = this.conventions.filter(c => {
       const matchText =
-        c.numeroConvention?.toLowerCase().includes(t) ||
-        c.organisationPartenaireNom?.toLowerCase().includes(t);
+        (c.numeroConvention ?? '').toLowerCase().includes(t) ||
+        (c.organisationPartenaireNom ?? '').toLowerCase().includes(t);
       const matchStatut = !this.selectedStatut || c.statut === this.selectedStatut;
       return matchText && matchStatut;
     });
     this.currentPage = 1;
   }
-
-  // ── Pagination ─────────────────────────────────────────────────────────
 
   get paginated(): ConventionResponse[] {
     const start = (this.currentPage - 1) * this.pageSize;
@@ -96,8 +127,6 @@ export class ConventionListComponent implements OnInit {
   get totalPages(): number { return Math.ceil(this.filtered.length / this.pageSize); }
   get pageNumbers(): number[] { return Array.from({ length: this.totalPages }, (_, i) => i + 1); }
   goToPage(p: number): void { this.currentPage = p; }
-
-  // ── Helpers ────────────────────────────────────────────────────────────
 
   statutClass(s: StatutConvention): string {
     const map: Record<string, string> = {
@@ -109,36 +138,27 @@ export class ConventionListComponent implements OnInit {
     return map[s] ?? 'badge-brouillon';
   }
 
-  /**
-   * A convention is "pending my action" when:
-   * - BROUILLON → created by user, partner hasn't confirmed yet (partner action needed)
-   *   OR created by partner, user hasn't confirmed yet (user action needed)
-   * - SIGNEE → one party confirmed, other hasn't yet
-   */
-  isPendingMyAction(c: ConventionResponse): boolean {
-    if (c.statut === StatutConvention.ACTIVE || c.statut === StatutConvention.EXPIREE) return false;
-    // Simple heuristic: if BROUILLON or SIGNEE, show as "pending" for the other party
-    return c.statut === StatutConvention.BROUILLON || c.statut === StatutConvention.SIGNEE;
+  statutLabel(s: StatutConvention): string {
+    const map: Record<string, string> = {
+      BROUILLON: 'Brouillon',
+      SIGNEE:    'Signée',
+      ACTIVE:    'Active',
+      EXPIREE:   'Expirée'
+    };
+    return map[s] ?? s;
   }
+
+  isPendingMyAction(c: ConventionResponse): boolean {
+  return c.statut === StatutConvention.BROUILLON || c.statut === StatutConvention.SIGNEE;
+}
 
   canEdit(c: ConventionResponse): boolean {
-    // Only editable when still BROUILLON
-    return c.statut === StatutConvention.BROUILLON;
-  }
+  return c.statut === StatutConvention.BROUILLON || c.statut === StatutConvention.SIGNEE;
+}
 
-  // ── Navigation ─────────────────────────────────────────────────────────
-
-  goToCreate(): void {
-    this.router.navigate(['/partenariat/conventions/form']);
-  }
-
-  goToEdit(id: number): void {
-    this.router.navigate(['/partenariat/conventions/form', id]);
-  }
-
-  goToView(id: number): void {
-    this.router.navigate(['/partenariat/conventions/form', id]);
-  }
+  goToCreate(): void { this.router.navigate(['/partenariat/conventions/form']); }
+  goToEdit(id: number): void { this.router.navigate(['/partenariat/conventions/form', id]); }
+  goToView(id: number): void { this.router.navigate(['/partenariat/conventions/form', id]); }
 
   async delete(id: number): Promise<void> {
     if (!confirm('Supprimer cette convention ?')) return;
@@ -154,6 +174,10 @@ export class ConventionListComponent implements OnInit {
 
   flash(msg: string): void {
     this.successMessage = msg;
-    setTimeout(() => this.successMessage = '', 4000);
+    setTimeout(() => (this.successMessage = ''), 4000);
+  }
+
+  objectifsEnCours(c: ConventionResponse): number {
+    return (c.objectifs ?? []).filter(o => o.statut === 'EN_COURS').length;
   }
 }

@@ -1,91 +1,112 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { OrganisationPartenaire,OrganisationPartenaireRequest,ContactInfoRequest,StatutPartenaire } from '../models/partenaire';
+import { AuthService } from '../core/services/auth.service';
+import {
+  OrganisationPartenaire,
+  OrganisationPartenaireRequest,
+  ContactInfoRequest,
+  StatutPartenaire
+} from '../models/partenaire';
 
 @Injectable({ providedIn: 'root' })
 export class PartenaireService {
 
   private apiUrl = 'http://localhost:8090/api/organisations';
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private auth: AuthService
+  ) {}
 
-  // ── ANY AUTHENTICATED USER ──────────────────────────────────────
+  // ── Headers ───────────────────────────────────────────────────────────────
 
-  getAll(): Promise<OrganisationPartenaire[]> {
-    return firstValueFrom(this.http.get<OrganisationPartenaire[]>(this.apiUrl));
+  private headers(): HttpHeaders {
+    return new HttpHeaders({
+      'X-User-Role': `ROLE_${this.auth.getRole()}`,
+      'X-User-Id':   String(this.auth.getUserId())
+    });
   }
 
- async getById(id: number): Promise<OrganisationPartenaire> {
-  return firstValueFrom(
-    this.http.get<OrganisationPartenaire>(`${this.apiUrl}/${id}`)
-  );
-}
+  // ── Public endpoints ──────────────────────────────────────────────────────
+
+  getAll(): Promise<OrganisationPartenaire[]> {
+    return firstValueFrom(
+      this.http.get<OrganisationPartenaire[]>(this.apiUrl, { headers: this.headers() })
+    );
+  }
+
+  getById(id: number): Promise<OrganisationPartenaire> {
+    return firstValueFrom(
+      this.http.get<OrganisationPartenaire>(`${this.apiUrl}/${id}`, { headers: this.headers() })
+    );
+  }
 
   getByStatut(statut: StatutPartenaire): Promise<OrganisationPartenaire[]> {
     return firstValueFrom(
-      this.http.get<OrganisationPartenaire[]>(`${this.apiUrl}/statut/${statut}`)
+      this.http.get<OrganisationPartenaire[]>(`${this.apiUrl}/statut/${statut}`, { headers: this.headers() })
     );
   }
 
-  // ── PARTNER: own dashboard ──────────────────────────────────────
+  // ── PARTNER: find own organisation by scanning all orgs ──────────────────
+  // We match by userId because /my-dashboard is not reliable.
+  // GET /api/organisations has no role restriction — always works.
 
-  // GET /api/organisations/my-dashboard
-  // Gateway injects X-User-Id and X-User-Role from the JWT automatically
-  getMyDashboard(): Promise<OrganisationPartenaire> {
-    return firstValueFrom(
-      this.http.get<OrganisationPartenaire>(`${this.apiUrl}/my-dashboard`)
-    );
+  async getMyDashboard(): Promise<OrganisationPartenaire> {
+    const myUserId = Number(this.auth.getUserId());
+    const all = await this.getAll();
+    const mine = all.find(o => Number(o.userId) === myUserId);
+    if (!mine) {
+      throw new Error('Aucune organisation trouvée pour votre compte. Contactez un administrateur.');
+    }
+    return mine;
   }
 
-  // PUT /api/organisations/{id}/contact
+  // ── PARTNER: update contact info ──────────────────────────────────────────
+
   updateContactInfo(id: number, request: ContactInfoRequest): Promise<OrganisationPartenaire> {
     return firstValueFrom(
-      this.http.put<OrganisationPartenaire>(`${this.apiUrl}/${id}/contact`, request)
+      this.http.put<OrganisationPartenaire>(
+        `${this.apiUrl}/${id}/contact`, request, { headers: this.headers() }
+      )
     );
   }
 
-  // ── ADMIN only ──────────────────────────────────────────────────
+  // ── ADMIN endpoints ───────────────────────────────────────────────────────
 
-  // POST /api/organisations
   create(request: OrganisationPartenaireRequest): Promise<OrganisationPartenaire> {
     return firstValueFrom(
-      this.http.post<OrganisationPartenaire>(this.apiUrl, request)
+      this.http.post<OrganisationPartenaire>(this.apiUrl, request, { headers: this.headers() })
     );
   }
 
-  // PUT /api/organisations/{id}
   update(id: number, request: OrganisationPartenaireRequest): Promise<OrganisationPartenaire> {
     return firstValueFrom(
-      this.http.put<OrganisationPartenaire>(`${this.apiUrl}/${id}`, request)
+      this.http.put<OrganisationPartenaire>(`${this.apiUrl}/${id}`, request, { headers: this.headers() })
     );
   }
 
-  // PATCH /api/organisations/{id}/statut?statut=ACTIF
   updateStatut(id: number, statut: StatutPartenaire): Promise<OrganisationPartenaire> {
     return firstValueFrom(
       this.http.patch<OrganisationPartenaire>(
         `${this.apiUrl}/${id}/statut`,
         null,
-        { params: { statut } }
+        { params: { statut }, headers: this.headers() }
       )
     );
   }
 
-  // PUT /api/organisations/{id}/assign-user/{userId}
   assignUser(orgId: number, userId: number): Promise<OrganisationPartenaire> {
     return firstValueFrom(
       this.http.put<OrganisationPartenaire>(
-        `${this.apiUrl}/${orgId}/assign-user/${userId}`,
-        null
+        `${this.apiUrl}/${orgId}/assign-user/${userId}`, null, { headers: this.headers() }
       )
     );
   }
 
-  // DELETE /api/organisations/{id}
   delete(id: number): Promise<void> {
     return firstValueFrom(
-      this.http.delete<void>(`${this.apiUrl}/${id}`)
+      this.http.delete<void>(`${this.apiUrl}/${id}`, { headers: this.headers() })
     );
   }
 }

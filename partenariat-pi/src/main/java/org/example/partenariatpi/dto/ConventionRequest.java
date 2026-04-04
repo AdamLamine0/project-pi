@@ -7,10 +7,10 @@ import java.time.LocalDate;
 @Data
 public class ConventionRequest {
 
-    @NotNull(message = "OrganisationPartenaire  is required")
+    @NotNull(message = "OrganisationPartenaire is required")
     private Integer organisationPartenaireId;
 
-    @NotNull(message = "User  required")
+    @NotNull(message = "User required")
     private Integer userId;
 
     @NotNull(message = "Date debut is required")
@@ -19,6 +19,6 @@ public class ConventionRequest {
     @NotNull(message = "Date fin is required")
     private LocalDate dateFin;
 
-    // No avantages fields here.
-    // All commitments are Objectif objects added via POST /api/objectifs
+    // Set by the controller (not sent by client — server-side only)
+    private String modifieParRole;
 }

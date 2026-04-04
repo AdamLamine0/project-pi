@@ -31,26 +31,21 @@ public class ConventionService {
         return mapper.toResponse(findById(id));
     }
 
-    // All conventions of a given user (entrepreneur)
     public List<ConventionResponse> getByUserId(Integer userId) {
         return repository.findByUserId(userId)
                 .stream().map(mapper::toResponse).toList();
     }
 
-    // All conventions of a given organisation (institution)
     public List<ConventionResponse> getByOrganisationId(Integer orgId) {
         return repository.findByOrganisationPartenaireId(orgId)
                 .stream().map(mapper::toResponse).toList();
     }
 
-    // Convention between a specific user and a specific organisation
-    public List<ConventionResponse> getByUserAndOrganisation(Integer userId,
-                                                             Integer orgId) {
+    public List<ConventionResponse> getByUserAndOrganisation(Integer userId, Integer orgId) {
         return repository.findByUserIdAndOrganisationPartenaireId(userId, orgId)
                 .stream().map(mapper::toResponse).toList();
     }
 
-    // All conventions with a pending renewal request
     public List<ConventionResponse> getPendingRenewal() {
         return repository.findByRenouvellementDemandeParRoleIsNotNull()
                 .stream().map(mapper::toResponse).toList();
@@ -58,14 +53,17 @@ public class ConventionService {
 
     // ── CREATE ────────────────────────────────────────────────────────────────
 
-    public ConventionResponse create(ConventionRequest request) {
+    public ConventionResponse create(ConventionRequest request, String role) {
         OrganisationPartenaire org =
                 orgService.findById(request.getOrganisationPartenaireId());
 
         Convention c = mapper.toEntity(request, org);
-        Convention saved = repository.save(c);
+        // The creator "last modified" it — the OTHER party must confirm first
+        c.setModifieParRole(role);
+        c.setConfirmeParUser(false);
+        c.setConfirmeParPartenaire(false);
 
-        // Auto-generate: CONV-2025-0001
+        Convention saved = repository.save(c);
         saved.setNumeroConvention(
                 "CONV-" + LocalDate.now().getYear()
                         + "-" + String.format("%04d", saved.getId())
@@ -73,17 +71,93 @@ public class ConventionService {
         return mapper.toResponse(repository.save(saved));
     }
 
-    // ── UPDATE ────────────────────────────────────────────────────────────────
+    // ── CONFIRM ───────────────────────────────────────────────────────────────
+    //
+    // Rules:
+    //  1. You CANNOT confirm if YOU were the last one to modify (modifieParRole == your role)
+    //  2. You CANNOT confirm if you already confirmed AND the other party hasn't yet
+    //  3. Once both confirmed → ACTIVE
+    //  4. If one party confirms and the other modifies → both confirmations reset
 
-    public ConventionResponse update(Integer id, ConventionRequest request) {
+    public ConventionResponse confirmer(Integer id, String role) {
         Convention existing = findById(id);
-        existing.setDateDebut(request.getDateDebut());
-        existing.setDateFin(request.getDateFin());
-        // objectifs managed separately via /api/objectifs
+
+        // Rule: cannot confirm if YOU were the last to modify AND the other hasn't confirmed yet
+        if (role.equals(existing.getModifieParRole())) {
+            // Check if the OTHER party has already confirmed
+            boolean otherHasConfirmed =
+                    "ROLE_USER".equals(role)
+                            ? Boolean.TRUE.equals(existing.getConfirmeParPartenaire())
+                            : Boolean.TRUE.equals(existing.getConfirmeParUser());
+
+            if (!otherHasConfirmed) {
+                throw new RuntimeException(
+                        "Vous avez fait le dernier changement — attendez que l'autre partie confirme d'abord.");
+            }
+            // Other party confirmed first → now the modifier can also confirm → clear the block
+            existing.setModifieParRole(null);
+        }
+
+        // Block if already confirmed
+        if ("ROLE_USER".equals(role) && Boolean.TRUE.equals(existing.getConfirmeParUser())) {
+            throw new RuntimeException("Vous avez déjà confirmé cette convention.");
+        }
+        if ("ROLE_PARTNER".equals(role) && Boolean.TRUE.equals(existing.getConfirmeParPartenaire())) {
+            throw new RuntimeException("Vous avez déjà confirmé cette convention.");
+        }
+
+        // Set confirmation
+        if ("ROLE_USER".equals(role)) {
+            existing.setConfirmeParUser(true);
+        } else if ("ROLE_PARTNER".equals(role)) {
+            existing.setConfirmeParPartenaire(true);
+        }
+
+        // Both confirmed → ACTIVE
+        if (Boolean.TRUE.equals(existing.getConfirmeParUser())
+                && Boolean.TRUE.equals(existing.getConfirmeParPartenaire())) {
+            existing.setStatut(StatutConvention.ACTIVE);
+            existing.setSignedAt(LocalDate.now());
+            existing.setModifieParRole(null);
+        } else {
+            existing.setStatut(StatutConvention.SIGNEE);
+        }
+
         return mapper.toResponse(repository.save(existing));
     }
 
-    // ADMIN only: move statut through lifecycle
+    // ── UPDATE ────────────────────────────────────────────────────────────────
+
+    public ConventionResponse update(Integer id, ConventionRequest request, String role) {
+        Convention existing = findById(id);
+        existing.setDateDebut(request.getDateDebut());
+        existing.setDateFin(request.getDateFin());
+
+        // Any modification resets ALL confirmations — both parties must re-confirm
+        resetConfirmations(existing, role);
+
+        return mapper.toResponse(repository.save(existing));
+    }
+
+    // ── RESET CONFIRMATIONS (called also after objectif changes) ──────────────
+    // Call this whenever any party modifies anything on the convention.
+    // This makes the OTHER party re-confirm after seeing the change.
+
+    public ConventionResponse resetConfirmationsAfterObjectifChange(Integer conventionId, String role) {
+        Convention existing = findById(conventionId);
+        resetConfirmations(existing, role);
+        return mapper.toResponse(repository.save(existing));
+    }
+
+    private void resetConfirmations(Convention c, String role) {
+        c.setConfirmeParUser(false);
+        c.setConfirmeParPartenaire(false);
+        c.setStatut(StatutConvention.BROUILLON);
+        c.setModifieParRole(role);  // track WHO last modified → they cannot confirm next
+    }
+
+    // ── STATUT ────────────────────────────────────────────────────────────────
+
     public ConventionResponse updateStatut(Integer id, StatutConvention statut) {
         Convention existing = findById(id);
         existing.setStatut(statut);
@@ -94,15 +168,7 @@ public class ConventionService {
     }
 
     // ── RENEWAL ───────────────────────────────────────────────────────────────
-    //
-    // Business rule:
-    //   Step 1 — one party requests renewal   → renouvellementDemandeParRole = their role
-    //   Step 2 — the OTHER party accepts      → old convention expires, new one created
-    //
-    // ADMIN can perform both steps on behalf of anyone.
 
-    // Step 1: request renewal
-    // Who can call: USER, PARTNER, or ADMIN
     public ConventionResponse demanderRenouvellement(Integer id,
                                                      String requestingRole,
                                                      Integer requestingUserId) {
@@ -110,51 +176,38 @@ public class ConventionService {
         checkIsParty(existing, requestingRole, requestingUserId);
 
         if (existing.getStatut() != StatutConvention.ACTIVE) {
-            throw new RuntimeException(
-                    "Renewal can only be requested for ACTIVE conventions");
+            throw new RuntimeException("Renewal can only be requested for ACTIVE conventions");
         }
         if (existing.getRenouvellementDemandeParRole() != null) {
-            throw new RuntimeException(
-                    "A renewal request already exists for this convention — "
-                            + "waiting for the other party to accept");
+            throw new RuntimeException("A renewal request already exists for this convention");
         }
 
         existing.setRenouvellementDemandeParRole(requestingRole);
         return mapper.toResponse(repository.save(existing));
     }
 
-    // Step 2: accept renewal
-    // Who can call: the OTHER party (not who requested), or ADMIN
     public ConventionResponse accepterRenouvellement(Integer id,
                                                      ConventionRequest newTerms,
                                                      String requestingRole,
                                                      Integer requestingUserId) {
         Convention existing = findById(id);
-
         String requesterRole = existing.getRenouvellementDemandeParRole();
-        if (requesterRole == null) {
-            throw new RuntimeException(
-                    "No renewal has been requested for this convention");
-        }
 
+        if (requesterRole == null) {
+            throw new RuntimeException("No renewal has been requested for this convention");
+        }
         if (!"ROLE_ADMIN".equals(requestingRole)) {
-            // Must be a party of the convention
             checkIsParty(existing, requestingRole, requestingUserId);
-            // Cannot accept your own request
             if (requesterRole.equals(requestingRole)) {
-                throw new RuntimeException(
-                        "You cannot accept your own renewal request — "
-                                + "the other party must accept it");
+                throw new RuntimeException("You cannot accept your own renewal request");
             }
         }
 
-        // Expire old convention
         existing.setStatut(StatutConvention.EXPIREE);
         existing.setRenouvellementDemandeParRole(null);
         repository.save(existing);
 
-        // Create new convention with new terms (same parties)
-        return create(newTerms);
+        return create(newTerms, requestingRole);
     }
 
     // ── DELETE ────────────────────────────────────────────────────────────────
@@ -169,10 +222,7 @@ public class ConventionService {
 
     // ── SECURITY ──────────────────────────────────────────────────────────────
 
-    // Checks the requesting user is one of the two parties of this convention
-    public void checkIsParty(Convention convention,
-                             String role,
-                             Integer requestingUserId) {
+    public void checkIsParty(Convention convention, String role, Integer requestingUserId) {
         if ("ROLE_ADMIN".equals(role)) return;
 
         boolean isUser = convention.getUserId().equals(requestingUserId);
@@ -181,27 +231,21 @@ public class ConventionService {
         if ("ROLE_PARTNER".equals(role)) {
             try {
                 OrganisationPartenaire myOrg = orgService.findByUserId(requestingUserId);
-                isPartner = myOrg.getId()
-                        .equals(convention.getOrganisationPartenaire().getId());
+                isPartner = myOrg.getId().equals(convention.getOrganisationPartenaire().getId());
             } catch (Exception ignored) {}
         }
 
         if (!isUser && !isPartner) {
-            throw new RuntimeException(
-                    "Access denied: you are not a party of this convention");
+            throw new RuntimeException("Access denied: you are not a party of this convention");
         }
     }
 
-    public void checkOwnership(Integer conventionId,
-                               String role,
-                               Integer requestingUserId) {
+    public void checkOwnership(Integer conventionId, String role, Integer requestingUserId) {
         checkIsParty(findById(conventionId), role, requestingUserId);
     }
 
-    // Package-private — reused by ObjectifService
     Convention findById(Integer id) {
         return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException(
-                        "Convention not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("Convention not found with id: " + id));
     }
 }

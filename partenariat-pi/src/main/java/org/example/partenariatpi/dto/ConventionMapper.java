@@ -38,7 +38,9 @@ public class ConventionMapper {
         r.setDocumentUrl(c.getDocumentUrl());
         r.setSignedAt(c.getSignedAt());
         r.setRenouvellementDemandeParRole(c.getRenouvellementDemandeParRole());
-
+        r.setConfirmeParUser(c.getConfirmeParUser());
+        r.setConfirmeParPartenaire(c.getConfirmeParPartenaire());
+        r.setModifieParRole(c.getModifieParRole());
         // Map objectifs list — guard against null (new convention has empty list)
         List<ObjectifResponse> objectifResponses =
                 c.getObjectifs() == null
