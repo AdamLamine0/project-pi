@@ -1,0 +1,10 @@
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-partenarie-details',
+  templateUrl: './partenarie-details.component.html',
+  styleUrl: './partenarie-details.component.css'
+})
+export class PartenarieDetailsComponent {
+
+}

@@ -1,95 +1,134 @@
-<div class="users-container">
+<div class="ul-page">
 
-  <div class="users-header">
+  <!-- ── header ────────────────────────────────────────────────── -->
+  <div class="ul-header">
     <div>
-      <h1>User Management</h1>
-      <p>Manage all users and their permissions</p>
+      <p class="ul-eyebrow">Administration</p>
+      <h1 class="ul-title">Gestion des utilisateurs</h1>
+      <p class="ul-sub">{{ filteredUsers.length }} utilisateur{{ filteredUsers.length !== 1 ? 's' : '' }}</p>
+    </div>
+    <button class="btn-primary" (click)="goToCreate()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5"  y1="12" x2="19" y2="12"/>
+      </svg>
+      Créer un utilisateur
+    </button>
+  </div>
+
+  <!-- ── alerts ────────────────────────────────────────────────── -->
+  <div class="alert success" *ngIf="successMessage">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+    {{ successMessage }}
+  </div>
+  <div class="alert error" *ngIf="errorMessage">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ errorMessage }}
+  </div>
+
+  <!-- ── filters ───────────────────────────────────────────────── -->
+  <div class="ul-filters">
+    <div class="search-box">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" placeholder="Rechercher par nom ou e-mail…"
+        [(ngModel)]="searchTerm" (input)="applyFilter()"/>
+    </div>
+    <select [(ngModel)]="selectedRole" (change)="applyFilter()">
+      <option value="">Tous les rôles</option>
+      <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+    </select>
+  </div>
+
+  <!-- ── loading ───────────────────────────────────────────────── -->
+  <div class="loading-row" *ngIf="isLoading">
+    <span class="ring"></span> Chargement…
+  </div>
+
+  <!-- ── table ─────────────────────────────────────────────────── -->
+  <div class="table-card" *ngIf="!isLoading">
+    <table>
+      <thead>
+        <tr>
+          <th>Utilisateur</th>
+          <th>Email</th>
+          <th>Rôle</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of paginatedUsers">
+
+          <td>
+            <div class="user-cell">
+              <div class="avatar">{{ u.name.charAt(0) }}{{ u.prenom.charAt(0) }}</div>
+              <span class="uname">{{ u.name }} {{ u.prenom }}</span>
+            </div>
+          </td>
+
+          <td class="td-email">{{ u.email }}</td>
+
+          <td>
+            <span class="badge" [ngClass]="badgeClass(u.role)">{{ u.role }}</span>
+          </td>
+
+          <td>
+            <span class="dot" [class.on]="u.statut === 'active'"></span>
+            {{ u.statut || '—' }}
+          </td>
+
+          <td>
+            <div class="action-btns">
+              <!-- edit -->
+              <button class="btn-edit" (click)="goToEdit(u.id)" title="Modifier">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+                Mise à jour
+              </button>
+              <!-- delete -->
+              <button class="btn-del" (click)="deleteUser(u.id)" title="Supprimer">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                  <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+                </svg>
+              </button>
+            </div>
+          </td>
+
+        </tr>
+        <tr *ngIf="paginatedUsers.length === 0">
+          <td colspan="5" class="empty">Aucun utilisateur trouvé</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- pagination -->
+    <div class="tfoot">
+      <span class="tfoot-info">{{ paginatedUsers.length }} / {{ filteredUsers.length }}</span>
+      <div class="pager" *ngIf="totalPages > 1">
+        <button [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button *ngFor="let p of pageNumbers"
+          [class.active]="p === currentPage" (click)="goToPage(p)">{{ p }}</button>
+        <button [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
     </div>
   </div>
 
-  <div class="success-message" *ngIf="successMessage">{{ successMessage }}</div>
-  <div class="error-message" *ngIf="errorMessage">{{ errorMessage }}</div>
-
-  <div class="users-card">
-
-    <div class="table-controls">
-      <div class="search-box">
-        <input type="text" placeholder="Search by name or email..."
-          class="search-input"
-          [(ngModel)]="searchTerm"
-          (input)="filterUsers()"/>
-      </div>
-      <select class="filter-select"
-        [(ngModel)]="selectedRole"
-        (change)="filterUsers()">
-        <option value="">All Roles</option>
-        <option value="ADMIN">Admin</option>
-        <option value="USER">User</option>
-      </select>
-    </div>
-
-    <div class="loading" *ngIf="isLoading">Loading users...</div>
-
-    <div class="table-wrapper" *ngIf="!isLoading">
-      <table class="users-table">
-        <thead>
-          <tr>
-            <th>Nom</th>
-            <th>Prénom</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Statut</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let user of paginatedUsers">
-            <td>{{ user.name }}</td>
-            <td>{{ user.prenom }}</td>
-            <td>{{ user.email }}</td>
-            <td>
-              <span class="badge"
-                [class.badge-admin]="user.role === 'ADMIN'"
-                [class.badge-user]="user.role === 'USER'">
-                {{ user.role }}
-              </span>
-            </td>
-            <td>{{ user.statut }}</td>
-            <td>
-              <div class="action-buttons">
-                <button class="btn-action btn-update" (click)="editUser(user)">
-                  Update
-                </button>
-                <button class="btn-action btn-delete" (click)="deleteUser(user.id)">
-                  Delete
-                </button>
-              </div>
-            </td>
-          </tr>
-          <tr *ngIf="paginatedUsers.length === 0">
-            <td colspan="6" class="no-data">No users found</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="table-footer">
-      <p>Showing {{ paginatedUsers.length }} of {{ filteredUsers.length }} users</p>
-      <div class="pagination">
-        <button class="btn-pagination"
-          [disabled]="currentPage === 1"
-          (click)="goToPage(currentPage - 1)">Previous</button>
-
-        <button *ngFor="let page of pages"
-          class="btn-pagination"
-          [class.active]="page === currentPage"
-          (click)="goToPage(page)">{{ page }}</button>
-
-        <button class="btn-pagination"
-          [disabled]="currentPage === totalPages"
-          (click)="goToPage(currentPage + 1)">Next</button>
-      </div>
-    </div>
-
-  </div>
 </div>
