@@ -8,7 +8,6 @@ import org.example.eventpi.model.LocationType;
 
 import java.time.LocalDateTime;
 import java.util.List;
-
 @Data
 @Builder
 public class EventResponse {
@@ -25,5 +24,13 @@ public class EventResponse {
     private List<String> targetSector;
     private List<String> targetStage;
     private Integer organizerId;
+    private String organizerRole;
+    private String organizerName;
+    private String organizerEmail;
     private LocalDateTime createdAt;
+
+    private String rejectionReason;
+    private Integer validatedBy;
+    private LocalDateTime validatedAt;
+    private LocalDateTime submittedAt;
 }

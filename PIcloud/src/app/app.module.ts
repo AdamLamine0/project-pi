@@ -10,12 +10,14 @@ import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
 import { RouterModule } from '@angular/router';
 import { HomeComponent } from './modules/home/home.component';
 import { PartenaireModule } from './modules/partenaire/partenaire.module';
+import { VerifyCertificateComponent } from './pages/verify-certificate/verify-certificate.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     NavbarComponent,
-    HomeComponent
+    HomeComponent,
+    VerifyCertificateComponent
   ],
   imports: [
     BrowserModule,       // ← includes CommonModule (*ngIf, *ngFor)

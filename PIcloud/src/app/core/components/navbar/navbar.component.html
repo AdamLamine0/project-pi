@@ -35,6 +35,9 @@
           <a routerLink="/user/list" routerLinkActive="active" class="nl">Utilisateurs</a>
         </li>
 
+  <li *ngIf="authService.isAdmin()">
+    <a routerLink="/events/pending" routerLinkActive="active" class="nl">Validation</a>
+  </li>
         <li><button class="nav-btn-logout" (click)="logout()">Déconnexion</button></li>
 
       </ng-container>

@@ -76,4 +76,33 @@ public class ImageStorageService {
         if (filename == null || !filename.contains(".")) return "jpg";
         return filename.substring(filename.lastIndexOf(".") + 1).toLowerCase();
     }
+
+
+    public String storeInFolder(MultipartFile file, String folder) {
+        if (file == null || file.isEmpty())
+            throw new IllegalArgumentException("File is empty");
+        if (!ALLOWED_TYPES.contains(file.getContentType()))
+            throw new IllegalArgumentException("Only JPEG, PNG, WEBP, GIF allowed");
+        if (file.getSize() > MAX_SIZE)
+            throw new IllegalArgumentException("File exceeds 5MB limit");
+
+        try {
+            Path uploadPath = Paths.get(folder);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            String extension = getExtension(file.getOriginalFilename());
+            String filename = UUID.randomUUID() + "." + extension;
+
+            Path destination = uploadPath.resolve(filename);
+            Files.copy(file.getInputStream(), destination,
+                    StandardCopyOption.REPLACE_EXISTING);
+
+            return baseUrl + "/" + folder + "/" + filename;
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to store image: " + e.getMessage());
+        }
+    }
 }
