@@ -180,4 +180,9 @@ export class ConventionListComponent implements OnInit {
   objectifsEnCours(c: ConventionResponse): number {
     return (c.objectifs ?? []).filter(o => o.statut === 'EN_COURS').length;
   }
+
+  downloadPdf(id: number, event: MouseEvent): void {
+  event.stopPropagation(); // empêche la navigation vers la convention
+  this.conventionService.downloadConventionPdf(id);
+}
 }

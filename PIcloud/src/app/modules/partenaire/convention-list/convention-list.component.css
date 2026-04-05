@@ -192,6 +192,24 @@
 .obj-pending {
   color: #d97706; font-weight: 600;
 }
+.btn-pdf-small {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.btn-pdf-small:hover {
+  background: #fee2e2;
+  border-color: #f87171;
+}
 
 /* ── Empty state ──────────────────────────────────────────────────────── */
 .empty-state {

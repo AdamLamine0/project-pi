@@ -355,6 +355,97 @@
   animation: spin .7s linear infinite;
   display: inline-block;
 }
+.btn-pdf {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-pdf:hover { background: #b91c1c; }
+.sig-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.sig-modal {
+  background: white; border-radius: 12px;
+  padding: 28px; width: 560px; max-width: 95vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.sig-title { margin: 0 0 4px; font-size: 1.1rem; font-weight: 600; }
+.sig-sub { margin: 0 0 16px; font-size: 0.85rem; color: #6b7280; }
+.sig-canvas {
+  border: 2px dashed #d1d5db; border-radius: 8px;
+  cursor: crosshair; width: 100%; display: block;
+  background: #fafafa;
+}
+.sig-actions {
+  display: flex; gap: 10px; margin-top: 16px; justify-content: flex-end;
+}
+.btn-clear {
+  background: #f3f4f6; border: 1px solid #e5e7eb;
+  padding: 8px 16px; border-radius: 6px; cursor: pointer;
+}
+.btn-cancel {
+  background: white; border: 1px solid #e5e7eb;
+  padding: 8px 16px; border-radius: 6px; cursor: pointer;
+}
+.btn-confirm-sig {
+  background: #2563eb; color: white; border: none;
+  padding: 8px 20px; border-radius: 6px; cursor: pointer; font-weight: 500;
+}
+.btn-confirm-sig:disabled { background: #93c5fd; cursor: not-allowed; }
+
+.sig-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.sig-modal {
+  background: white; border-radius: 12px;
+  padding: 28px; width: 560px; max-width: 95vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.sig-title  { margin: 0 0 4px;  font-size: 1.1rem; font-weight: 600; }
+.sig-sub    { margin: 0 0 16px; font-size: 0.85rem; color: #6b7280; }
+.sig-canvas {
+  border: 2px dashed #d1d5db; border-radius: 8px;
+  cursor: crosshair; width: 100%; display: block; background: #fafafa;
+}
+.sig-actions {
+  display: flex; gap: 10px; margin-top: 16px; justify-content: flex-end;
+}
+.btn-clear {
+  background: #f3f4f6; border: 1px solid #e5e7eb;
+  padding: 8px 16px; border-radius: 6px; cursor: pointer;
+}
+.btn-cancel-sig {
+  background: white; border: 1px solid #e5e7eb;
+  padding: 8px 16px; border-radius: 6px; cursor: pointer;
+}
+.btn-confirm-sig {
+  background: #2563eb; color: white; border: none;
+  padding: 8px 20px; border-radius: 6px; cursor: pointer; font-weight: 500;
+}
+.btn-confirm-sig:disabled { background: #93c5fd; cursor: not-allowed; }
+.btn-pdf {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #dc2626; color: #fff; border: none;
+  padding: 10px 18px; border-radius: 8px;
+  font-size: 0.875rem; font-weight: 500; cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-pdf:hover { background: #b91c1c; }
 
 /* ── Responsive ──────────────────────────────────────────────────────── */
 @media (max-width: 600px) {

@@ -53,16 +53,19 @@ public class ObjectifController {
     public ResponseEntity<ObjectifResponse> create(
             @Valid @RequestBody ObjectifRequest request,
             @RequestHeader("X-User-Role") String role,
-            @RequestHeader("X-User-Id") Integer userId) {
+            @RequestHeader("X-User-Id") String userIdRaw) {
+        Integer userId = Integer.parseInt(userIdRaw.split(",")[0].trim());
         return ResponseEntity.ok(objectifService.create(request, cleanRole(role), userId));
     }
+
 
     @PutMapping("/{id}")
     public ResponseEntity<ObjectifResponse> update(
             @PathVariable Integer id,
             @Valid @RequestBody ObjectifRequest request,
             @RequestHeader("X-User-Role") String role,
-            @RequestHeader("X-User-Id") Integer userId) {
+            @RequestHeader("X-User-Id") String userIdRaw) {
+        Integer userId = Integer.parseInt(userIdRaw.split(",")[0].trim());
         return ResponseEntity.ok(objectifService.update(id, request, cleanRole(role), userId));
     }
 
@@ -72,7 +75,8 @@ public class ObjectifController {
             @RequestParam StatutObjectif statut,
             @RequestParam(required = false) String commentaire,
             @RequestHeader("X-User-Role") String role,
-            @RequestHeader("X-User-Id") Integer userId) {
+            @RequestHeader("X-User-Id") String userIdRaw) {
+        Integer userId = Integer.parseInt(userIdRaw.split(",")[0].trim());
         return ResponseEntity.ok(
                 objectifService.updateStatut(id, statut, commentaire, cleanRole(role), userId));
     }
@@ -81,7 +85,8 @@ public class ObjectifController {
     public ResponseEntity<Void> delete(
             @PathVariable Integer id,
             @RequestHeader("X-User-Role") String role,
-            @RequestHeader("X-User-Id") Integer userId) {
+            @RequestHeader("X-User-Id") String userIdRaw) {
+        Integer userId = Integer.parseInt(userIdRaw.split(",")[0].trim());
         objectifService.delete(id, cleanRole(role), userId);
         return ResponseEntity.noContent().build();
     }

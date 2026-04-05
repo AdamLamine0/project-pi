@@ -49,7 +49,8 @@ public class ConventionMapper {
                         .map(objectifMapper::toResponse)
                         .toList();
         r.setObjectifs(objectifResponses);
-
+        r.setSignatureUser(c.getSignatureUser());
+        r.setSignaturePartenaire(c.getSignaturePartenaire());
         return r;
     }
 }

@@ -6,10 +6,8 @@ import { ConventionService } from '../../../services/convention.service';
 import { PartenaireService } from '../../../services/partenaire.service';
 import { OrganisationPartenaire } from '../../../models/partenaire';
 import {
-  ConventionResponse,
-  ObjectifResponse,
-  ResponsableObjectif,
-  StatutConvention
+  ConventionResponse, ObjectifResponse,
+  ResponsableObjectif, StatutConvention
 } from '../../../models/convention';
 
 @Component({
@@ -20,7 +18,6 @@ import {
 export class FormConventionComponent implements OnInit {
 
   form!: FormGroup;
-
   conventionId: number | null = null;
   existing: ConventionResponse | null = null;
 
@@ -31,11 +28,19 @@ export class FormConventionComponent implements OnInit {
   myRole    = '';
 
   organisations: OrganisationPartenaire[] = [];
-
-  isLoading    = false;
-  isSubmitting = false;
+  isLoading     = false;
+  isSubmitting  = false;
   errorMessage  = '';
   successMessage = '';
+
+  // ── Signature modal ───────────────────────────────────────────────────────
+  showSignatureModal = false;
+  signatureIsEmpty   = true;
+  private sigCanvas!: HTMLCanvasElement;
+  private sigCtx!:    CanvasRenderingContext2D;
+  private sigDrawing  = false;
+  minDateDebut: string = '';
+  minDateFin: string = '';;
 
   constructor(
     private fb: FormBuilder,
@@ -55,7 +60,10 @@ export class FormConventionComponent implements OnInit {
     this.isAdmin   = role === 'ADMIN';
 
     this.buildForm();
-
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    this.minDateDebut = tomorrow.toISOString().split('T')[0];
+    
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
       this.conventionId = +idParam;
@@ -64,9 +72,7 @@ export class FormConventionComponent implements OnInit {
       if (this.isUser) {
         this.loadOrganisations().then(() => {
           const orgIdParam = this.route.snapshot.queryParamMap.get('orgId');
-          if (orgIdParam) {
-            this.form.patchValue({ organisationPartenaireId: +orgIdParam });
-          }
+          if (orgIdParam) this.form.patchValue({ organisationPartenaireId: +orgIdParam });
         });
       }
       this.addObjectif();
@@ -82,9 +88,7 @@ export class FormConventionComponent implements OnInit {
     });
   }
 
-  get objectifsArray(): FormArray {
-    return this.form.get('objectifs') as FormArray;
-  }
+  get objectifsArray(): FormArray { return this.form.get('objectifs') as FormArray; }
 
   objectifGroup(): FormGroup {
     return this.fb.group({
@@ -94,15 +98,12 @@ export class FormConventionComponent implements OnInit {
     });
   }
 
-  addObjectif(): void { this.objectifsArray.push(this.objectifGroup()); }
+  addObjectif():            void { this.objectifsArray.push(this.objectifGroup()); }
   removeObjectif(i: number): void { this.objectifsArray.removeAt(i); }
 
   async loadOrganisations(): Promise<void> {
-    try {
-      this.organisations = await this.partenaireService.getAll();
-    } catch {
-      this.errorMessage = 'Impossible de charger les organisations.';
-    }
+    try { this.organisations = await this.partenaireService.getAll(); }
+    catch { this.errorMessage = 'Impossible de charger les organisations.'; }
   }
 
   async loadExisting(id: number): Promise<void> {
@@ -115,13 +116,9 @@ export class FormConventionComponent implements OnInit {
         dateFin:   this.existing.dateFin
       });
 
-      // Load into editable form ONLY the objectifs I wrote
-      // USER writes what PARTENAIRE must do → responsable = PARTENAIRE
-      // PARTNER writes what USER must do    → responsable = USER
       const myObjectifs = this.existing.objectifs.filter(o =>
-        this.isUser
-          ? o.responsable === ResponsableObjectif.PARTENAIRE
-          : o.responsable === ResponsableObjectif.USER
+        this.isUser ? o.responsable === ResponsableObjectif.PARTENAIRE
+                    : o.responsable === ResponsableObjectif.USER
       );
 
       this.objectifsArray.clear();
@@ -135,7 +132,6 @@ export class FormConventionComponent implements OnInit {
       });
 
       if (this.objectifsArray.length === 0) this.addObjectif();
-
     } catch {
       this.errorMessage = 'Impossible de charger la convention.';
     } finally {
@@ -143,122 +139,80 @@ export class FormConventionComponent implements OnInit {
     }
   }
 
-  // ── Computed: objectifs written by the OTHER party (read-only for me) ──────
-
-  /** Objectifs that the OTHER party wrote — I need to READ these before confirming */
   get otherPartyObjectifs(): ObjectifResponse[] {
     if (!this.existing) return [];
-    // USER reads what PARTNER wrote for them (responsable = USER)
-    // PARTNER reads what USER wrote for them (responsable = PARTENAIRE)
     return this.existing.objectifs.filter(o =>
-      this.isUser
-        ? o.responsable === ResponsableObjectif.USER
-        : o.responsable === ResponsableObjectif.PARTENAIRE
+      this.isUser ? o.responsable === ResponsableObjectif.USER
+                  : o.responsable === ResponsableObjectif.PARTENAIRE
     );
   }
 
-  /** Objectifs I wrote (shown read-only alongside my editable form) */
   get myWrittenObjectifs(): ObjectifResponse[] {
     if (!this.existing) return [];
     return this.existing.objectifs.filter(o =>
-      this.isUser
-        ? o.responsable === ResponsableObjectif.PARTENAIRE
-        : o.responsable === ResponsableObjectif.USER
+      this.isUser ? o.responsable === ResponsableObjectif.PARTENAIRE
+                  : o.responsable === ResponsableObjectif.USER
     );
   }
-
-  // ── Key UX logic ──────────────────────────────────────────────────────────
 
   get myResponsable(): ResponsableObjectif {
     return this.isUser ? ResponsableObjectif.PARTENAIRE : ResponsableObjectif.USER;
   }
 
   isEditable(): boolean {
-  if (!this.existing) return true;
-  // Only lock editing once ACTIVE or EXPIREE
-  return this.existing.statut !== StatutConvention.ACTIVE
-      && this.existing.statut !== StatutConvention.EXPIREE;
-}
-
-  /**
-   * Confirmation rules:
-   * 1. Cannot confirm if YOU last modified (modifieParRole === myRole)
-   *    UNLESS the other party already confirmed
-   * 2. Cannot confirm if you already confirmed
-   * 3. Cannot confirm if ACTIVE or EXPIREE
-   */
-  canConfirm(): boolean {
-  if (!this.existing) return false;
-  if (this.existing.statut === StatutConvention.ACTIVE)  return false;
-  if (this.existing.statut === StatutConvention.EXPIREE) return false;
-
-  // Already confirmed → no need again
-  if (this.isUser    && this.existing.confirmeParUser)       return false;
-  if (this.isPartner && this.existing.confirmeParPartenaire) return false;
-
-  // YOU last modified → can only confirm AFTER the other party confirms first
-  if (this.existing.modifieParRole === this.myRole) {
-    const otherConfirmed = this.isUser
-      ? this.existing.confirmeParPartenaire
-      : this.existing.confirmeParUser;
-    return !!otherConfirmed;
+    if (!this.existing) return true;
+    return this.existing.statut !== StatutConvention.ACTIVE
+        && this.existing.statut !== StatutConvention.EXPIREE;
   }
 
-  // Other party last modified, or no one modified → it's your turn
-  return true;
-}
+  canConfirm(): boolean {
+    if (!this.existing) return false;
+    if (this.existing.statut === StatutConvention.ACTIVE)  return false;
+    if (this.existing.statut === StatutConvention.EXPIREE) return false;
+    if (this.isUser    && this.existing.confirmeParUser)       return false;
+    if (this.isPartner && this.existing.confirmeParPartenaire) return false;
+    if (this.existing.modifieParRole === this.myRole) {
+      const otherConfirmed = this.isUser
+        ? this.existing.confirmeParPartenaire
+        : this.existing.confirmeParUser;
+      return !!otherConfirmed;
+    }
+    return true;
+  }
 
   get confirmationStatusMessage(): string {
-  if (!this.existing) return '';
-
-  if (this.existing.statut === StatutConvention.ACTIVE) {
-    return '✅ Convention activée — les deux parties ont confirmé.';
-  }
-
-  // I last modified and other hasn't confirmed yet → I must wait
-  if (this.existing.modifieParRole === this.myRole) {
-    const otherConfirmed = this.isUser
-      ? this.existing.confirmeParPartenaire
-      : this.existing.confirmeParUser;
-    if (!otherConfirmed) {
-      const other = this.isUser ? 'le partenaire' : 'le porteur de projet';
-      return `⏳ Vous avez modifié la convention — attendez que ${other} confirme d'abord, puis confirmez à votre tour.`;
+    if (!this.existing) return '';
+    if (this.existing.statut === StatutConvention.ACTIVE)
+      return '✅ Convention activée — les deux parties ont confirmé.';
+    if (this.existing.modifieParRole === this.myRole) {
+      const otherConfirmed = this.isUser
+        ? this.existing.confirmeParPartenaire : this.existing.confirmeParUser;
+      if (!otherConfirmed) {
+        const other = this.isUser ? 'le partenaire' : 'le porteur de projet';
+        return `⏳ Vous avez modifié la convention — attendez que ${other} confirme d'abord.`;
+      }
+      return `👆 L'autre partie a confirmé — c'est votre tour de confirmer.`;
     }
-    // Other confirmed, now I can confirm
-    return `👆 L'autre partie a confirmé — c'est votre tour de confirmer.`;
+    if (this.isUser    && this.existing.confirmeParUser)
+      return '⏳ Vous avez confirmé — en attente de la confirmation du partenaire.';
+    if (this.isPartner && this.existing.confirmeParPartenaire)
+      return '⏳ Vous avez confirmé — en attente de la confirmation du porteur de projet.';
+    if (this.existing.modifieParRole && this.existing.modifieParRole !== this.myRole) {
+      const who = this.isUser ? 'Le partenaire' : 'Le porteur de projet';
+      return `👆 ${who} a modifié la convention — veuillez la confirmer.`;
+    }
+    if (!this.existing.modifieParRole)
+      return '⏳ En attente de la première confirmation.';
+    return '';
   }
-
-  // I already confirmed → wait for other
-  if (this.isUser && this.existing.confirmeParUser) {
-    return '⏳ Vous avez confirmé — en attente de la confirmation du partenaire.';
-  }
-  if (this.isPartner && this.existing.confirmeParPartenaire) {
-    return '⏳ Vous avez confirmé — en attente de la confirmation du porteur de projet.';
-  }
-
-  // Other modified → it's my turn to confirm
-  if (this.existing.modifieParRole && this.existing.modifieParRole !== this.myRole) {
-    const who = this.isUser ? 'Le partenaire' : 'Le porteur de projet';
-    return `👆 ${who} a modifié la convention — veuillez la confirmer.`;
-  }
-
-  // No one modified yet (fresh convention, no one confirmed) → other must go first
-  if (!this.existing.modifieParRole) {
-    return '⏳ En attente de la première confirmation.';
-  }
-
-  return '';
-}
 
   // ── Submit ────────────────────────────────────────────────────────────────
 
   async onSubmit(): Promise<void> {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
-
     this.isSubmitting = true;
     this.errorMessage = '';
-
     try {
       const conventionPayload = {
         organisationPartenaireId: this.form.value.organisationPartenaireId,
@@ -274,7 +228,6 @@ export class FormConventionComponent implements OnInit {
         convention = await this.conventionService.create(conventionPayload);
       }
 
-      // Save my objectifs
       for (const o of this.objectifsArray.value as any[]) {
         const payload = {
           conventionId: convention.id,
@@ -283,17 +236,13 @@ export class FormConventionComponent implements OnInit {
           responsable:  this.myResponsable,
           dateEcheance: o.dateEcheance || undefined
         };
-        if (o.id) {
-          await this.conventionService.updateObjectif(o.id, payload);
-        } else {
-          await this.conventionService.createObjectif(payload);
-        }
+        if (o.id) await this.conventionService.updateObjectif(o.id, payload);
+        else      await this.conventionService.createObjectif(payload);
       }
 
       this.successMessage = this.conventionId
-        ? 'Convention mise à jour. L\'autre partie doit confirmer.'
-        : 'Demande envoyée. Le partenaire doit maintenant ajouter ses objectifs et confirmer.';
-
+        ? 'Convention mise à jour.'
+        : 'Demande envoyée. Le partenaire doit maintenant confirmer.';
       setTimeout(() => this.router.navigate(['/partenariat/conventions']), 1800);
     } catch (err: any) {
       this.errorMessage = err?.error?.message || 'Une erreur est survenue.';
@@ -302,16 +251,67 @@ export class FormConventionComponent implements OnInit {
     }
   }
 
-  // ── Confirm ───────────────────────────────────────────────────────────────
+  // ── Signature modal ───────────────────────────────────────────────────────
 
-  async confirmer(): Promise<void> {
+  openSignatureModal(): void {
+    if (!this.existing) return;
+    this.showSignatureModal = true;
+    this.signatureIsEmpty   = true;
+    setTimeout(() => {
+      this.sigCanvas = document.getElementById('sigCanvas') as HTMLCanvasElement;
+      this.sigCtx    = this.sigCanvas.getContext('2d')!;
+      this.sigCtx.strokeStyle = '#1e293b';
+      this.sigCtx.lineWidth   = 2.5;
+      this.sigCtx.lineCap     = 'round';
+      this.sigCtx.lineJoin    = 'round';
+    }, 50);
+  }
+
+  startDraw(e: MouseEvent): void {
+    this.sigDrawing = true;
+    const p = this.getSigPos(e);
+    this.sigCtx.beginPath();
+    this.sigCtx.moveTo(p.x, p.y);
+  }
+
+  draw(e: MouseEvent): void {
+    if (!this.sigDrawing) return;
+    const p = this.getSigPos(e);
+    this.sigCtx.lineTo(p.x, p.y);
+    this.sigCtx.stroke();
+    this.signatureIsEmpty = false;
+  }
+
+  stopDraw(): void { this.sigDrawing = false; }
+
+  private getSigPos(e: MouseEvent) {
+    const rect = this.sigCanvas.getBoundingClientRect();
+    return {
+      x: (e.clientX - rect.left) * (this.sigCanvas.width  / rect.width),
+      y: (e.clientY - rect.top)  * (this.sigCanvas.height / rect.height)
+    };
+  }
+
+  clearSignature(): void {
+    this.sigCtx.clearRect(0, 0, this.sigCanvas.width, this.sigCanvas.height);
+    this.signatureIsEmpty = true;
+  }
+
+  async confirmSignature(): Promise<void> {
+    const dataUrl = this.sigCanvas.toDataURL('image/png');
+    this.showSignatureModal = false;
+    await this.confirmer(dataUrl);
+  }
+
+  onCancelSignature(): void { this.showSignatureModal = false; }
+
+  async confirmer(signature: string): Promise<void> {
     if (!this.existing) return;
     this.isSubmitting = true;
     this.errorMessage = '';
     try {
-      const updated = await this.conventionService.confirmer(this.existing.id);
+      const updated = await this.conventionService.confirmer(this.existing.id, signature);
       this.existing = updated;
-
       if (updated.statut === StatutConvention.ACTIVE) {
         this.successMessage = '✅ Convention activée ! Les deux parties ont confirmé.';
       } else if (this.isUser) {
@@ -326,7 +326,60 @@ export class FormConventionComponent implements OnInit {
     }
   }
 
-  goBack(): void {
-    this.router.navigate(['/partenariat/conventions']);
+  downloadPdf(): void {
+    if (!this.existing) return;
+    this.conventionService.downloadConventionPdf(this.existing.id);
   }
+  onDateDebutChange(): void {
+  const dateDebut = this.form.value.dateDebut;
+  if (dateDebut) {
+    const minFin = new Date(dateDebut);
+    minFin.setMonth(minFin.getMonth() + 3);
+    this.minDateFin = minFin.toISOString().split('T')[0];
+    // Reset dateFin si elle ne respecte plus la contrainte
+    const currentFin = this.form.value.dateFin;
+    if (currentFin && currentFin < this.minDateFin) {
+      this.form.patchValue({ dateFin: '' });
+    }
+  }
+}
+
+// Ajouter la méthode annuler
+async annulerConvention(): Promise<void> {
+  if (!this.existing) return;
+  if (!confirm('Êtes-vous sûr de vouloir annuler cette convention ? Cette action est irréversible.')) return;
+  this.isSubmitting = true;
+  this.errorMessage = '';
+  try {
+    const updated = await this.conventionService.annuler(this.existing.id);
+    this.existing = updated;
+    this.successMessage = '✅ Convention annulée.';
+  } catch (err: any) {
+    this.errorMessage = err?.error?.message || 'Échec de l\'annulation.';
+  } finally {
+    this.isSubmitting = false;
+  }
+}
+
+// Ajouter getter pour savoir si on peut annuler
+canAnnuler(): boolean {
+  if (!this.existing) return false;
+  return this.existing.statut === StatutConvention.ACTIVE
+      || this.existing.statut === StatutConvention.SIGNEE
+      || this.existing.statut === StatutConvention.BROUILLON;
+}
+
+async updateObjectifStatut(objectifId: number, statut: string): Promise<void> {
+  try {
+    await this.conventionService.updateObjectifStatut(objectifId, statut as any);
+    // Recharger pour avoir les statuts à jour
+    if (this.existing) {
+      this.existing = await this.conventionService.getById(this.existing.id);
+    }
+  } catch (err: any) {
+    this.errorMessage = err?.error?.message || 'Échec de la mise à jour du statut.';
+  }
+}
+
+  goBack(): void { this.router.navigate(['/partenariat/conventions']); }
 }

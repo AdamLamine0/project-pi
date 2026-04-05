@@ -47,10 +47,11 @@ export interface ConventionResponse {
   documentUrl: string;
   signedAt: string;
   renouvellementDemandeParRole: string | null;
-  // New fields
   confirmeParUser: boolean;
   confirmeParPartenaire: boolean;
   modifieParRole: string | null;
+  signatureUser: string | null;        // ← ajouter
+  signaturePartenaire: string | null;  // ← ajouter
 }
 
 export interface ConventionRequest {
