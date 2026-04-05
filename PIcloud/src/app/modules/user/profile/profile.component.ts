@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router, NavigationEnd } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
 import { User } from '../../../core/models/user.model';
@@ -19,12 +20,14 @@ export class ProfileComponent implements OnInit {
   successMessage: string = '';
   errorMessage: string = '';
   showPasswordForm: boolean = false;
-  activeTab: 'profile' | 'password' = 'profile';  // ← ADD THIS
+  activeTab: 'profile' | 'password' = 'profile';
+  currentUrl: string = '';   // ← for sidebar active state
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private userService: UserService
+    private userService: UserService,
+    private router: Router             // ← inject Router
   ) {
     this.profileForm = this.fb.group({
       id: [''],
@@ -41,6 +44,14 @@ export class ProfileComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Track current URL for sidebar active highlighting
+    this.currentUrl = this.router.url;
+    this.router.events.subscribe(e => {
+      if (e instanceof NavigationEnd) {
+        this.currentUrl = e.urlAfterRedirects;
+      }
+    });
+
     this.loadProfile();
   }
 
@@ -76,19 +87,18 @@ export class ProfileComponent implements OnInit {
     this.errorMessage = '';
   }
 
-  // ── TAB SWITCHING ──────────────────────────
+  // Only profile and password are real tabs — badges/certificates navigate away
   switchTab(tab: 'profile' | 'password'): void {
     this.activeTab = tab;
     this.showPasswordForm = tab === 'password';
     this.successMessage = '';
     this.errorMessage = '';
-
-    // cancel any active edit when switching tabs
     if (tab === 'password' && this.isEditing) {
       this.cancelEdit();
     }
   }
 
+<<<<<<< HEAD
  async onSubmit(): Promise<void> {
   if (this.profileForm.invalid) return;
 
@@ -117,16 +127,35 @@ export class ProfileComponent implements OnInit {
     this.errorMessage = error.error?.error || 'Échec de la mise à jour';
   } finally {
     this.isLoading = false;
+=======
+  async onSubmit(): Promise<void> {
+    if (this.profileForm.invalid) return;
+    this.isLoading = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+    try {
+      const updatedUser = await this.userService.updateUser(
+        this.profileForm.getRawValue()
+      );
+      this.user = updatedUser;
+      this.isEditing = false;
+      this.profileForm.patchValue(updatedUser);
+      this.profileForm.disable();
+      this.successMessage = 'Profil mis à jour avec succès !';
+    } catch (error: any) {
+      this.errorMessage = error.error?.error || 'Échec de la mise à jour';
+    } finally {
+      this.isLoading = false;
+    }
+>>>>>>> origin/main
   }
 }
 
   async onChangePassword(): Promise<void> {
     if (this.passwordForm.invalid) return;
-
     this.isLoading = true;
     this.errorMessage = '';
     this.successMessage = '';
-
     try {
       const userId = this.authService.getUserId();
       await this.userService.changePassword(
@@ -137,7 +166,7 @@ export class ProfileComponent implements OnInit {
       this.successMessage = 'Mot de passe modifié avec succès !';
       this.passwordForm.reset();
       this.showPasswordForm = false;
-      this.activeTab = 'profile';   // ← go back to profile tab after success
+      this.activeTab = 'profile';
     } catch (error: any) {
       this.errorMessage = error.error?.error || 'Échec du changement de mot de passe';
     } finally {

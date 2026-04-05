@@ -53,10 +53,13 @@ export class AuthService {
     const payload = this.decodeToken(token);
     if (payload) {
       localStorage.setItem('userId', String(payload.userId));
-      // Strip ROLE_ prefix so getRole() returns 'ADMIN' not 'ROLE_ADMIN'
+      // Normalize: strip ROLE_ prefix if present so getRole() always
+      // returns 'ADMIN', 'MENTOR', 'PARTENAIRE', 'USER'
       const rawRole: string = payload.role || '';
-      const role = rawRole.startsWith('ROLE_') ? rawRole.slice(5) : rawRole;
-      localStorage.setItem('role', role);
+      const normalizedRole = rawRole.startsWith('ROLE_')
+        ? rawRole.substring(5)
+        : rawRole;
+      localStorage.setItem('role', normalizedRole);
       localStorage.setItem('email', payload.sub);
     }
   }
@@ -85,7 +88,11 @@ export class AuthService {
   }
 
   isAdmin(): boolean {
-    return this.getRole() === Role.ADMIN;
+    return this.getRole() === Role.ADMIN; // Role.ADMIN = 'ADMIN' ✅
+  }
+
+  isMentor(): boolean {
+    return this.getRole() === Role.MENTOR;
   }
 
   isUser(): boolean {

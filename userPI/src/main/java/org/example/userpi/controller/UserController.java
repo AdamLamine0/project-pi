@@ -28,7 +28,6 @@ public class UserController {
 
     // Any logged-in user — get by id
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<User> getUserById(@PathVariable int id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
