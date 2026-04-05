@@ -33,4 +33,7 @@ public class ConventionResponse {
     // "ROLE_USER"    → entrepreneur requested, waiting for PARTNER to accept
     // "ROLE_PARTNER" → institution requested, waiting for USER to accept
     private String renouvellementDemandeParRole;
+    // Ajouter à la fin de la classe :
+    private String signatureUser;
+    private String signaturePartenaire;
 }

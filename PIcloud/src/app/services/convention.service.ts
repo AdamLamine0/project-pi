@@ -87,13 +87,24 @@ export class ConventionService {
 
   // ── Confirm ───────────────────────────────────────────────────────────────
 
-  confirmer(id: number): Promise<ConventionResponse> {
-    return firstValueFrom(
-      this.http.post<ConventionResponse>(
-        `${this.base}/${id}/confirmer`, {}, { headers: this.headers() }
-      )
-    );
+  confirmer(id: number, signature?: string): Promise<ConventionResponse> {
+  return firstValueFrom(
+    this.http.post<ConventionResponse>(
+      `${this.base}/${id}/confirmer`,
+      signature ? { signature } : {},
+      { headers: this.headers() }
+    )
+  );
   }
+  
+  annuler(id: number): Promise<ConventionResponse> {
+  return firstValueFrom(
+    this.http.post<ConventionResponse>(
+      `${this.base}/${id}/annuler`, {}, { headers: this.headers() }
+    )
+  );
+}
+
 
   // ── Renewal ───────────────────────────────────────────────────────────────
 
@@ -146,4 +157,20 @@ export class ConventionService {
       this.http.delete<void>(`${this.objBase}/${id}`, { headers: this.headers() })
     );
   }
+  downloadConventionPdf(id: number): void {
+  this.http.get(`${this.base}/${id}/pdf`, {
+    headers: this.headers(), // ← utilise les mêmes headers que tous les autres appels
+    responseType: 'blob'
+  }).subscribe({
+    next: (blob) => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `convention-${id}.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    },
+    error: (err) => console.error('Erreur téléchargement PDF', err)
+  });
+}
 }

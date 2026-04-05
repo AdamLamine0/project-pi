@@ -1,6 +1,7 @@
 package org.example.partenariatpi.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.example.partenariatpi.enums.StatutConvention;
 
@@ -33,7 +34,10 @@ public class Convention {
 
     // ── Dates ─────────────────────────────────────────────────────────────────
 
+    @NotNull(message = "Date debut is required")
     private LocalDate dateDebut;
+
+    @NotNull(message = "Date fin is required")
     private LocalDate dateFin;
 
     // ── Objectifs ─────────────────────────────────────────────────────────────
@@ -52,6 +56,13 @@ public class Convention {
     // Auto-set when statut changes to SIGNEE
     private LocalDate signedAt;
 
+    // Ajouter après confirmeParPartenaire :
+    @Column(columnDefinition = "TEXT")
+    private String signatureUser;
+
+    @Column(columnDefinition = "TEXT")
+    private String signaturePartenaire;
+
     // ── Renewal ───────────────────────────────────────────────────────────────
     // null           → no renewal pending
     // "ROLE_USER"    → entrepreneur requested → PARTNER must accept
@@ -66,3 +77,4 @@ public class Convention {
     // NEW: tracks confirmations
     private Boolean confirmeParUser      = false;
     private Boolean confirmeParPartenaire = false;}
+

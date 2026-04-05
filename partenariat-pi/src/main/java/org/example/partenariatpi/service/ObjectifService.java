@@ -51,14 +51,19 @@ public class ObjectifService {
         Convention convention = conventionService.findById(request.getConventionId());
         conventionService.checkIsParty(convention, requestingRole, requestingUserId);
 
+        // Valider que dateEcheance <= dateFin de la convention
+        if (request.getDateEcheance() != null && convention.getDateFin() != null) {
+            if (request.getDateEcheance().isAfter(convention.getDateFin())) {
+                throw new RuntimeException(
+                        "La date d'échéance ne peut pas dépasser la date de fin de la convention ("
+                                + convention.getDateFin() + ").");
+            }
+        }
+
         Objectif o = mapper.toEntity(request, convention);
         ObjectifResponse saved = mapper.toResponse(repository.save(o));
-
-        // ── KEY FIX: creating an objectif counts as a modification ────────────
-        // The OTHER party must see it and re-confirm before activation
         conventionService.resetConfirmationsAfterObjectifChange(
                 request.getConventionId(), requestingRole);
-
         return saved;
     }
 
@@ -71,17 +76,23 @@ public class ObjectifService {
         Objectif existing = findById(id);
         conventionService.checkIsParty(existing.getConvention(), requestingRole, requestingUserId);
 
+        // Valider que dateEcheance <= dateFin de la convention
+        if (request.getDateEcheance() != null && existing.getConvention().getDateFin() != null) {
+            if (request.getDateEcheance().isAfter(existing.getConvention().getDateFin())) {
+                throw new RuntimeException(
+                        "La date d'échéance ne peut pas dépasser la date de fin de la convention ("
+                                + existing.getConvention().getDateFin() + ").");
+            }
+        }
+
         existing.setTitre(request.getTitre());
         existing.setDescription(request.getDescription());
         existing.setResponsable(request.getResponsable());
         existing.setDateEcheance(request.getDateEcheance());
         existing.setCommentaire(request.getCommentaire());
         ObjectifResponse saved = mapper.toResponse(repository.save(existing));
-
-        // ── KEY FIX: updating an objectif also resets confirmations ──────────
         conventionService.resetConfirmationsAfterObjectifChange(
                 existing.getConvention().getId(), requestingRole);
-
         return saved;
     }
 
@@ -96,6 +107,12 @@ public class ObjectifService {
                                          Integer requestingUserId) {
         Objectif existing = findById(id);
         conventionService.checkIsParty(existing.getConvention(), requestingRole, requestingUserId);
+
+        // Peut changer le statut seulement si la convention est ACTIVE
+        if (existing.getConvention().getStatut() != org.example.partenariatpi.enums.StatutConvention.ACTIVE) {
+            throw new RuntimeException(
+                    "Le statut des objectifs ne peut être modifié que sur une convention ACTIVE.");
+        }
 
         existing.setStatut(statut);
         if (commentaire != null && !commentaire.isBlank()) {

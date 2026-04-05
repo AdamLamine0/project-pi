@@ -87,7 +87,6 @@
         </div>
         <div class="fields-grid">
 
-          <!-- USER create mode: choose org -->
           <div class="fg full" *ngIf="isUser && !conventionId">
             <label>Organisation partenaire <span class="req">*</span></label>
             <div class="sel-wrap">
@@ -98,66 +97,85 @@
             </div>
           </div>
 
-          <!-- Edit mode: org name read-only -->
           <div class="fg full" *ngIf="existing">
             <label>Organisation partenaire</label>
             <div class="ro-field">{{ existing.organisationPartenaireNom }}</div>
           </div>
 
           <div class="fg">
-            <label>Date de début <span class="req">*</span></label>
-            <input type="date" formControlName="dateDebut" [readonly]="!isEditable()"/>
-          </div>
-          <div class="fg">
-            <label>Date de fin <span class="req">*</span></label>
-            <input type="date" formControlName="dateFin" [readonly]="!isEditable()"/>
-          </div>
+  <label>Date de début <span class="req">*</span></label>
+  <input type="date" formControlName="dateDebut"
+    [min]="minDateDebut"
+    [readonly]="!isEditable()"
+    (change)="onDateDebutChange()"/>
+  <span class="ferr" *ngIf="form.get('dateDebut')?.touched && form.get('dateDebut')?.invalid">
+    La date de début doit être au minimum demain
+  </span>
+</div>
+<div class="fg">
+  <label>Date de fin <span class="req">*</span></label>
+  <input type="date" formControlName="dateFin"
+    [min]="minDateFin"
+    [readonly]="!isEditable()"/>
+  <span class="ferr" *ngIf="form.get('dateFin')?.touched && form.get('dateFin')?.invalid">
+    La date de fin doit être au moins 3 mois après la date de début
+  </span>
+</div>
         </div>
       </div>
 
-      <!-- ── SECTION 2: What the OTHER party wrote (read-only, always visible) -->
-      <!-- This is what I must READ before I can confirm -->
+      <!-- ── SECTION 2: What the OTHER party wrote (read-only) ──── -->
       <div class="fc-card" *ngIf="existing && otherPartyObjectifs.length > 0">
         <div class="fc-card-header">
           <div class="section-num">2</div>
           <div>
             <h2 class="section-title">
-              Ce que <span *ngIf="isUser">le partenaire</span><span *ngIf="isPartner">le porteur de projet</span>
+              Ce que
+              <span *ngIf="isUser">le partenaire</span>
+              <span *ngIf="isPartner">le porteur de projet</span>
               attend de vous
             </h2>
             <p class="section-sub">
-              Lisez ces engagements avant de confirmer. Vous pouvez aussi ajouter vos propres objectifs ci-dessous.
+              Lisez ces engagements avant de confirmer.
             </p>
           </div>
         </div>
         <div class="objectifs-ro-list">
           <div class="obj-ro-item" *ngFor="let o of otherPartyObjectifs">
             <div class="obj-ro-header">
-              <span class="obj-ro-badge resp-user" *ngIf="o.responsable === 'USER'">Vous devez faire</span>
-              <span class="obj-ro-badge resp-partenaire" *ngIf="o.responsable === 'PARTENAIRE'">Vous devez faire</span>
-              <span class="obj-ro-statut" [ngClass]="'statut-' + o.statut.toLowerCase()">{{ o.statut }}</span>
+              <span class="obj-ro-badge resp-user"
+                *ngIf="o.responsable === 'USER'">Vous devez faire</span>
+              <span class="obj-ro-badge resp-partenaire"
+                *ngIf="o.responsable === 'PARTENAIRE'">Vous devez faire</span>
+              <span class="obj-ro-statut"
+                [ngClass]="'statut-' + o.statut.toLowerCase()">{{ o.statut }}</span>
             </div>
             <p class="obj-ro-titre">{{ o.titre }}</p>
             <p class="obj-ro-desc" *ngIf="o.description">{{ o.description }}</p>
-            <p class="obj-ro-date" *ngIf="o.dateEcheance">Échéance : {{ o.dateEcheance | date:'dd/MM/yyyy' }}</p>
+            <p class="obj-ro-date" *ngIf="o.dateEcheance">
+              Échéance : {{ o.dateEcheance | date:'dd/MM/yyyy' }}
+            </p>
           </div>
         </div>
       </div>
 
-      <!-- ── SECTION 3: MY objectifs — what I want the other party to do ── -->
+      <!-- ── SECTION 3: MY objectifs (editable) ─────────────────── -->
       <div class="fc-card" *ngIf="isEditable()">
         <div class="fc-card-header">
           <div class="section-num">{{ existing && otherPartyObjectifs.length > 0 ? '3' : '2' }}</div>
           <div>
             <h2 class="section-title">
-              Ce que <span *ngIf="isUser">le partenaire</span><span *ngIf="isPartner">le porteur de projet</span>
+              Ce que
+              <span *ngIf="isUser">le partenaire</span>
+              <span *ngIf="isPartner">le porteur de projet</span>
               doit faire
             </h2>
             <p class="section-sub">Définissez les engagements que vous attendez de l'autre partie.</p>
           </div>
           <button type="button" class="btn-add-obj" (click)="addObjectif()">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
             Ajouter
           </button>
@@ -173,7 +191,8 @@
                 <label>Titre de l'engagement <span class="req">*</span></label>
                 <input type="text" formControlName="titre"
                   placeholder="Ex : Fournir 30 stages PFE par an"/>
-                <span class="ferr" *ngIf="ctrl.get('titre')?.touched && ctrl.get('titre')?.hasError('required')">
+                <span class="ferr"
+                  *ngIf="ctrl.get('titre')?.touched && ctrl.get('titre')?.hasError('required')">
                   Le titre est requis
                 </span>
               </div>
@@ -197,46 +216,84 @@
         </div>
       </div>
 
-      <!-- ── SECTION: Read-only view of MY objectifs when not editable ── -->
-<div class="fc-card" *ngIf="existing && !isEditable() && myWrittenObjectifs.length > 0">        <div class="fc-card-header">
-          <div class="section-num">3</div>
-          <div>
-            <h2 class="section-title">Vos engagements pour l'autre partie</h2>
-            <p class="section-sub">Ce que vous avez demandé à l'autre partie.</p>
-          </div>
-        </div>
-        <div class="objectifs-ro-list">
-          <div class="obj-ro-item" *ngFor="let o of myWrittenObjectifs">
-            <div class="obj-ro-header">
-              <span class="obj-ro-badge">{{ o.responsable === 'PARTENAIRE' ? 'Partenaire doit faire' : 'Porteur doit faire' }}</span>
-              <span class="obj-ro-statut" [ngClass]="'statut-' + o.statut.toLowerCase()">{{ o.statut }}</span>
-            </div>
-            <p class="obj-ro-titre">{{ o.titre }}</p>
-            <p class="obj-ro-desc" *ngIf="o.description">{{ o.description }}</p>
-          </div>
-        </div>
+      <!-- ── SECTION: Read-only MY objectifs when not editable ──── -->
+      <div class="fc-card" *ngIf="existing && existing.statut === 'ACTIVE'">
+  <div class="fc-card-header">
+    <div class="section-num">4</div>
+    <div>
+      <h2 class="section-title">Suivi des objectifs</h2>
+      <p class="section-sub">Mettez à jour le statut des objectifs dont vous êtes responsable.</p>
+    </div>
+  </div>
+  <div class="objectifs-ro-list">
+    <div class="obj-ro-item" *ngFor="let o of existing.objectifs">
+      <div class="obj-ro-header">
+        <span class="obj-ro-badge">{{ o.responsable }}</span>
+        <select class="statut-select"
+          [ngClass]="'statut-' + o.statut.toLowerCase()"
+          [value]="o.statut"
+          (change)="updateObjectifStatut(o.id, $any($event.target).value)">
+          <option value="EN_COURS">En cours</option>
+          <option value="ATTEINT">Atteint</option>
+          <option value="EN_RETARD">En retard</option>
+          <option value="ANNULE">Annulé</option>
+        </select>
       </div>
+      <p class="obj-ro-titre">{{ o.titre }}</p>
+      <p class="obj-ro-desc" *ngIf="o.description">{{ o.description }}</p>
+      <p class="obj-ro-date" *ngIf="o.dateEcheance">
+        Échéance : {{ o.dateEcheance | date:'dd/MM/yyyy' }}
+      </p>
+    </div>
+  </div>
+</div>
 
-      <!-- ── ACTIONS ────────────────────────────────────────────────── -->
+      <!-- ── ACTIONS ────────────────────────────────────────────── -->
       <div class="fc-actions">
 
         <button type="submit" class="btn-primary"
           *ngIf="isEditable()"
           [disabled]="isSubmitting || form.invalid">
           <span class="spin" *ngIf="isSubmitting"></span>
-{{ isSubmitting ? 'Enregistrement…' : (conventionId ? 'Enregistrer les modifications' : 'Envoyer la demande') }}
+          {{ isSubmitting ? 'Enregistrement…' : (conventionId ? 'Enregistrer les modifications' : 'Envoyer la demande') }}
         </button>
 
+        <!-- ← openSignatureModal() et non confirmer() -->
         <button type="button" class="btn-confirm"
           *ngIf="conventionId && canConfirm()"
           [disabled]="isSubmitting"
-          (click)="confirmer()">
+          (click)="openSignatureModal()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
             <polyline points="22 4 12 14.01 9 11.01"/>
           </svg>
           Confirmer la convention
         </button>
+
+        <button type="button" class="btn-pdf"
+          *ngIf="existing?.statut === 'ACTIVE'"
+          (click)="downloadPdf()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
+          Télécharger la convention (PDF)
+        </button>
+
+        <!-- Ajouter dans fc-actions avant btn-ghost -->
+<button type="button" class="btn-annuler"
+  *ngIf="existing && canAnnuler()"
+  [disabled]="isSubmitting"
+  (click)="annulerConvention()">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="15" y1="9" x2="9" y2="15"/>
+    <line x1="9" y1="9" x2="15" y2="15"/>
+  </svg>
+  Annuler la convention
+</button>
 
         <button type="button" class="btn-ghost" (click)="goBack()" [disabled]="isSubmitting">
           Retour à la liste
@@ -246,4 +303,34 @@
 
     </form>
   </div>
+
+  <!-- ── SIGNATURE MODAL ─────────────────────────────────────────── -->
+  <div class="sig-overlay" *ngIf="showSignatureModal" (click)="onCancelSignature()">
+    <div class="sig-modal" (click)="$event.stopPropagation()">
+      <h2 class="sig-title">Votre signature</h2>
+      <p class="sig-sub">Dessinez votre signature dans le cadre ci-dessous</p>
+
+      <canvas id="sigCanvas"
+        width="500" height="180"
+        class="sig-canvas"
+        (mousedown)="startDraw($event)"
+        (mousemove)="draw($event)"
+        (mouseup)="stopDraw()"
+        (mouseleave)="stopDraw()">
+      </canvas>
+
+      <div class="sig-actions">
+        <button type="button" class="btn-clear"
+          (click)="clearSignature()">Effacer</button>
+        <button type="button" class="btn-cancel-sig"
+          (click)="onCancelSignature()">Annuler</button>
+        <button type="button" class="btn-confirm-sig"
+          (click)="confirmSignature()"
+          [disabled]="signatureIsEmpty">
+          Confirmer la convention
+        </button>
+      </div>
+    </div>
+  </div>
+
 </div>
