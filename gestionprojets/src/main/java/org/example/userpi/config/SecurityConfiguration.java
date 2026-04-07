@@ -33,6 +33,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/", "/index.html", "/ui/**", "/favicon.ico").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/projects/**").permitAll()
+                        .requestMatchers("/api/admin/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .anyRequest().authenticated()
                 )

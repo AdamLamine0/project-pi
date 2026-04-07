@@ -12,7 +12,20 @@ export interface ProjectItem {
   priorite: string;
   categorie?: string;
   progressPercentage?: number;
+  dateCreation?: string;
+  dateModification?: string;
   roadmapSteps?: RoadmapStepItem[];
+  documents?: ProjectDocumentItem[];
+}
+
+export interface ProjectDocumentItem {
+  id: string;
+  type: string;
+  title: string;
+  fileName: string;
+  filePath: string;
+  uploadedAt: string;
+  uploadedBy: string;
 }
 
 export interface RoadmapStepItem {
@@ -55,4 +68,15 @@ export interface UpdateProjectPayload {
   memberIds?: string[];
   priorite?: string;
   categorie?: string;
+}
+
+export interface AdminServiceInstance {
+  serviceName: string;
+  instanceId?: string;
+  host: string;
+  port: number;
+  uri: string;
+  secure: boolean;
+  status: string;
+  metadata: Record<string, string>;
 }

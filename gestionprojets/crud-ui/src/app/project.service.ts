@@ -2,6 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import {
+  AdminServiceInstance,
   CreateProjectPayload,
   CreateRoadmapStepPayload,
   ProjectItem,
@@ -13,6 +14,7 @@ import {
 })
 export class ProjectService {
   private readonly baseUrl = 'http://localhost:8097/api/projects';
+  private readonly adminUrl = 'http://localhost:8097/api/admin';
 
   constructor(private readonly http: HttpClient) {}
 
@@ -71,6 +73,40 @@ export class ProjectService {
 
   getProgress(projectId: string): Observable<number> {
     return this.http.get<number>(`${this.baseUrl}/${projectId}/progress`);
+  }
+
+  uploadDocument(
+    projectId: string,
+    file: File,
+    type: string,
+    title: string,
+    userId: string
+  ): Observable<ProjectItem> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', type);
+    formData.append('title', title || file.name);
+
+    return this.http.post<ProjectItem>(`${this.baseUrl}/${projectId}/documents`, formData, {
+      headers: this.withUserHeader(userId)
+    });
+  }
+
+  deleteDocument(projectId: string, documentId: string, userId: string): Observable<ProjectItem> {
+    return this.http.delete<ProjectItem>(`${this.baseUrl}/${projectId}/documents/${documentId}`, {
+      headers: this.withUserHeader(userId)
+    });
+  }
+
+  downloadDocument(projectId: string, documentId: string, userId: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/${projectId}/documents/${documentId}/download`, {
+      headers: this.withUserHeader(userId),
+      responseType: 'blob'
+    });
+  }
+
+  getDiscoveredServices(): Observable<AdminServiceInstance[]> {
+    return this.http.get<AdminServiceInstance[]>(`${this.adminUrl}/services`);
   }
 
   private withUserHeader(managerId: string): HttpHeaders {

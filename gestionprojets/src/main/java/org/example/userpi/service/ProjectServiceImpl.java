@@ -4,10 +4,21 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.userpi.dto.*;
 import org.example.userpi.model.Project;
+import org.example.userpi.model.ProjectDocument;
 import org.example.userpi.model.RoadmapStep;
 import org.example.userpi.repository.ProjectRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -20,11 +31,15 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
 
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
+
     @Override
     public ProjectResponse createProject(CreateProjectRequest request, String userId) {
         log.info("Creating new project: {}", request.getTitre());
         
         Project project = new Project();
+        project.setId(UUID.randomUUID().toString());
         project.setTitre(request.getTitre());
         project.setDescription(request.getDescription());
         project.setDateDebut(request.getDateDebut());
@@ -278,6 +293,98 @@ public class ProjectServiceImpl implements ProjectService {
         return mapToResponse(updatedProject);
     }
 
+    @Override
+    public ProjectResponse addProjectDocument(String projectId, MultipartFile file, String type, String title, String userId) {
+        if (file == null || file.isEmpty()) {
+            throw new RuntimeException("Document file is required");
+        }
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        String originalName = file.getOriginalFilename() == null ? "document" : file.getOriginalFilename();
+        String cleanName = originalName.replaceAll("[^a-zA-Z0-9._-]", "_");
+        String storedFileName = UUID.randomUUID() + "_" + cleanName;
+
+        try {
+            Path projectUploadDir = Paths.get(uploadDir, "projects", projectId).toAbsolutePath().normalize();
+            Files.createDirectories(projectUploadDir);
+
+            Path targetPath = projectUploadDir.resolve(storedFileName);
+            Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+
+            ProjectDocument document = new ProjectDocument();
+            document.setId(UUID.randomUUID().toString());
+            document.setType(type == null || type.isBlank() ? "OTHER" : type);
+            document.setTitle(title == null || title.isBlank() ? cleanName : title);
+            document.setFileName(cleanName);
+            document.setFilePath(targetPath.toString());
+            document.setUploadedAt(LocalDateTime.now());
+            document.setUploadedBy(userId);
+
+            project.getDocuments().add(document);
+            project.setDateModification(LocalDateTime.now());
+
+            Project updatedProject = projectRepository.save(project);
+            return mapToResponse(updatedProject);
+        } catch (IOException ex) {
+            throw new RuntimeException("Could not store document", ex);
+        }
+    }
+
+    @Override
+    public ProjectResponse deleteProjectDocument(String projectId, String documentId, String userId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        ProjectDocument document = project.getDocuments().stream()
+                .filter(d -> d.getId().equals(documentId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Document not found"));
+
+        if (document.getFilePath() != null && !document.getFilePath().isBlank()) {
+            try {
+                Files.deleteIfExists(Paths.get(document.getFilePath()));
+            } catch (IOException ex) {
+                log.warn("Could not delete file from disk: {}", document.getFilePath());
+            }
+        }
+
+        project.getDocuments().removeIf(d -> d.getId().equals(documentId));
+        project.setDateModification(LocalDateTime.now());
+        Project updatedProject = projectRepository.save(project);
+        return mapToResponse(updatedProject);
+    }
+
+    @Override
+    public Resource downloadProjectDocument(String projectId, String documentId) {
+        ProjectDocumentResponse metadata = getProjectDocumentMetadata(projectId, documentId);
+
+        try {
+            Path filePath = Paths.get(metadata.getFilePath()).toAbsolutePath().normalize();
+            Resource resource = new UrlResource(filePath.toUri());
+            if (!resource.exists() || !resource.isReadable()) {
+                throw new RuntimeException("File not found or not readable");
+            }
+            return resource;
+        } catch (MalformedURLException ex) {
+            throw new RuntimeException("Invalid file path", ex);
+        }
+    }
+
+    @Override
+    public ProjectDocumentResponse getProjectDocumentMetadata(String projectId, String documentId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        ProjectDocument document = project.getDocuments().stream()
+                .filter(d -> d.getId().equals(documentId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Document not found"));
+
+        return mapDocumentToResponse(document);
+    }
+
     // Helper method to map Project to ProjectResponse
     private ProjectResponse mapToResponse(Project project) {
         ProjectResponse response = new ProjectResponse();
@@ -294,6 +401,9 @@ public class ProjectServiceImpl implements ProjectService {
         response.setRoadmapSteps(project.getRoadmapSteps().stream()
                 .map(this::mapRoadmapStepToResponse)
                 .collect(Collectors.toList()));
+        response.setDocuments(project.getDocuments().stream()
+            .map(this::mapDocumentToResponse)
+            .collect(Collectors.toList()));
         response.setDateCreation(project.getDateCreation());
         response.setDateModification(project.getDateModification());
         response.setPriorite(project.getPriorite());
@@ -313,6 +423,18 @@ public class ProjectServiceImpl implements ProjectService {
         response.setDateCreation(step.getDateCreation());
         response.setDateModification(step.getDateModification());
         response.setCreePar(step.getCreePar());
+        return response;
+    }
+
+    private ProjectDocumentResponse mapDocumentToResponse(ProjectDocument document) {
+        ProjectDocumentResponse response = new ProjectDocumentResponse();
+        response.setId(document.getId());
+        response.setType(document.getType());
+        response.setTitle(document.getTitle());
+        response.setFileName(document.getFileName());
+        response.setFilePath(document.getFilePath());
+        response.setUploadedAt(document.getUploadedAt());
+        response.setUploadedBy(document.getUploadedBy());
         return response;
     }
 }

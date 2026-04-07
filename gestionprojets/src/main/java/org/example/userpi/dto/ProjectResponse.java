@@ -23,6 +23,7 @@ public class ProjectResponse {
     private String managerName;
     private List<String> memberIds;
     private List<RoadmapStepResponse> roadmapSteps;
+    private List<ProjectDocumentResponse> documents;
     private LocalDateTime dateCreation;
     private LocalDateTime dateModification;
     private String priorite;

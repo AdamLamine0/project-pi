@@ -2,9 +2,12 @@ package org.example.userpi.service;
 
 import org.example.userpi.dto.CreateProjectRequest;
 import org.example.userpi.dto.CreateRoadmapStepRequest;
+import org.example.userpi.dto.ProjectDocumentResponse;
 import org.example.userpi.dto.ProjectResponse;
 import org.example.userpi.dto.UpdateProjectRequest;
 import org.example.userpi.model.Project;
+import org.springframework.core.io.Resource;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -50,4 +53,13 @@ public interface ProjectService {
     
     // Generate AI Roadmap
     ProjectResponse generateAiRoadmap(String projectId, String userId);
+
+    // Project Documents
+    ProjectResponse addProjectDocument(String projectId, MultipartFile file, String type, String title, String userId);
+
+    ProjectResponse deleteProjectDocument(String projectId, String documentId, String userId);
+
+    Resource downloadProjectDocument(String projectId, String documentId);
+
+    ProjectDocumentResponse getProjectDocumentMetadata(String projectId, String documentId);
 }

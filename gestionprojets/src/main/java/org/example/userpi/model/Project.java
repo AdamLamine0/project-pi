@@ -48,6 +48,10 @@ public class Project {
     @CollectionTable(name = "project_roadmap_steps", joinColumns = @JoinColumn(name = "project_id"))
     private List<RoadmapStep> roadmapSteps = new ArrayList<>();
 
+    @ElementCollection
+    @CollectionTable(name = "project_documents", joinColumns = @JoinColumn(name = "project_id"))
+    private List<ProjectDocument> documents = new ArrayList<>();
+
     private LocalDateTime dateCreation;
     private LocalDateTime dateModification;
 

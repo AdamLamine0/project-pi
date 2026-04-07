@@ -1,243 +1,467 @@
-<main class="page">
-  <header class="hero">
-    <div>
-      <p class="label">gestionprojets / angular ui</p>
-      <h1>Project CRUD Dashboard</h1>
-      <p class="subtitle">
-        Beautiful and focused interface to create, update, search, and delete projects from your backend.
-      </p>
-    </div>
-    <button class="btn dark" (click)="loadProjects()" [disabled]="loading">
-      {{ loading ? 'Refreshing...' : 'Refresh' }}
-    </button>
-  </header>
-
-  <section class="tabs panel">
-    <button class="tab-btn" [class.active]="activeView === 'projects'" (click)="switchToProjects()">Projects</button>
-    <button class="tab-btn" [class.active]="activeView === 'roadmap'" (click)="switchToRoadmap()">Roadmap</button>
-  </section>
-
-  <ng-container *ngIf="activeView === 'projects'">
-  <section class="panel form-panel">
-    <h2>{{ mode === 'create' ? 'Create Project' : 'Edit Project' }}</h2>
-    <form class="grid" (ngSubmit)="submit()">
-      <label>
-        Title
-        <input name="titre" type="text" [(ngModel)]="form.titre" placeholder="Platform Modernization" />
-      </label>
-
-      <label>
-        Manager ID
-        <input name="managerId" type="text" [(ngModel)]="form.managerId" placeholder="manager-1" />
-      </label>
-
-      <label class="full">
-        Description
-        <textarea name="description" [(ngModel)]="form.description" rows="3" placeholder="Describe project scope"></textarea>
-      </label>
-
-      <label>
-        Start Date
-        <input name="dateDebut" type="date" [(ngModel)]="form.dateDebut" />
-      </label>
-
-      <label>
-        End Date
-        <input name="dateFin" type="date" [(ngModel)]="form.dateFin" />
-      </label>
-
-      <label>
-        Budget
-        <input name="budget" type="number" min="1" [(ngModel)]="form.budget" />
-      </label>
-
-      <label>
-        Priority
-        <select name="priorite" [(ngModel)]="form.priorite">
-          <option value="LOW">LOW</option>
-          <option value="MEDIUM">MEDIUM</option>
-          <option value="HIGH">HIGH</option>
-          <option value="CRITICAL">CRITICAL</option>
-        </select>
-      </label>
-
-      <label class="full">
-        Category
-        <input name="categorie" type="text" [(ngModel)]="form.categorie" placeholder="Web, Mobile, Data" />
-      </label>
-
-      <label class="full">
-        Member IDs (comma separated)
-        <input name="memberIds" type="text" [(ngModel)]="memberIdsInput" placeholder="u1, u2, u3" />
-      </label>
-
-      <div class="actions full">
-        <button class="btn" type="submit" [disabled]="submitting">
-          {{ submitting ? 'Saving...' : (mode === 'create' ? 'Create' : 'Update') }}
-        </button>
-        <button class="btn light" type="button" *ngIf="mode === 'edit'" (click)="cancelEdit()">Cancel</button>
+<main class="admin-shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo-mark">M</div>
+      <div>
+        <p class="brand-name">Materio Admin</p>
+        <p class="brand-sub">gestionprojets</p>
       </div>
-    </form>
-  </section>
-
-  <section class="feedback" *ngIf="message || error">
-    <p class="ok" *ngIf="message">{{ message }}</p>
-    <p class="bad" *ngIf="error">{{ error }}</p>
-  </section>
-
-  <section class="panel">
-    <div class="toolbar">
-      <h2>Projects</h2>
-      <input
-        type="text"
-        name="search"
-        [(ngModel)]="search"
-        (ngModelChange)="applyFilter()"
-        placeholder="Search title, manager, description"
-      />
     </div>
 
-    <p *ngIf="loading">Loading projects...</p>
+    <nav class="menu">
+      <button class="menu-item" [class.active]="activeView === 'dashboard'" (click)="switchView('dashboard')">
+        Dashboard
+      </button>
+      <button class="menu-item" [class.active]="activeView === 'services'" (click)="switchView('services')">
+        Services
+      </button>
+      <button class="menu-item" [class.active]="activeView === 'projects'" (click)="switchView('projects')">
+        Projects
+      </button>
+      <button class="menu-item" [class.active]="activeView === 'roadmap'" (click)="switchToRoadmap()">
+        Roadmap
+      </button>
+    </nav>
 
-    <div class="cards" *ngIf="!loading && filteredProjects.length > 0">
-      <article class="card" *ngFor="let p of filteredProjects; trackBy: trackByProject">
-        <div class="top">
-          <h3>{{ p.titre }}</h3>
-          <span class="badge">{{ p.priorite || 'N/A' }}</span>
-        </div>
+    <section class="status-card">
+      <img src="/materio/element-1.png" alt="decorative" class="status-decor" />
+      <p>Environment</p>
+      <h4>Local Preview</h4>
+      <small>{{ discoveredServices.length }} service instances exposed</small>
+    </section>
+  </aside>
 
-        <p class="desc">{{ p.description }}</p>
+  <section class="content">
+    <header class="topbar">
+      <div>
+        <p class="muted">Admin workspace</p>
+        <h1>Project Operations Center</h1>
+      </div>
+      <div class="top-actions">
+        <img src="/materio/avatar-1.png" alt="admin profile" class="profile-avatar" />
+        <input
+          type="text"
+          name="quickSearch"
+          [(ngModel)]="quickSearch"
+          (ngModelChange)="applyFilter()"
+          placeholder="Quick search projects"
+        />
+        <button class="btn outline" (click)="loadDiscoveredServices()" [disabled]="serviceLoading">
+          {{ serviceLoading ? 'Syncing...' : 'Sync Services' }}
+        </button>
+        <button class="btn dark" (click)="refreshAll()" [disabled]="loading">
+          {{ loading ? 'Refreshing...' : 'Refresh All' }}
+        </button>
+      </div>
+    </header>
 
-        <div class="meta">
-          <span><strong>Manager:</strong> {{ p.managerId }}</span>
-          <span><strong>Status:</strong> {{ p.statut || 'N/A' }}</span>
-          <span><strong>Budget:</strong> {{ p.budget }}</span>
-          <span><strong>Dates:</strong> {{ p.dateDebut }} to {{ p.dateFin }}</span>
-        </div>
+    <section class="feedback" *ngIf="message || error || servicesError">
+      <p class="ok" *ngIf="message">{{ message }}</p>
+      <p class="bad" *ngIf="error">{{ error }}</p>
+      <p class="bad" *ngIf="servicesError">{{ servicesError }}</p>
+    </section>
 
-        <div class="members" *ngIf="p.memberIds.length">
-          <span *ngFor="let m of p.memberIds">{{ m }}</span>
-        </div>
+    <ng-container *ngIf="activeView === 'dashboard'">
+      <section class="kpi-grid">
+        <article class="kpi-card">
+          <p>Total Projects</p>
+          <h2>{{ projects.length }}</h2>
+          <small>All tracked initiatives</small>
+        </article>
+        <article class="kpi-card">
+          <p>Total Budget</p>
+          <h2>{{ totalBudget() | number:'1.0-0' }}</h2>
+          <small>Across all projects</small>
+        </article>
+        <article class="kpi-card">
+          <p>Average Progress</p>
+          <h2>{{ avgProgress() }}%</h2>
+          <small>Roadmap completion average</small>
+        </article>
+        <article class="kpi-card">
+          <p>Discovery Instances</p>
+          <h2>{{ discoveredServices.length }}</h2>
+          <small>Eureka-exposed services</small>
+        </article>
+      </section>
 
-        <div class="card-actions">
-          <button class="btn dark" (click)="openRoadmap(p)">Roadmap</button>
-          <button class="btn light" (click)="edit(p)">Edit</button>
-          <button class="btn danger" [disabled]="deletingId === p.id" (click)="remove(p)">
-            {{ deletingId === p.id ? 'Deleting...' : 'Delete' }}
+      <section class="dash-grid">
+        <article class="panel">
+          <div class="panel-head">
+            <h3>Health Snapshot</h3>
+            <button class="text-btn" (click)="openServicesCenter()">Open Services</button>
+          </div>
+          <div class="service-mini" *ngFor="let grp of serviceGroups()">
+            <span>{{ grp.name }}</span>
+            <span>{{ grp.instances.length }} instance(s)</span>
+          </div>
+          <p *ngIf="!serviceGroups().length" class="muted">No service discovered yet.</p>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <h3>Execution Metrics</h3>
+            <button class="text-btn" (click)="openProjectCenter()">Open Projects</button>
+          </div>
+          <div class="metric-line"><span>Done Projects</span><strong>{{ doneProjects() }}</strong></div>
+          <div class="metric-line"><span>High Priority</span><strong>{{ highPriorityProjects() }}</strong></div>
+          <div class="metric-line"><span>Roadmap Steps</span><strong>{{ totalRoadmapSteps() }}</strong></div>
+        </article>
+
+        <article class="panel wide">
+          <div class="panel-head">
+            <h3>Recent Projects</h3>
+            <small>{{ filteredProjects.length }} visible</small>
+          </div>
+          <div class="table-wrap" *ngIf="filteredProjects.length; else emptyRecent">
+            <table>
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Manager</th>
+                  <th>Progress</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let p of filteredProjects | slice:0:6; trackBy: trackByProject">
+                  <td>{{ p.titre }}</td>
+                  <td>{{ p.priorite }}</td>
+                  <td>{{ p.statut || 'N/A' }}</td>
+                  <td>{{ p.managerId }}</td>
+                  <td>{{ p.progressPercentage ?? 0 }}%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <ng-template #emptyRecent>
+            <p class="muted">No projects loaded yet.</p>
+          </ng-template>
+        </article>
+      </section>
+    </ng-container>
+
+    <ng-container *ngIf="activeView === 'services'">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Discovered Microservices</h2>
+          <button class="btn outline" (click)="loadDiscoveredServices()" [disabled]="serviceLoading">
+            {{ serviceLoading ? 'Refreshing...' : 'Refresh Services' }}
           </button>
         </div>
-      </article>
-    </div>
 
-    <p *ngIf="!loading && filteredProjects.length === 0">No projects yet.</p>
-  </section>
-  </ng-container>
+        <p class="muted" *ngIf="serviceLoading">Loading discovery registry...</p>
 
-  <section class="panel roadmap-panel" *ngIf="activeView === 'roadmap' && roadmapProject as rp">
-    <div class="roadmap-head">
-      <div>
-        <h2>Roadmap Manager</h2>
-        <p class="subtitle">Project: <strong>{{ rp.titre }}</strong> ({{ rp.id }})</p>
-      </div>
-      <div class="roadmap-head-actions">
-        <button class="btn dark" (click)="generateRoadmap()" [disabled]="roadmapLoading">
-          {{ roadmapLoading ? 'Generating...' : 'Generate AI Roadmap' }}
-        </button>
-        <button class="btn light" (click)="fetchProgress()">Refresh Progress</button>
-        <button class="btn light" (click)="closeRoadmap()">Close</button>
-      </div>
-    </div>
+        <div class="service-groups" *ngIf="!serviceLoading && serviceGroups().length">
+          <article class="service-group" *ngFor="let grp of serviceGroups()">
+            <div class="service-group-head">
+              <h3>{{ grp.name }}</h3>
+              <span>{{ grp.instances.length }} instance(s)</span>
+            </div>
 
-    <div class="progress-wrap">
-      <span>Progress: {{ roadmapProgress ?? rp.progressPercentage ?? 0 }}%</span>
-      <div class="progress-bar">
-        <div class="progress-fill" [style.width.%]="roadmapProgress ?? rp.progressPercentage ?? 0"></div>
-      </div>
-    </div>
-
-    <form class="grid roadmap-form" (ngSubmit)="addRoadmapStep()">
-      <label>
-        Step Title
-        <input name="stepTitle" type="text" [(ngModel)]="roadmapForm.titre" placeholder="Planning" />
-      </label>
-
-      <label>
-        Order
-        <input name="stepOrder" type="number" min="1" [(ngModel)]="roadmapForm.ordre" />
-      </label>
-
-      <label>
-        Status
-        <select name="stepStatus" [(ngModel)]="roadmapForm.statut">
-          <option value="PENDING">PENDING</option>
-          <option value="IN_PROGRESS">IN_PROGRESS</option>
-          <option value="DONE">DONE</option>
-        </select>
-      </label>
-
-      <label>
-        Parent Step ID (optional)
-        <input name="stepParent" type="text" [(ngModel)]="roadmapForm.parent" placeholder="root or step id" />
-      </label>
-
-      <label class="full">
-        Description
-        <textarea name="stepDescription" rows="2" [(ngModel)]="roadmapForm.description" placeholder="Step details"></textarea>
-      </label>
-
-      <div class="actions full">
-        <button class="btn" type="submit" [disabled]="roadmapSubmitting">
-          {{ roadmapSubmitting ? 'Adding...' : 'Add Step' }}
-        </button>
-      </div>
-    </form>
-
-    <div class="cards" *ngIf="rp.roadmapSteps?.length; else noRoadmapSteps">
-      <article class="card" *ngFor="let step of rp.roadmapSteps">
-        <div class="top">
-          <h3>#{{ step.ordre }} - {{ step.titre }}</h3>
-          <span class="badge">{{ step.statut }}</span>
+            <div class="service-instance" *ngFor="let svc of grp.instances; trackBy: trackByService">
+              <div>
+                <p><strong>Instance:</strong> {{ svc.instanceId || 'N/A' }}</p>
+                <p><strong>Host:</strong> {{ svc.host }}:{{ svc.port }}</p>
+                <p><strong>URI:</strong> {{ svc.uri }}</p>
+              </div>
+              <div class="service-state" [class.up]="svc.status === 'UP'">
+                {{ svc.status || 'UP' }}
+              </div>
+            </div>
+          </article>
         </div>
-        <p class="desc">{{ step.description }}</p>
-        <div class="meta">
-          <span><strong>Step ID:</strong> {{ step.id }}</span>
-          <span><strong>Parent:</strong> {{ step.parent || 'None' }}</span>
-          <span><strong>Created By:</strong> {{ step.creePar || 'N/A' }}</span>
-        </div>
-        <div class="card-actions">
-          <button
-            class="btn light"
-            [disabled]="roadmapStatusUpdatingKey === (rp.id + '-' + step.id)"
-            (click)="updateStepStatus(step, 'PENDING')"
-          >PENDING</button>
-          <button
-            class="btn light"
-            [disabled]="roadmapStatusUpdatingKey === (rp.id + '-' + step.id)"
-            (click)="updateStepStatus(step, 'IN_PROGRESS')"
-          >IN_PROGRESS</button>
-          <button
-            class="btn light"
-            [disabled]="roadmapStatusUpdatingKey === (rp.id + '-' + step.id)"
-            (click)="updateStepStatus(step, 'DONE')"
-          >DONE</button>
-          <button
-            class="btn danger"
-            [disabled]="roadmapDeletingKey === (rp.id + '-' + step.id)"
-            (click)="deleteStep(step)"
-          >{{ roadmapDeletingKey === (rp.id + '-' + step.id) ? 'Deleting...' : 'Delete' }}</button>
-        </div>
-      </article>
-    </div>
-    <ng-template #noRoadmapSteps>
-      <p>No roadmap steps yet. Add one manually or generate AI roadmap.</p>
-    </ng-template>
-  </section>
 
-  <section class="panel roadmap-empty" *ngIf="activeView === 'roadmap' && !roadmapProject">
-    <h2>No Roadmap Selected</h2>
-    <p>
-      Open the Projects tab and click the <strong>Roadmap</strong> button on any project to manage its roadmap steps.
-    </p>
-    <button class="btn dark" (click)="switchToProjects()">Go To Projects</button>
+        <p class="muted" *ngIf="!serviceLoading && !serviceGroups().length">No service instances found.</p>
+      </section>
+    </ng-container>
+
+    <ng-container *ngIf="activeView === 'projects'">
+      <section class="panel form-panel">
+        <h2>{{ mode === 'create' ? 'Create Project' : 'Edit Project' }}</h2>
+        <form class="grid" (ngSubmit)="submit()">
+          <label>
+            Title
+            <input name="titre" type="text" [(ngModel)]="form.titre" placeholder="Platform Modernization" />
+          </label>
+
+          <label>
+            Manager ID
+            <input name="managerId" type="text" [(ngModel)]="form.managerId" placeholder="manager-1" />
+          </label>
+
+          <label class="full">
+            Description
+            <textarea name="description" [(ngModel)]="form.description" rows="3" placeholder="Describe project scope"></textarea>
+          </label>
+
+          <label>
+            Start Date
+            <input name="dateDebut" type="date" [(ngModel)]="form.dateDebut" />
+          </label>
+
+          <label>
+            End Date
+            <input name="dateFin" type="date" [(ngModel)]="form.dateFin" />
+          </label>
+
+          <label>
+            Budget
+            <input name="budget" type="number" min="1" [(ngModel)]="form.budget" />
+          </label>
+
+          <label>
+            Priority
+            <select name="priorite" [(ngModel)]="form.priorite">
+              <option value="LOW">LOW</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="HIGH">HIGH</option>
+              <option value="CRITICAL">CRITICAL</option>
+            </select>
+          </label>
+
+          <label>
+            Status
+            <select name="statut" [(ngModel)]="formStatut">
+              <option value="NOT_STARTED">NOT_STARTED</option>
+              <option value="IN_PROGRESS">IN_PROGRESS</option>
+              <option value="COMPLETED">COMPLETED</option>
+              <option value="ON_HOLD">ON_HOLD</option>
+              <option value="CANCELLED">CANCELLED</option>
+            </select>
+          </label>
+
+          <label class="full">
+            Category
+            <input name="categorie" type="text" [(ngModel)]="form.categorie" placeholder="Web, Mobile, Data" />
+          </label>
+
+          <label class="full">
+            Member IDs (comma separated)
+            <input name="memberIds" type="text" [(ngModel)]="memberIdsInput" placeholder="u1, u2, u3" />
+          </label>
+
+          <div class="actions full">
+            <button class="btn" type="submit" [disabled]="submitting">
+              {{ submitting ? 'Saving...' : (mode === 'create' ? 'Create' : 'Update') }}
+            </button>
+            <button class="btn outline" type="button" *ngIf="mode === 'edit'" (click)="cancelEdit()">Cancel</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <div class="toolbar">
+          <h2>Project List</h2>
+          <input
+            type="text"
+            name="search"
+            [(ngModel)]="search"
+            (ngModelChange)="applyFilter()"
+            placeholder="Search title, manager, description"
+          />
+        </div>
+
+        <p *ngIf="loading" class="muted">Loading projects...</p>
+
+        <div class="cards" *ngIf="!loading && filteredProjects.length > 0">
+          <article class="card" *ngFor="let p of filteredProjects; trackBy: trackByProject">
+            <div class="top">
+              <h3>{{ p.titre }}</h3>
+              <span class="badge">{{ p.priorite || 'N/A' }}</span>
+            </div>
+
+            <p class="desc">{{ p.description }}</p>
+
+            <div class="meta">
+              <span><strong>ID:</strong> {{ p.id || 'N/A' }}</span>
+              <span><strong>Manager:</strong> {{ p.managerId }}</span>
+              <span><strong>Manager Name:</strong> {{ p.managerName || 'N/A' }}</span>
+              <span><strong>Status:</strong> {{ p.statut || 'N/A' }}</span>
+              <span><strong>Budget:</strong> {{ p.budget }}</span>
+              <span><strong>Category:</strong> {{ p.categorie || 'N/A' }}</span>
+              <span><strong>Progress:</strong> {{ p.progressPercentage ?? 0 }}%</span>
+              <span><strong>Dates:</strong> {{ p.dateDebut }} to {{ p.dateFin }}</span>
+              <span><strong>Date Created:</strong> {{ p.dateCreation || 'N/A' }}</span>
+              <span><strong>Date Modified:</strong> {{ p.dateModification || 'N/A' }}</span>
+            </div>
+
+            <section class="documents-block">
+              <h4>Project Documents</h4>
+              <div class="doc-upload-row">
+                <select
+                  [name]="'docType-' + (p.id || p.titre)"
+                  [ngModel]="documentForms[p.id || p.titre].type || 'OTHER'"
+                  (ngModelChange)="setDocumentType(p.id || p.titre, $event)"
+                >
+                  <option *ngFor="let t of documentTypeOptions" [value]="t">{{ t }}</option>
+                </select>
+                <input
+                  [name]="'docTitle-' + (p.id || p.titre)"
+                  type="text"
+                  placeholder="Document title"
+                  [ngModel]="documentForms[p.id || p.titre].title || ''"
+                  (ngModelChange)="setDocumentTitle(p.id || p.titre, $event)"
+                />
+                <input
+                  [name]="'docFile-' + (p.id || p.titre)"
+                  type="file"
+                  (change)="onDocumentFileSelected($event, p.id || p.titre)"
+                />
+                <button class="btn outline" type="button" [disabled]="uploadingDocumentKey === p.id" (click)="uploadProjectDocument(p)">
+                  {{ uploadingDocumentKey === p.id ? 'Uploading...' : 'Upload' }}
+                </button>
+              </div>
+
+              <div class="doc-list" *ngIf="p.documents?.length; else noDocs">
+                <div class="doc-item" *ngFor="let d of p.documents">
+                  <div>
+                    <strong>{{ d.title }}</strong>
+                    <span>{{ d.type }} • {{ d.fileName }}</span>
+                  </div>
+                  <div class="doc-actions">
+                    <button class="btn outline" type="button" (click)="downloadProjectDocument(p, d)">Download</button>
+                    <button
+                      class="btn danger"
+                      type="button"
+                      [disabled]="deletingDocumentKey === (p.id + '-' + d.id)"
+                      (click)="deleteProjectDocument(p, d)"
+                    >
+                      {{ deletingDocumentKey === (p.id + '-' + d.id) ? 'Deleting...' : 'Delete' }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <ng-template #noDocs>
+                <p class="muted">No documents uploaded yet.</p>
+              </ng-template>
+            </section>
+
+            <div class="members" *ngIf="p.memberIds.length">
+              <span *ngFor="let m of p.memberIds">{{ m }}</span>
+            </div>
+
+            <div class="card-actions">
+              <button class="btn dark" (click)="openRoadmap(p)">Roadmap</button>
+              <button class="btn outline" (click)="edit(p)">Edit</button>
+              <button class="btn danger" [disabled]="deletingId === p.id" (click)="remove(p)">
+                {{ deletingId === p.id ? 'Deleting...' : 'Delete' }}
+              </button>
+            </div>
+          </article>
+        </div>
+
+        <p *ngIf="!loading && filteredProjects.length === 0" class="muted">No projects yet.</p>
+      </section>
+    </ng-container>
+
+    <section class="panel roadmap-panel" *ngIf="activeView === 'roadmap' && roadmapProject as rp">
+      <div class="roadmap-head">
+        <div>
+          <h2>Roadmap Manager</h2>
+          <p class="muted">Project: <strong>{{ rp.titre }}</strong> ({{ rp.id }})</p>
+        </div>
+        <div class="roadmap-head-actions">
+          <button class="btn dark" (click)="generateRoadmap()" [disabled]="roadmapLoading">
+            {{ roadmapLoading ? 'Generating...' : 'Generate AI Roadmap' }}
+          </button>
+          <button class="btn outline" (click)="fetchProgress()">Refresh Progress</button>
+          <button class="btn outline" (click)="closeRoadmap()">Close</button>
+        </div>
+      </div>
+
+      <div class="progress-wrap">
+        <span>Progress: {{ roadmapProgress ?? rp.progressPercentage ?? 0 }}%</span>
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="roadmapProgress ?? rp.progressPercentage ?? 0"></div>
+        </div>
+      </div>
+
+      <form class="grid roadmap-form" (ngSubmit)="addRoadmapStep()">
+        <label>
+          Step Title
+          <input name="stepTitle" type="text" [(ngModel)]="roadmapForm.titre" placeholder="Planning" />
+        </label>
+
+        <label>
+          Order
+          <input name="stepOrder" type="number" min="1" [(ngModel)]="roadmapForm.ordre" />
+        </label>
+
+        <label>
+          Status
+          <select name="stepStatus" [(ngModel)]="roadmapForm.statut">
+            <option value="PENDING">PENDING</option>
+            <option value="IN_PROGRESS">IN_PROGRESS</option>
+            <option value="DONE">DONE</option>
+          </select>
+        </label>
+
+        <label>
+          Parent Step ID (optional)
+          <input name="stepParent" type="text" [(ngModel)]="roadmapForm.parent" placeholder="root or step id" />
+        </label>
+
+        <label class="full">
+          Description
+          <textarea name="stepDescription" rows="2" [(ngModel)]="roadmapForm.description" placeholder="Step details"></textarea>
+        </label>
+
+        <div class="actions full">
+          <button class="btn" type="submit" [disabled]="roadmapSubmitting">
+            {{ roadmapSubmitting ? 'Adding...' : 'Add Step' }}
+          </button>
+        </div>
+      </form>
+
+      <div class="cards" *ngIf="rp.roadmapSteps?.length; else noRoadmapSteps">
+        <article class="card" *ngFor="let step of rp.roadmapSteps">
+          <div class="top">
+            <h3>#{{ step.ordre }} - {{ step.titre }}</h3>
+            <span class="badge">{{ step.statut }}</span>
+          </div>
+          <p class="desc">{{ step.description }}</p>
+          <div class="meta">
+            <span><strong>Step ID:</strong> {{ step.id }}</span>
+            <span><strong>Parent:</strong> {{ step.parent || 'None' }}</span>
+            <span><strong>Created By:</strong> {{ step.creePar || 'N/A' }}</span>
+          </div>
+          <div class="card-actions">
+            <button
+              class="btn outline"
+              [disabled]="roadmapStatusUpdatingKey === (rp.id + '-' + step.id)"
+              (click)="updateStepStatus(step, 'PENDING')"
+            >PENDING</button>
+            <button
+              class="btn outline"
+              [disabled]="roadmapStatusUpdatingKey === (rp.id + '-' + step.id)"
+              (click)="updateStepStatus(step, 'IN_PROGRESS')"
+            >IN_PROGRESS</button>
+            <button
+              class="btn outline"
+              [disabled]="roadmapStatusUpdatingKey === (rp.id + '-' + step.id)"
+              (click)="updateStepStatus(step, 'DONE')"
+            >DONE</button>
+            <button
+              class="btn danger"
+              [disabled]="roadmapDeletingKey === (rp.id + '-' + step.id)"
+              (click)="deleteStep(step)"
+            >{{ roadmapDeletingKey === (rp.id + '-' + step.id) ? 'Deleting...' : 'Delete' }}</button>
+          </div>
+        </article>
+      </div>
+      <ng-template #noRoadmapSteps>
+        <p class="muted">No roadmap steps yet. Add one manually or generate AI roadmap.</p>
+      </ng-template>
+    </section>
+
+    <section class="panel roadmap-empty" *ngIf="activeView === 'roadmap' && !roadmapProject">
+      <h2>No Roadmap Selected</h2>
+      <p class="muted">
+        Open Projects and click Roadmap on a project, or create a new project first.
+      </p>
+      <button class="btn dark" (click)="switchToProjects()">Go To Projects</button>
+    </section>
   </section>
 </main>
