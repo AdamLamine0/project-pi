@@ -242,6 +242,22 @@
             <input name="memberIds" type="text" [(ngModel)]="memberIdsInput" placeholder="u1, u2, u3" />
           </label>
 
+          <div class="full create-documents" *ngIf="mode === 'create'">
+            <div class="create-documents-head">
+              <h4>Documents At Creation</h4>
+              <button class="btn outline" type="button" (click)="addCreateDocumentRow()">+ Add Document</button>
+            </div>
+
+            <div class="create-doc-row" *ngFor="let doc of createDocumentDrafts; let i = index">
+              <select [name]="'createDocType-' + i" [(ngModel)]="doc.type">
+                <option *ngFor="let t of documentTypeOptions" [value]="t">{{ t }}</option>
+              </select>
+              <input [name]="'createDocTitle-' + i" type="text" [(ngModel)]="doc.title" placeholder="Document title" />
+              <input [name]="'createDocFile-' + i" type="file" (change)="onCreateDocumentFileSelected($event, i)" />
+              <button class="btn danger" type="button" (click)="removeCreateDocumentRow(i)">Remove</button>
+            </div>
+          </div>
+
           <div class="actions full">
             <button class="btn" type="submit" [disabled]="submitting">
               {{ submitting ? 'Saving...' : (mode === 'create' ? 'Create' : 'Update') }}
@@ -289,31 +305,6 @@
 
             <section class="documents-block">
               <h4>Project Documents</h4>
-              <div class="doc-upload-row">
-                <select
-                  [name]="'docType-' + (p.id || p.titre)"
-                  [ngModel]="documentForms[p.id || p.titre].type || 'OTHER'"
-                  (ngModelChange)="setDocumentType(p.id || p.titre, $event)"
-                >
-                  <option *ngFor="let t of documentTypeOptions" [value]="t">{{ t }}</option>
-                </select>
-                <input
-                  [name]="'docTitle-' + (p.id || p.titre)"
-                  type="text"
-                  placeholder="Document title"
-                  [ngModel]="documentForms[p.id || p.titre].title || ''"
-                  (ngModelChange)="setDocumentTitle(p.id || p.titre, $event)"
-                />
-                <input
-                  [name]="'docFile-' + (p.id || p.titre)"
-                  type="file"
-                  (change)="onDocumentFileSelected($event, p.id || p.titre)"
-                />
-                <button class="btn outline" type="button" [disabled]="uploadingDocumentKey === p.id" (click)="uploadProjectDocument(p)">
-                  {{ uploadingDocumentKey === p.id ? 'Uploading...' : 'Upload' }}
-                </button>
-              </div>
-
               <div class="doc-list" *ngIf="p.documents?.length; else noDocs">
                 <div class="doc-item" *ngFor="let d of p.documents">
                   <div>
@@ -356,16 +347,119 @@
       </section>
     </ng-container>
 
+    <section class="panel roadmap-monitoring" *ngIf="activeView === 'roadmap'">
+      <div class="roadmap-head">
+        <div>
+          <h2>Progress Monitoring</h2>
+          <p class="muted">Track delivery and roadmap execution across teams and managers.</p>
+        </div>
+        <div class="roadmap-head-actions">
+          <button class="btn outline" (click)="loadProjects()" [disabled]="loading">{{ loading ? 'Refreshing...' : 'Refresh Projects' }}</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid monitoring-kpis">
+        <article class="kpi-card">
+          <p>In Execution</p>
+          <h2>{{ monitoringInProgressCount() }}</h2>
+          <small>Active or not-started projects</small>
+        </article>
+        <article class="kpi-card">
+          <p>Completed</p>
+          <h2>{{ monitoringCompletedCount() }}</h2>
+          <small>Delivered initiatives</small>
+        </article>
+        <article class="kpi-card">
+          <p>At Risk</p>
+          <h2>{{ monitoringAtRiskCount() }}</h2>
+          <small>Progress under 50%</small>
+        </article>
+        <article class="kpi-card">
+          <p>Avg Progress</p>
+          <h2>{{ avgProgress() }}%</h2>
+          <small>Portfolio-level completion</small>
+        </article>
+      </div>
+
+      <div class="monitoring-filters">
+        <input
+          type="text"
+          name="roadmapSearch"
+          [(ngModel)]="roadmapSearch"
+          placeholder="Search by title, manager, member"
+        />
+        <select name="roadmapManagerFilter" [(ngModel)]="roadmapManagerFilter">
+          <option value="ALL">All managers</option>
+          <option *ngFor="let managerId of managerOptions()" [value]="managerId">{{ managerId }}</option>
+        </select>
+        <select name="roadmapStatusFilter" [(ngModel)]="roadmapStatusFilter">
+          <option value="ALL">All statuses</option>
+          <option value="NOT_STARTED">NOT_STARTED</option>
+          <option value="IN_PROGRESS">IN_PROGRESS</option>
+          <option value="DONE">DONE</option>
+          <option value="COMPLETED">COMPLETED</option>
+          <option value="ON_HOLD">ON_HOLD</option>
+          <option value="CANCELLED">CANCELLED</option>
+        </select>
+      </div>
+
+      <div class="table-wrap" *ngIf="monitoringProjects().length; else noMonitoringProjects">
+        <table>
+          <thead>
+            <tr>
+              <th>Project</th>
+              <th>Manager</th>
+              <th>Members</th>
+              <th>Status</th>
+              <th>Roadmap</th>
+              <th>Progress</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let project of monitoringProjects(); trackBy: trackByProject">
+              <td>{{ project.titre }}</td>
+              <td>{{ project.managerId }}</td>
+              <td>{{ (project.memberIds || []).length }}</td>
+              <td>{{ project.statut || 'N/A' }}</td>
+              <td>{{ roadmapCounts(project).done }}/{{ roadmapCounts(project).total }}</td>
+              <td>
+                <div class="monitor-progress">
+                  <div class="progress-bar">
+                    <div class="progress-fill" [style.width.%]="getProjectProgress(project)"></div>
+                  </div>
+                  <span>{{ getProjectProgress(project) }}%</span>
+                </div>
+              </td>
+              <td>
+                <button class="btn outline" type="button" (click)="openRoadmap(project)">Monitor</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="contributors" *ngIf="topContributors().length">
+        <h3>Top Contributors By Project Assignment</h3>
+        <div class="contributors-list">
+          <span *ngFor="let contributor of topContributors()">
+            {{ contributor.memberId }} ({{ contributor.projectCount }})
+          </span>
+        </div>
+      </div>
+
+      <ng-template #noMonitoringProjects>
+        <p class="muted">No projects match the selected monitoring filters.</p>
+      </ng-template>
+    </section>
+
     <section class="panel roadmap-panel" *ngIf="activeView === 'roadmap' && roadmapProject as rp">
       <div class="roadmap-head">
         <div>
-          <h2>Roadmap Manager</h2>
+          <h2>Manual Roadmap Control</h2>
           <p class="muted">Project: <strong>{{ rp.titre }}</strong> ({{ rp.id }})</p>
         </div>
         <div class="roadmap-head-actions">
-          <button class="btn dark" (click)="generateRoadmap()" [disabled]="roadmapLoading">
-            {{ roadmapLoading ? 'Generating...' : 'Generate AI Roadmap' }}
-          </button>
           <button class="btn outline" (click)="fetchProgress()">Refresh Progress</button>
           <button class="btn outline" (click)="closeRoadmap()">Close</button>
         </div>

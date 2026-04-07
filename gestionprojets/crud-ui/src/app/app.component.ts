@@ -29,7 +29,6 @@ export class AppComponent {
   serviceLoading = false;
   submitting = false;
   deletingId = '';
-  uploadingDocumentKey = '';
   deletingDocumentKey = '';
   message = '';
   error = '';
@@ -48,13 +47,18 @@ export class AppComponent {
   roadmapDeletingKey = '';
 
   roadmapForm: CreateRoadmapStepPayload = this.defaultRoadmapForm();
+  roadmapSearch = '';
+  roadmapManagerFilter = 'ALL';
+  roadmapStatusFilter = 'ALL';
 
   form: CreateProjectPayload = this.defaultForm();
   formStatut = 'NOT_STARTED';
   memberIdsInput = '';
 
   documentTypeOptions = ['BMC', 'BUDGET', 'UX_REPORT', 'REPORT', 'SPEC', 'OTHER'];
-  documentForms: Record<string, { type: string; title: string; file: File | null }> = {};
+  createDocumentDrafts: Array<{ type: string; title: string; file: File | null }> = [
+    { type: 'BMC', title: '', file: null }
+  ];
 
   constructor(private readonly projectService: ProjectService) {
     this.refreshAll();
@@ -71,12 +75,6 @@ export class AppComponent {
     this.projectService.getAll().subscribe({
       next: (items) => {
         this.projects = items ?? [];
-        this.projects.forEach((project) => {
-          const key = project.id || project.titre;
-          if (!this.documentForms[key]) {
-            this.documentForms[key] = { type: 'OTHER', title: '', file: null };
-          }
-        });
         this.applyFilter();
         if (this.roadmapProject?.id) {
           const updatedRoadmapProject = this.projects.find((project) => project.id === this.roadmapProject?.id);
@@ -148,12 +146,25 @@ export class AppComponent {
 
     this.submitting = true;
     if (this.mode === 'create') {
+      const documentsToUpload = this.createDocumentDrafts
+        .filter((d) => d.file)
+        .map((d) => ({
+          type: d.type || 'OTHER',
+          title: d.title,
+          file: d.file as File
+        }));
+
       this.projectService.create(this.form).subscribe({
-        next: () => {
-          this.submitting = false;
-          this.message = 'Project created.';
-          this.resetForm();
-          this.loadProjects();
+        next: (createdProject) => {
+          if (!createdProject?.id || documentsToUpload.length === 0) {
+            this.submitting = false;
+            this.message = 'Project created.';
+            this.resetForm();
+            this.loadProjects();
+            return;
+          }
+
+          this.uploadCreateDocuments(createdProject.id, this.form.managerId, documentsToUpload, 0);
         },
         error: (err) => {
           this.submitting = false;
@@ -247,64 +258,28 @@ export class AppComponent {
     return item.id || item.titre;
   }
 
-  onDocumentFileSelected(event: Event, projectId: string): void {
+  onCreateDocumentFileSelected(event: Event, index: number): void {
     const input = event.target as HTMLInputElement;
     const file = input?.files?.[0] || null;
-
-    if (!this.documentForms[projectId]) {
-      this.documentForms[projectId] = { type: 'OTHER', title: '', file: null };
-    }
-
-    this.documentForms[projectId].file = file;
-    if (file && !this.documentForms[projectId].title) {
-      this.documentForms[projectId].title = file.name;
-    }
-  }
-
-  setDocumentType(projectId: string, type: string): void {
-    if (!this.documentForms[projectId]) {
-      this.documentForms[projectId] = { type: 'OTHER', title: '', file: null };
-    }
-    this.documentForms[projectId].type = type;
-  }
-
-  setDocumentTitle(projectId: string, title: string): void {
-    if (!this.documentForms[projectId]) {
-      this.documentForms[projectId] = { type: 'OTHER', title: '', file: null };
-    }
-    this.documentForms[projectId].title = title;
-  }
-
-  uploadProjectDocument(project: ProjectItem): void {
-    if (!project.id) {
+    if (!this.createDocumentDrafts[index]) {
       return;
     }
+    this.createDocumentDrafts[index].file = file;
+    if (file && !this.createDocumentDrafts[index].title) {
+      this.createDocumentDrafts[index].title = file.name;
+    }
+  }
 
-    const form = this.documentForms[project.id] || { type: 'OTHER', title: '', file: null };
-    if (!form.file) {
-      this.error = 'Please choose a file before uploading.';
+  addCreateDocumentRow(): void {
+    this.createDocumentDrafts.push({ type: 'OTHER', title: '', file: null });
+  }
+
+  removeCreateDocumentRow(index: number): void {
+    if (this.createDocumentDrafts.length === 1) {
+      this.createDocumentDrafts[0] = { type: 'BMC', title: '', file: null };
       return;
     }
-
-    this.uploadingDocumentKey = project.id;
-    this.error = '';
-    this.projectService
-      .uploadDocument(project.id, form.file, form.type || 'OTHER', form.title || form.file.name, project.managerId || 'manager-1')
-      .subscribe({
-        next: (updatedProject) => {
-          this.uploadingDocumentKey = '';
-          this.message = 'Document uploaded.';
-          this.updateProjectInLists(updatedProject);
-          if (this.roadmapProject?.id === updatedProject.id) {
-            this.roadmapProject = updatedProject;
-          }
-          this.documentForms[project.id!] = { type: 'OTHER', title: '', file: null };
-        },
-        error: (err) => {
-          this.uploadingDocumentKey = '';
-          this.error = this.getApiError(err, 'Could not upload document.');
-        }
-      });
+    this.createDocumentDrafts.splice(index, 1);
   }
 
   deleteProjectDocument(project: ProjectItem, document: ProjectDocumentItem): void {
@@ -425,6 +400,71 @@ export class AppComponent {
 
   totalRoadmapSteps(): number {
     return this.projects.reduce((sum, project) => sum + (project.roadmapSteps?.length || 0), 0);
+  }
+
+  monitoringProjects(): ProjectItem[] {
+    const term = this.roadmapSearch.trim().toLowerCase();
+    return [...this.projects]
+      .filter((project) => {
+        const manager = (project.managerId || '').toLowerCase();
+        const status = (project.statut || '').toUpperCase();
+        const matchesManager = this.roadmapManagerFilter === 'ALL' || project.managerId === this.roadmapManagerFilter;
+        const matchesStatus = this.roadmapStatusFilter === 'ALL' || status === this.roadmapStatusFilter;
+        const matchesSearch =
+          !term ||
+          (project.titre || '').toLowerCase().includes(term) ||
+          (project.description || '').toLowerCase().includes(term) ||
+          manager.includes(term) ||
+          (project.memberIds || []).some((member) => member.toLowerCase().includes(term));
+
+        return matchesManager && matchesStatus && matchesSearch;
+      })
+      .sort((a, b) => this.getProjectProgress(b) - this.getProjectProgress(a));
+  }
+
+  managerOptions(): string[] {
+    return [...new Set(this.projects.map((project) => project.managerId).filter((id) => !!id))].sort((a, b) =>
+      a.localeCompare(b)
+    );
+  }
+
+  monitoringInProgressCount(): number {
+    return this.projects.filter((project) => ['IN_PROGRESS', 'NOT_STARTED'].includes((project.statut || '').toUpperCase())).length;
+  }
+
+  monitoringCompletedCount(): number {
+    return this.projects.filter((project) => ['DONE', 'COMPLETED'].includes((project.statut || '').toUpperCase())).length;
+  }
+
+  monitoringAtRiskCount(): number {
+    return this.projects.filter((project) => this.getProjectProgress(project) < 50).length;
+  }
+
+  topContributors(limit = 5): Array<{ memberId: string; projectCount: number }> {
+    const counts = new Map<string, number>();
+    this.projects.forEach((project) => {
+      (project.memberIds || []).forEach((member) => {
+        counts.set(member, (counts.get(member) || 0) + 1);
+      });
+    });
+
+    return [...counts.entries()]
+      .map(([memberId, projectCount]) => ({ memberId, projectCount }))
+      .sort((a, b) => b.projectCount - a.projectCount)
+      .slice(0, limit);
+  }
+
+  getProjectProgress(project: ProjectItem): number {
+    if (this.roadmapProject?.id === project.id && this.roadmapProgress != null) {
+      return this.roadmapProgress;
+    }
+    return project.progressPercentage ?? 0;
+  }
+
+  roadmapCounts(project: ProjectItem): { done: number; total: number } {
+    const total = project.roadmapSteps?.length || 0;
+    const done = (project.roadmapSteps || []).filter((step) => step.statut === 'DONE').length;
+    return { done, total };
   }
 
   addRoadmapStep(): void {
@@ -579,6 +619,32 @@ export class AppComponent {
     this.form = this.defaultForm();
     this.formStatut = 'NOT_STARTED';
     this.memberIdsInput = '';
+    this.createDocumentDrafts = [{ type: 'BMC', title: '', file: null }];
+  }
+
+  private uploadCreateDocuments(
+    projectId: string,
+    managerId: string,
+    docs: Array<{ type: string; title: string; file: File }>,
+    index: number
+  ): void {
+    if (index >= docs.length) {
+      this.submitting = false;
+      this.message = 'Project created with documents.';
+      this.resetForm();
+      this.loadProjects();
+      return;
+    }
+
+    const doc = docs[index];
+    this.projectService.uploadDocument(projectId, doc.file, doc.type, doc.title || doc.file.name, managerId).subscribe({
+      next: () => this.uploadCreateDocuments(projectId, managerId, docs, index + 1),
+      error: (err) => {
+        this.submitting = false;
+        this.error = this.getApiError(err, 'Project created, but document upload failed.');
+        this.loadProjects();
+      }
+    });
   }
 
   private defaultForm(): CreateProjectPayload {

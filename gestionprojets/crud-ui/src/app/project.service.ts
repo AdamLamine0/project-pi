@@ -13,8 +13,8 @@ import {
   providedIn: 'root'
 })
 export class ProjectService {
-  private readonly baseUrl = 'http://localhost:8097/api/projects';
-  private readonly adminUrl = 'http://localhost:8097/api/admin';
+  private readonly baseUrl = 'http://localhost:8099/api/projects';
+  private readonly adminUrl = 'http://localhost:8099/api/admin';
 
   constructor(private readonly http: HttpClient) {}
 
