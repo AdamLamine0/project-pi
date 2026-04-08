@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { NavbarComponent } from './core/components/navbar/navbar.component';
@@ -17,14 +16,15 @@ import { VerifyCertificateComponent } from './pages/verify-certificate/verify-ce
     AppComponent,
     NavbarComponent,
     HomeComponent,
-    VerifyCertificateComponent
+    VerifyCertificateComponent,
+    
   ],
   imports: [
     BrowserModule,       // ← includes CommonModule (*ngIf, *ngFor)
     AppRoutingModule,
     RouterModule,
     FormsModule,
-    PartenaireModule
+    
   ],
   providers: [
     provideHttpClient(withInterceptors([jwtInterceptor]))
