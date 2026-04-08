@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.RouterFunctions;
+import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
 
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
@@ -36,22 +37,26 @@ public class GatewayRoutes {
                 .filter(authFilter.jwtFilter());
     }
 
-    // OAuth2 routes — NO JWT filter needed
-    // these have no token yet — it's the login flow
     @Bean
     public RouterFunction<ServerResponse> oauth2Route() {
         return RouterFunctions
-                .route(path("/login/oauth2/**")
-                                .or(path("/oauth2/**")),
+                .route(path("/login/oauth2/**").or(path("/oauth2/**")),
                         HandlerFunctions.http())
                 .filter(lb("user-pi"));
-        // ← no .filter(authFilter.jwtFilter()) here
     }
 
     @Bean
     public RouterFunction<ServerResponse> conventionServiceRoute() {
         return RouterFunctions
                 .route(path("/api/conventions/**"), HandlerFunctions.http())
+                .filter(lb("partenariat-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> meetingServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/meeting-invitations/**"), HandlerFunctions.http())
                 .filter(lb("partenariat-pi"))
                 .filter(authFilter.jwtFilter());
     }
@@ -77,8 +82,50 @@ public class GatewayRoutes {
         return RouterFunctions
                 .route(path("/api/events/**"), HandlerFunctions.http())
                 .filter(lb("event-pi"))
+                .filter(authFilter.jwtFilter())
+                .filter((request, next) -> {
+                    ServerRequest modified = ServerRequest.from(request)
+                            .uri(java.net.URI.create(
+                                    request.uri().toString()
+                                            .replaceFirst("/api/events", "/api/events")))
+                            .build();
+                    return next.handle(modified);
+                });
+    }
+
+
+    @Bean
+    public RouterFunction<ServerResponse> speakerServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/speakers/**"), HandlerFunctions.http())
+                .filter(lb("event-pi"))
                 .filter(authFilter.jwtFilter());
     }
+
+    @Bean
+    public RouterFunction<ServerResponse> badgeServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/badges/**"), HandlerFunctions.http())
+                .filter(lb("event-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> certificateServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/certificates/**"), HandlerFunctions.http())
+                .filter(lb("event-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> verifyRoute() {
+        return RouterFunctions
+                .route(path("/api/verify/**"), HandlerFunctions.http())
+                .filter(lb("event-pi"));
+        // no authFilter — public endpoint for QR code scanning
+    }
+
 
 
 

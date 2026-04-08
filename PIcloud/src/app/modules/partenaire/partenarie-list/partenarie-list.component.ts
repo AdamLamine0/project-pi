@@ -23,6 +23,7 @@ export class PartenarieListComponent implements OnInit {
   successMessage = '';
 
   isAdmin = false;
+  canRequestMeeting = false;
 
   types = Object.values(TypePartenaire);
   statuts = Object.values(StatutPartenaire);
@@ -41,6 +42,7 @@ export class PartenarieListComponent implements OnInit {
 
   ngOnInit(): void {
     this.isAdmin = this.authService.isAdmin();
+    this.canRequestMeeting = this.authService.isAdmin() || this.authService.isUser();
     this.load();
   }
 
@@ -139,6 +141,10 @@ export class PartenarieListComponent implements OnInit {
   }
 
   openMeetingRequestDialog(partner: OrganisationPartenaire): void {
+    if (!this.canRequestMeeting) {
+      this.errorMessage = 'Seuls les utilisateurs et admins peuvent demander une reunion.';
+      return;
+    }
     this.selectedPartnerForMeeting = partner;
     this.isMeetingModalOpen = true;
   }

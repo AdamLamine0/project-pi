@@ -61,6 +61,7 @@ public class OrganisationPartenaireService {
         existing.setContactNom(request.getContactNom());
         existing.setContactEmail(request.getContactEmail());
         existing.setRegion(request.getRegion());
+        existing.setUserId(request.getUserId());
         return mapper.toResponse(repository.save(existing));
     }
 
@@ -77,9 +78,13 @@ public class OrganisationPartenaireService {
                     "Access denied: you can only update your own organisation");
         }
 
+        existing.setNom(request.getNom());           // ← add
+        existing.setType(request.getType());
         existing.setContactNom(request.getContactNom());
         existing.setContactEmail(request.getContactEmail());
         existing.setSiteWeb(request.getSiteWeb());
+        existing.setDescription(request.getDescription()); // ← add if you want description editable too
+        existing.setRegion(request.getRegion());
         return mapper.toResponse(repository.save(existing));
     }
 
