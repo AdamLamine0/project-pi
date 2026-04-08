@@ -31,3 +31,12 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+# Environment secrets — never commit
+.env
+.env.local
+.env.*.local
+
+# Upload folders — binary files, not source
+uploads/

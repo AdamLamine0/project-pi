@@ -34,17 +34,23 @@ export class MeetingService {
   ) {}
 
   private headers(): HttpHeaders {
-    return new HttpHeaders({
-      'X-User-Role': `ROLE_${this.auth.getRole()}`,
-      'X-User-Id': String(this.auth.getUserId())
-    });
+    let headers = new HttpHeaders();
+
+    const role = (this.auth.getRole() || '').trim();
+    if (role) {
+      const roleHeader = role.startsWith('ROLE_') ? role : `ROLE_${role}`;
+      headers = headers.set('X-User-Role', roleHeader);
+    }
+
+    const userId = this.auth.getUserId();
+    if (Number.isFinite(userId) && userId > 0) {
+      headers = headers.set('X-User-Id', String(userId));
+    }
+
+    return headers;
   }
 
-  /**
-   * Request a Zoom meeting with a partner
-   * @param partenaireId ID of the partner organization
-   * @param request Meeting request details
-   */
+ 
   requestMeeting(partenaireId: number, request: MeetingRequest): Promise<MeetingResponse> {
     return firstValueFrom(
       this.http.post<MeetingResponse>(

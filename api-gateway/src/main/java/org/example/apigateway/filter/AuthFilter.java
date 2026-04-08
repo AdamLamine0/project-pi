@@ -38,9 +38,9 @@ public class AuthFilter {
 
             System.out.println("Gateway path: " + path + " method: " + method);
 
-            // ← only change: allow OPTIONS preflight requests
-            if (method.equals("OPTIONS")) {
-                return next.handle(request);
+            // Let CorsFilter handle OPTIONS — don't touch it here
+            if ("OPTIONS".equals(method)) {
+                return ServerResponse.ok().build();
             }
 
             if (isPublicPath(path)) {
@@ -48,8 +48,7 @@ public class AuthFilter {
                 return next.handle(request);
             }
 
-            String authHeader = request.headers()
-                    .firstHeader("Authorization");
+            String authHeader = request.headers().firstHeader("Authorization");
 
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 System.out.println("No token — rejecting");
