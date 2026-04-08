@@ -7,9 +7,6 @@ import org.example.userpi.dto.AuthResponse;
 import org.example.userpi.dto.RegisterRequest;
 import org.example.userpi.model.User;
 import org.example.userpi.repository.UserRepository;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
@@ -22,7 +19,6 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final AuthenticationManager authenticationManager;
 
     public AuthResponse register(RegisterRequest request) {
         User user = new User();
@@ -38,7 +34,6 @@ public class AuthService {
     }
 
     public AuthResponse login(AuthRequest request) {
-        // check email exists
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() ->
                         new RuntimeException("No account found with this email"));
@@ -56,14 +51,7 @@ public class AuthService {
             throw new RuntimeException("Password cannot be empty");
         }
 
-        // authenticate
-        try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            request.getEmail(), request.getPassword()
-                    )
-            );
-        } catch (BadCredentialsException e) {
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Incorrect password");
         }
 

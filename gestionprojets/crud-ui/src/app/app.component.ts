@@ -12,6 +12,15 @@ import {
   UpdateProjectPayload
 } from './project.models';
 
+interface ProjectScoreBreakdown {
+  innovation: number;
+  marketViability: number;
+  team: number;
+  traction: number;
+  feasibility: number;
+  total: number;
+}
+
 @Component({
   selector: 'app-root',
   imports: [CommonModule, FormsModule],
@@ -467,6 +476,91 @@ export class AppComponent {
     return { done, total };
   }
 
+  scoreForProject(project: ProjectItem | null): ProjectScoreBreakdown {
+    if (!project) {
+      return { innovation: 0, marketViability: 0, team: 0, traction: 0, feasibility: 0, total: 0 };
+    }
+
+    const steps = project.roadmapSteps || [];
+    const done = steps.filter((s) => (s.statut || '').toUpperCase() === 'DONE').length;
+    const inProgress = steps.filter((s) => (s.statut || '').toUpperCase() === 'IN_PROGRESS').length;
+    const progress = steps.length > 0 ? (done / steps.length) * 100 : (project.progressPercentage || 0);
+
+    const priority = (project.priorite || '').toUpperCase();
+    const innovation = this.clampScore(
+      35 + (priority === 'HIGH' || priority === 'CRITICAL' ? 20 : 5) + Math.min((project.description || '').length / 8, 30),
+      0,
+      100
+    );
+
+    const marketViability = this.clampScore(
+      20 + progress * 0.45 + (project.categorie ? 15 : 5) + Math.min((project.budget || 0) / 3000, 20),
+      0,
+      100
+    );
+
+    const team = this.clampScore(20 + Math.min((project.memberIds?.length || 0) * 15, 60) + (project.managerId ? 10 : 0), 0, 100);
+    const traction = this.clampScore(progress * 0.8 + inProgress * 6, 0, 100);
+    const hasValidDates = !!project.dateDebut && !!project.dateFin && project.dateDebut <= project.dateFin;
+    const feasibility = this.clampScore((hasValidDates ? 55 : 20) + Math.min((project.budget || 0) / 5000, 35), 0, 100);
+
+    const total = Math.round(
+      innovation * 0.25 +
+      marketViability * 0.3 +
+      team * 0.2 +
+      traction * 0.15 +
+      feasibility * 0.1
+    );
+
+    return {
+      innovation: Math.round(innovation),
+      marketViability: Math.round(marketViability),
+      team: Math.round(team),
+      traction: Math.round(traction),
+      feasibility: Math.round(feasibility),
+      total
+    };
+  }
+
+  actionPlanForProject(project: ProjectItem | null): string[] {
+    const score = this.scoreForProject(project);
+    const actions: string[] = [];
+
+    if (score.marketViability < 60) {
+      actions.push('Prioriser 15 entretiens clients et adapter la proposition de valeur pour le marché cible.');
+    }
+    if (score.team < 60) {
+      actions.push('Renforcer l\'équipe coeur (product + tech + growth) et clarifier les responsabilités par sprint.');
+    }
+    if (score.traction < 55) {
+      actions.push('Déployer un plan traction 90 jours avec KPI hebdomadaires: activation, conversion, rétention.');
+    }
+    if (score.innovation < 65) {
+      actions.push('Documenter les différenciateurs produit et lancer 2 expérimentations innovation à fort impact.');
+    }
+    if (score.feasibility < 60) {
+      actions.push('Rebaseliner roadmap et budget pour aligner ressources, délais et faisabilité technique.');
+    }
+
+    if (!actions.length) {
+      actions.push('Maintenir la cadence actuelle et préparer l\'accélération commerciale/partenariats.');
+    }
+
+    return actions;
+  }
+
+  selectedRoadmapScore(): ProjectScoreBreakdown {
+    return this.scoreForProject(this.roadmapProject);
+  }
+
+  selectedRoadmapActionPlan(): string[] {
+    return this.actionPlanForProject(this.roadmapProject);
+  }
+
+  projectTotalScore(project: ProjectItem): number {
+    return this.scoreForProject(project).total;
+  }
+
   addRoadmapStep(): void {
     if (!this.roadmapProject?.id) {
       return;
@@ -681,5 +775,9 @@ export class AppComponent {
       return validation;
     }
     return fallback;
+  }
+
+  private clampScore(value: number, min: number, max: number): number {
+    return Math.max(min, Math.min(max, value));
   }
 }
