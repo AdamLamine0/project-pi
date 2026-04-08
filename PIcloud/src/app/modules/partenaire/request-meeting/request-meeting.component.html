@@ -1,0 +1,118 @@
+<div class="request-meeting-modal">
+  <!-- Success state -->
+  <div *ngIf="isSuccess" class="success-state">
+    <div class="success-icon">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+    </div>
+    <h2>Invitation envoyée !</h2>
+    <p class="success-text">
+      Votre invitation de réunion a été envoyée à <strong>{{ meetingResponse?.partenaireContactName }}</strong> 
+      ({{ meetingResponse?.partenaireEmail }})
+    </p>
+    <div class="success-details">
+      <div class="detail-row">
+        <span class="label">Date/Heure suggérée :</span>
+        <span class="value">{{ meetingResponse?.suggestedDateTime | date: 'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">ID Réunion Zoom :</span>
+        <span class="value">{{ meetingResponse?.zoomMeetingId }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Statut :</span>
+        <span class="value badge badge-success">{{ meetingResponse?.status }}</span>
+      </div>
+    </div>
+    <p class="info-text">
+      Le partenaire recevra un email de notification. Vous pouvez utiliser le lien de réunion dans l'application.
+    </p>
+    <button class="btn-primary" (click)="closeSuccess()">Fermer</button>
+  </div>
+
+  <!-- Form state -->
+  <div *ngIf="!isSuccess" class="form-state">
+    <h2>Demander une réunion</h2>
+    <p class="subtitle">{{ partner.nom }}</p>
+
+    <!-- Alerts -->
+    <div class="alert error" *ngIf="errorMessage">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      {{ errorMessage }}
+    </div>
+    <div class="alert success" *ngIf="successMessage">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      {{ successMessage }}
+    </div>
+
+    <!-- Form group -->
+    <div class="form-group">
+      <label>Nom du demandeur *</label>
+      <input 
+        type="text" 
+        [(ngModel)]="requesterName" 
+        placeholder="Votre nom"
+        [disabled]="isLoading"
+      />
+    </div>
+
+    <div class="form-group">
+      <label>Sujet *</label>
+      <input 
+        type="text" 
+        [(ngModel)]="subject" 
+        placeholder="Ex: Suivi du partenariat"
+        [disabled]="isLoading"
+      />
+    </div>
+
+    <div class="form-row">
+      <div class="form-group flex-1">
+        <label>Date/Heure suggérée *</label>
+        <input 
+          type="datetime-local" 
+          [(ngModel)]="suggestedDateTime"
+          [disabled]="isLoading"
+        />
+      </div>
+
+      <div class="form-group flex-1">
+        <label>Durée (minutes) *</label>
+        <input 
+          type="number" 
+          [(ngModel)]="durationMinutes" 
+          min="15" 
+          max="180"
+          [disabled]="isLoading"
+        />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Note (optionnelle)</label>
+      <textarea 
+        [(ngModel)]="note" 
+        placeholder="Ajoutez une note pour le partenaire..."
+        rows="3"
+        [disabled]="isLoading"
+      ></textarea>
+    </div>
+
+    <!-- Actions -->
+    <div class="form-actions">
+      <button class="btn-secondary" (click)="close()" [disabled]="isLoading">
+        Annuler
+      </button>
+      <button class="btn-primary" (click)="submit()" [disabled]="isLoading">
+        <span *ngIf="isLoading" class="spinner"></span>
+        {{ isLoading ? 'Envoi en cours...' : 'Envoyer l\'invitation' }}
+      </button>
+    </div>
+  </div>
+</div>
