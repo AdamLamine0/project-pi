@@ -19,7 +19,7 @@ import { RequestMeetingComponent } from './request-meeting/request-meeting.compo
     MonOrganisationComponent,
     ConventionListComponent,
     FormConventionComponent,
-    RequestMeetingComponent
+    
   ],
   imports: [
     CommonModule,

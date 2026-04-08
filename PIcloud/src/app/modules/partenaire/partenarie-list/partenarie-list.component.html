@@ -172,12 +172,3 @@
 
 </div>
 
-<div class="meeting-overlay" *ngIf="isMeetingModalOpen" (click)="closeMeetingModal(false)">
-  <div class="meeting-shell" (click)="$event.stopPropagation()">
-    <app-request-meeting
-      *ngIf="selectedPartnerForMeeting"
-      [partner]="selectedPartnerForMeeting"
-      (closed)="closeMeetingModal($event)">
-    </app-request-meeting>
-  </div>
-</div>
