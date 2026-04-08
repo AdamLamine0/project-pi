@@ -54,6 +54,14 @@ public class GatewayRoutes {
     }
 
     @Bean
+    public RouterFunction<ServerResponse> meetingServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/meeting-invitations/**"), HandlerFunctions.http())
+                .filter(lb("partenariat-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
     public RouterFunction<ServerResponse> organisationServiceRoute() {
         return RouterFunctions
                 .route(path("/api/organisations/**"), HandlerFunctions.http())

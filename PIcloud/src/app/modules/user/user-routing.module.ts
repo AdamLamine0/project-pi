@@ -3,21 +3,17 @@ import { RouterModule, Routes } from '@angular/router';
 import { ProfileComponent } from './profile/profile.component';
 import { UserListComponent } from './user-list/user-list.component';
 import { SetPasswordComponent } from './set-password/set-password.component';
-<<<<<<< HEAD
 import { FormUserComponent } from './form-user/form-user.component';
 import { authGuard } from '../../core/services/auth.guard';
-=======
-import { authGuard } from '../../core/services/auth.guard'; // ← fix path
 import { MyBadgesComponent } from './pages/my-badges/my-badges.component';
 import { MyCertificatesComponent } from './pages/my-certificates/my-certificates.component';
->>>>>>> origin/main
 
 const routes: Routes = [
   { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
   { path: 'set-password', component: SetPasswordComponent },
   { path: 'badges', component: MyBadgesComponent },
   { path: 'certificates', component: MyCertificatesComponent },
-  
+
   {
     path: 'list',
     component: UserListComponent,

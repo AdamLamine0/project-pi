@@ -195,6 +195,7 @@
   color: #777;
   margin: 0 0 0.85rem;
   line-height: 1.5;
+  line-clamp: 2;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -254,6 +255,24 @@
 }
 .btn-edit:hover { background: #e0deff; }
 
+.btn-view,
+.btn-meeting {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  background: #f0efff;
+  color: #6c63ff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-view:hover,
+.btn-meeting:hover { background: #e0deff; }
+
 .btn-del {
   display: inline-flex;
   align-items: center;
@@ -306,6 +325,27 @@
 .pager button:hover:not(:disabled) { border-color: #6c63ff; color: #6c63ff; }
 .pager button.active { background: #6c63ff; color: #fff; border-color: #6c63ff; }
 .pager button:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.meeting-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.meeting-shell {
+  width: 100%;
+  max-width: 580px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.2);
+  max-height: 90vh;
+  overflow: auto;
+}
 
 /* ── responsive ──────────────────────────────────────────────────── */
 @media (max-width: 640px) {
