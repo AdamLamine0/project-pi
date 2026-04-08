@@ -34,11 +34,16 @@ export class MeetingService {
   ) {}
 
   private headers(): HttpHeaders {
-    return new HttpHeaders({
-      'X-User-Role': `ROLE_${this.auth.getRole()}`,
-      'X-User-Id': String(this.auth.getUserId())
-    });
-  }
+  const role = this.auth.getRole(); // returns e.g. "ROLE_USER" or "USER"
+  
+  // Avoid double-prefixing: only add ROLE_ if not already there
+  const roleHeader = role?.startsWith('ROLE_') ? role : `ROLE_${role}`;
+  
+  return new HttpHeaders({
+    'X-User-Role': roleHeader,
+    'X-User-Id': String(this.auth.getUserId() ?? '')
+  });
+}
 
   /**
    * Request a Zoom meeting with a partner
@@ -46,12 +51,12 @@ export class MeetingService {
    * @param request Meeting request details
    */
   requestMeeting(partenaireId: number, request: MeetingRequest): Promise<MeetingResponse> {
-    return firstValueFrom(
-      this.http.post<MeetingResponse>(
-        `${this.baseUrl}/partenaire/${partenaireId}`,
-        request,
-        { headers: this.headers() }
-      )
-    );
-  }
+  return firstValueFrom(
+    this.http.post<MeetingResponse>(
+      `${this.baseUrl}/partenaire/${partenaireId}`,
+      request
+      // No custom headers — gateway adds X-User-Role and X-User-Id from JWT
+    )
+  );
+}
 }

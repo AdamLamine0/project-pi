@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { MeetingService, MeetingRequest } from '../../../services/meeting.service';
 import { OrganisationPartenaire } from '../../../models/partenaire';
@@ -6,7 +6,7 @@ import { OrganisationPartenaire } from '../../../models/partenaire';
 @Component({
   selector: 'app-request-meeting',
   templateUrl: './request-meeting.component.html',
-  styleUrl: './request-meeting.component.css'
+  styleUrls: ['./request-meeting.component.css']
 })
 export class RequestMeetingComponent implements OnInit {
   @Input() partner!: OrganisationPartenaire;
@@ -26,10 +26,8 @@ export class RequestMeetingComponent implements OnInit {
   // For success state
   meetingResponse: any = null;
 
-  constructor(
-    private authService: AuthService,
-    private meetingService: MeetingService
-  ) {}
+  private readonly authService = inject(AuthService);
+  private readonly meetingService = inject(MeetingService);
 
   ngOnInit(): void {
     const userId = this.authService.getUserId();
