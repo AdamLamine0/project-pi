@@ -9,18 +9,17 @@ import { Role, User } from '../../../core/models/user.model';
   styleUrls: ['./user-list.component.css']
 })
 export class UserListComponent implements OnInit {
-
   users: User[] = [];
   filteredUsers: User[] = [];
-  searchTerm   = '';
-  selectedRole = '';
-  isLoading    = false;
-  errorMessage  = '';
+  searchTerm = '';
+  selectedRole: Role | '' = '';
+  isLoading = false;
+  errorMessage = '';
   successMessage = '';
-  roles = Object.values(Role);
+  roles: Role[] = Object.values(Role) as Role[];
 
   currentPage = 1;
-  pageSize    = 8;
+  pageSize = 8;
 
   constructor(
     private userService: UserService,
@@ -48,9 +47,10 @@ export class UserListComponent implements OnInit {
     const t = this.searchTerm.toLowerCase();
     this.filteredUsers = this.users.filter(u => {
       const matchText =
-        u.name.toLowerCase().includes(t) ||
-        u.prenom.toLowerCase().includes(t) ||
-        u.email.toLowerCase().includes(t);
+        (u.name ?? '').toLowerCase().includes(t) ||
+        (u.prenom ?? '').toLowerCase().includes(t) ||
+        (u.email ?? '').toLowerCase().includes(t);
+
       const matchRole = !this.selectedRole || u.role === this.selectedRole;
       return matchText && matchRole;
     });
@@ -61,26 +61,32 @@ export class UserListComponent implements OnInit {
     const start = (this.currentPage - 1) * this.pageSize;
     return this.filteredUsers.slice(start, start + this.pageSize);
   }
+
   get totalPages(): number {
     return Math.ceil(this.filteredUsers.length / this.pageSize);
   }
+
   get pageNumbers(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
-  goToPage(p: number): void { this.currentPage = p; }
 
-  // ── navigate to FormUser for CREATE ────────────────────────────
+  goToPage(p: number): void {
+    this.currentPage = p;
+  }
+
   goToCreate(): void {
     this.router.navigate(['/user/form']);
   }
 
-  // ── navigate to FormUser for EDIT ──────────────────────────────
-  goToEdit(id: number): void {
+  goToEdit(id: number | null | undefined): void {
+    if (id == null) return;
     this.router.navigate(['/user/form', id]);
   }
 
-  async deleteUser(id: number): Promise<void> {
+  async deleteUser(id: number | null | undefined): Promise<void> {
+    if (id == null) return;
     if (!confirm('Supprimer cet utilisateur ?')) return;
+
     try {
       await this.userService.deleteUser(id);
       this.users = this.users.filter(u => u.id !== id);
@@ -96,11 +102,14 @@ export class UserListComponent implements OnInit {
     setTimeout(() => (this.successMessage = ''), 4000);
   }
 
-  badgeClass(role: string): string {
+  badgeClass(role: Role | string | null | undefined): string {
     const map: Record<string, string> = {
-      ADMIN: 'badge-admin', USER: 'badge-user',
-      MENTOR: 'badge-mentor', INVESTOR: 'badge-investor', PARTNER: 'badge-partner'
+      ADMIN: 'badge-admin',
+      USER: 'badge-user',
+      MENTOR: 'badge-mentor',
+      INVESTOR: 'badge-investor',
+      PARTNER: 'badge-partner'
     };
-    return map[role] ?? 'badge-user';
+    return map[String(role ?? '')] ?? 'badge-user';
   }
 }
