@@ -14,7 +14,7 @@ const routes: Routes = [
   { path: 'set-password', component: SetPasswordComponent },
   { path: 'badges', component: MyBadgesComponent },
   { path: 'certificates', component: MyCertificatesComponent },
-  
+
   {
     path: 'list',
     component: UserListComponent,
