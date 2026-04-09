@@ -7,6 +7,7 @@ import org.example.eventpi.dto.EventResponse;
 import org.example.eventpi.dto.UpdateEventRequest;
 import org.example.eventpi.dto.UserResponse;
 import org.example.eventpi.exception.EventNotFoundException;
+import org.example.eventpi.exception.EventPastException;
 import org.example.eventpi.exception.ForbiddenException;
 import org.example.eventpi.feign.UserClient;
 import org.example.eventpi.model.Event;
@@ -35,13 +36,18 @@ public class EventService {
     public EventResponse createEvent(EventRequest request,
                                      Integer organizerId,
                                      String organizerRole) {
+        validateDates(request.getStartDate(), request.getEndDate());
+
         Event event = Event.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .type(request.getType())
                 .status(EventStatus.BROUILLON)
                 .startDate(request.getStartDate())
+                .endDate(request.getEndDate())
                 .locationType(request.getLocationType())
+                .location(request.getLocation())
+                .ticketPrice(request.getTicketPrice())
                 .capacityMax(request.getCapacityMax())
                 .coverImageUrl(request.getCoverImageUrl())
                 .targetSector(request.getTargetSector())
@@ -62,12 +68,14 @@ public class EventService {
         if (!event.getOrganizerId().equals(userId)) {
             throw new ForbiddenException("Vous ne pouvez soumettre que vos propres événements.");
         }
-
         if (event.getStatus() != EventStatus.BROUILLON) {
             throw new ForbiddenException("Seuls les événements en brouillon peuvent être soumis.");
         }
+        // Guard: refuse if start date has already passed
+        if (event.getStartDate() != null && event.getStartDate().isBefore(LocalDateTime.now())) {
+            throw new EventPastException();
+        }
 
-        // Gateway sends "ADMIN" not "ROLE_ADMIN"
         if ("ADMIN".equals(role)) {
             event.setStatus(EventStatus.PUBLIE);
             log.info("Admin {} published event {} directly", userId, id);
@@ -140,14 +148,12 @@ public class EventService {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
 
-        // Gateway sends "ADMIN" not "ROLE_ADMIN"
         boolean isAdmin = "ADMIN".equals(role);
         boolean isOwner = event.getOrganizerId().equals(userId);
 
         if (!isAdmin && !isOwner) {
             throw new ForbiddenException("Vous ne pouvez publier que vos propres événements.");
         }
-
         if (isAdmin) {
             if (event.getStatus() != EventStatus.BROUILLON &&
                     event.getStatus() != EventStatus.APPROUVE) {
@@ -179,7 +185,8 @@ public class EventService {
     }
 
     // ── READ ALL ──────────────────────────────────────────────────────────
-    public List<EventResponse> getAllEvents(EventStatus status, EventType type, Integer organizerId) {
+    public List<EventResponse> getAllEvents(EventStatus status, EventType type,
+                                            Integer organizerId) {
         List<Event> events;
 
         if (organizerId != null && status != null) {
@@ -206,32 +213,51 @@ public class EventService {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
 
-        // Gateway sends "ADMIN" not "ROLE_ADMIN"
         boolean isAdmin = "ADMIN".equals(role);
         boolean isOwner = event.getOrganizerId().equals(userId);
 
         if (!isAdmin && !isOwner) {
             throw new ForbiddenException("Vous ne pouvez modifier que vos propres événements.");
         }
-
         if (!isAdmin && event.getStatus() == EventStatus.EN_ATTENTE_VALIDATION) {
             throw new ForbiddenException(
                     "Vous ne pouvez pas modifier un événement en cours de validation.");
         }
 
+        // Resolve effective dates for cross-field validation
+        LocalDateTime effectiveStart = request.getStartDate() != null
+                ? request.getStartDate() : event.getStartDate();
+        LocalDateTime effectiveEnd = request.getEndDate() != null
+                ? request.getEndDate() : event.getEndDate();
+        validateDates(effectiveStart, effectiveEnd);
+
         if (request.getTitle() != null)        event.setTitle(request.getTitle());
         if (request.getDescription() != null)  event.setDescription(request.getDescription());
         if (request.getType() != null)         event.setType(request.getType());
         if (request.getStartDate() != null)    event.setStartDate(request.getStartDate());
+        if (request.getEndDate() != null)      event.setEndDate(request.getEndDate());
         if (request.getLocationType() != null) event.setLocationType(request.getLocationType());
-        if (request.getCapacityMax() != null)  event.setCapacityMax(request.getCapacityMax());
+        if (request.getLocation() != null)     event.setLocation(request.getLocation());
+        if (request.getTicketPrice() != null)  event.setTicketPrice(request.getTicketPrice());
         if (request.getTargetSector() != null) event.setTargetSector(request.getTargetSector());
         if (request.getTargetStage() != null)  event.setTargetStage(request.getTargetStage());
+
+        // When capacity is increased, recalculate availablePlaces
+        if (request.getCapacityMax() != null) {
+            int oldMax = event.getCapacityMax() != null ? event.getCapacityMax() : 0;
+            int newMax = request.getCapacityMax();
+            int diff = newMax - oldMax;
+            event.setCapacityMax(newMax);
+            int currentAvailable = event.getAvailablePlaces() != null
+                    ? event.getAvailablePlaces() : 0;
+            int newAvailable = Math.max(0, currentAvailable + diff);
+            event.setAvailablePlaces(newAvailable);
+            event.setIsFull(newAvailable <= 0);
+        }
 
         if (isAdmin && request.getStatus() != null) {
             event.setStatus(request.getStatus());
         }
-
         if (request.getCoverImageUrl() != null) {
             imageStorageService.delete(event.getCoverImageUrl());
             event.setCoverImageUrl(request.getCoverImageUrl());
@@ -247,6 +273,17 @@ public class EventService {
                 .orElseThrow(() -> new EventNotFoundException(id));
         imageStorageService.delete(event.getCoverImageUrl());
         eventRepository.delete(event);
+    }
+
+    // ── DATE VALIDATION ───────────────────────────────────────────────────
+    private void validateDates(LocalDateTime start, LocalDateTime end) {
+        if (start != null && start.isBefore(LocalDateTime.now())) {
+            throw new EventPastException();
+        }
+        if (start != null && end != null && !end.isAfter(start)) {
+            throw new ForbiddenException(
+                    "La date de fin doit être postérieure à la date de début.");
+        }
     }
 
     // ── MAPPER ────────────────────────────────────────────────────────────
@@ -266,7 +303,6 @@ public class EventService {
                 organizerEmail = user.getEmail();
             }
         } catch (Throwable t) {
-            // Catches FeignException, HystrixRuntimeException, etc.
             log.warn("Could not resolve organizer {} for event {}: {}",
                     event.getOrganizerId(), event.getId(), t.getMessage());
         }
@@ -278,8 +314,13 @@ public class EventService {
                 .type(event.getType())
                 .status(event.getStatus())
                 .startDate(event.getStartDate())
+                .endDate(event.getEndDate())
                 .locationType(event.getLocationType())
+                .location(event.getLocation())
+                .ticketPrice(event.getTicketPrice())
                 .capacityMax(event.getCapacityMax())
+                .availablePlaces(event.getAvailablePlaces())
+                .isFull(event.getIsFull())
                 .coverImageUrl(event.getCoverImageUrl())
                 .targetSector(event.getTargetSector())
                 .targetStage(event.getTargetStage())
@@ -294,8 +335,4 @@ public class EventService {
                 .submittedAt(event.getSubmittedAt())
                 .build();
     }
-
-
-
-
 }

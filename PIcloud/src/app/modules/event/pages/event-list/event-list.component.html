@@ -1,32 +1,30 @@
-<div class="list-page">
+<div class="list-page" [class.panel-open]="selectedEvent">
 
-  <!-- Page header -->
+  <!-- Header -->
   <div class="list-header">
     <div>
-      <div class="page-label">Plateforme PIcloud</div>
+      <div class="page-label">FoundersLab</div>
       <h1 class="page-title">Événements</h1>
     </div>
-    <!-- Only ADMIN, MENTOR, PARTENAIRE can create events -->
     <a routerLink="/events/new" class="btn-new" *ngIf="canCreate()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="12" y1="5" x2="12" y2="19"/>
-        <line x1="5" y1="12" x2="19" y2="12"/>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
       Nouvel événement
     </a>
   </div>
 
-  <!-- Admin validation shortcut -->
+  <!-- Admin banner -->
   <div class="admin-banner" *ngIf="isAdmin()">
     <div class="admin-banner-left">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
       </svg>
-      <span>File de validation admin</span>
+      File de validation admin
     </div>
     <a routerLink="/events/pending" class="btn-pending">
-      Voir les événements en attente
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      Événements en attente
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M5 12h14M12 5l7 7-7 7"/>
       </svg>
     </a>
@@ -41,7 +39,6 @@
         <option *ngFor="let t of eventTypes" [value]="t">{{ t }}</option>
       </select>
     </div>
-    <!-- Status filter only for admin/mentor/partenaire -->
     <div class="filter-group" *ngIf="canCreate()">
       <label>Statut</label>
       <select class="filter-select" [(ngModel)]="selectedStatus" (change)="onFilterChange()">
@@ -61,14 +58,7 @@
   </div>
 
   <!-- Error -->
-  <div class="alert-error" *ngIf="error && !loading">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="12" y1="8" x2="12" y2="12"/>
-      <line x1="12" y1="16" x2="12.01" y2="16"/>
-    </svg>
-    {{ error }}
-  </div>
+  <div class="alert-error" *ngIf="error && !loading">{{ error }}</div>
 
   <!-- Empty -->
   <div class="empty-state" *ngIf="!loading && !error && events.length === 0">
@@ -81,18 +71,47 @@
       </svg>
     </div>
     <p class="empty-title">Aucun événement trouvé</p>
-    <p class="empty-sub" *ngIf="canCreate()">Créez votre premier événement pour commencer.</p>
-    <p class="empty-sub" *ngIf="!canCreate()">Aucun événement publié pour le moment.</p>
+    <p class="empty-sub">{{ canCreate() ? 'Créez votre premier événement.' : 'Aucun événement publié pour le moment.' }}</p>
     <a routerLink="/events/new" class="btn-new" *ngIf="canCreate()">Créer un événement</a>
   </div>
 
-  <!-- Grid -->
-  <div class="events-grid" *ngIf="!loading && events.length > 0">
-    <app-event-card
-      *ngFor="let event of events"
-      [event]="event"
-      (deleted)="onDelete($event)">
-    </app-event-card>
+  <!-- Timeline -->
+  <div class="timeline" *ngIf="!loading && !error && dayGroups.length > 0">
+
+    <div class="day-group" *ngFor="let group of dayGroups">
+
+      <!-- Day header -->
+      <div class="day-header">
+        <span class="day-dot"></span>
+        <span class="day-label">{{ group.label }}</span>
+        <span class="day-date">
+          {{ group.date.getTime() > 0
+            ? group.date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+            : '' }}
+        </span>
+      </div>
+
+      <!-- Cards for this day -->
+      <div class="day-cards">
+        <app-event-card
+          *ngFor="let event of group.events"
+          [event]="event"
+          [selected]="selectedEvent?.id === event.id"
+          (selected$)="onEventSelected($event)"
+          (deleted)="onDelete($event)">
+        </app-event-card>
+      </div>
+
+    </div>
   </div>
 
 </div>
+
+<!-- Side panel -->
+<ng-container *ngIf="selectedEvent">
+  <app-event-side-panel
+    [event]="selectedEvent"
+    (closed)="onPanelClosed()"
+    (eventUpdated)="onEventUpdated()">
+  </app-event-side-panel>
+</ng-container>

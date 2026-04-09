@@ -14,6 +14,7 @@ import { ProgramSlotComponent } from './components/program-slot/program-slot.com
 import { ProgramFormComponent } from './components/program-form/program-form.component';
 import { RegistrationListComponent } from './components/registration-list/registration-list.component';
 import { PendingEventsComponent } from './pages/pending-events/pending-events.component';
+import { EventSidePanelComponent } from './components/event-side-panel/event-side-panel.component';
 
 @NgModule({
   declarations: [
@@ -27,7 +28,8 @@ import { PendingEventsComponent } from './pages/pending-events/pending-events.co
     ProgramSlotComponent,
     ProgramFormComponent,
     RegistrationListComponent,
-    PendingEventsComponent
+    PendingEventsComponent,
+    EventSidePanelComponent
   ],
   imports: [
     CommonModule,

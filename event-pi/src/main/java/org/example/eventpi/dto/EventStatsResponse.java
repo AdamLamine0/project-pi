@@ -9,11 +9,13 @@ public class EventStatsResponse {
     private Long eventId;
     private String eventTitle;
     private int capacityMax;
+    private Integer availablePlaces;
+    private Boolean isFull;
     private int totalRegistrations;
     private int confirmed;
     private int waitlist;
     private int cancelled;
     private int attended;
-    private double attendanceRate;
-    private double fillRate;
+    private long attendanceRate;
+    private long fillRate;
 }

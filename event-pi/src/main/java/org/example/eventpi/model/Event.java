@@ -40,12 +40,29 @@ public class Event {
     @Column(name = "start_date")
     private LocalDateTime startDate;
 
+    @Column(name = "end_date")
+    private LocalDateTime endDate;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "location_type")
     private LocationType locationType;
 
+    @Column(name = "location", length = 300)
+    private String location;
+
+    @Column(name = "ticket_price")
+    private Double ticketPrice;
+
     @Column(name = "capacity_max")
     private Integer capacityMax;
+
+    // Tracks remaining seats; initialised from capacityMax on persist
+    @Column(name = "available_places")
+    private Integer availablePlaces;
+
+    @Column(name = "is_full", nullable = false)
+    @Builder.Default
+    private Boolean isFull = false;
 
     @Column(name = "cover_image_url")
     private String coverImageUrl;
@@ -67,8 +84,6 @@ public class Event {
     @Column(name = "organizer_id")
     private Integer organizerId;
 
-
-
     @Column(name = "organizer_role", length = 50)
     private String organizerRole;
 
@@ -84,8 +99,6 @@ public class Event {
     @Column(name = "submitted_at")
     private LocalDateTime submittedAt;
 
-
-
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -97,11 +110,41 @@ public class Event {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
         if (status == null) status = EventStatus.BROUILLON;
+        if (isFull == null) isFull = false;
+        // Initialise availablePlaces from capacityMax when first saved
+        if (availablePlaces == null && capacityMax != null) {
+            availablePlaces = capacityMax;
+        }
     }
 
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    // ── Capacity helpers ──────────────────────────────────────────────────
+
+    /** Decrement one seat. Marks event full when the last seat is taken. */
+    public void decrementAvailablePlaces() {
+        if (capacityMax == null) return; // unlimited
+        if (availablePlaces != null && availablePlaces > 0) {
+            availablePlaces--;
+        }
+        if (availablePlaces != null && availablePlaces <= 0) {
+            availablePlaces = 0;
+            isFull = true;
+        }
+    }
+
+    /** Restore one seat (on cancellation). Clears the full flag if needed. */
+    public void incrementAvailablePlaces() {
+        if (capacityMax == null) return;
+        if (availablePlaces != null && availablePlaces < capacityMax) {
+            availablePlaces++;
+        }
+        if (Boolean.TRUE.equals(isFull) && availablePlaces != null && availablePlaces > 0) {
+            isFull = false;
+        }
     }
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL,

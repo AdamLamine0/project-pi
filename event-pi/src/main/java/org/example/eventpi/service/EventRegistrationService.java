@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.eventpi.dto.EventRegistrationResponse;
 import org.example.eventpi.dto.EventStatsResponse;
 import org.example.eventpi.dto.UserResponse;
+import org.example.eventpi.exception.EventFullException;
 import org.example.eventpi.exception.EventNotFoundException;
 import org.example.eventpi.exception.ForbiddenException;
 import org.example.eventpi.feign.UserClient;
@@ -29,14 +30,12 @@ public class EventRegistrationService {
     private final UserClient userClient;
     private final BadgeService badgeService;
 
-
     // ── REGISTER ──────────────────────────────────────────────────────────
     @Transactional
     public EventRegistrationResponse register(Long eventId, Integer userId) {
 
         if (registrationRepository.existsByEventIdAndUserId(eventId, userId)) {
-            throw new ForbiddenException(
-                    "Vous êtes déjà inscrit(e) à cet événement.");
+            throw new ForbiddenException("Vous êtes déjà inscrit(e) à cet événement.");
         }
 
         Event event = eventRepository.findById(eventId)
@@ -47,19 +46,28 @@ public class EventRegistrationService {
                     "Les inscriptions ne sont pas ouvertes pour cet événement.");
         }
 
-        long confirmedCount = registrationRepository
-                .countByEventIdAndStatus(eventId, RegistrationStatus.INSCRIT);
+        // Determine if the user goes to waitlist or gets a confirmed seat
+        RegistrationStatus regStatus;
 
-        RegistrationStatus status =
-                (event.getCapacityMax() != null
-                        && confirmedCount >= event.getCapacityMax())
-                        ? RegistrationStatus.LISTE_ATTENTE
-                        : RegistrationStatus.INSCRIT;
+        if (event.getCapacityMax() != null) {
+            if (Boolean.TRUE.equals(event.getIsFull())) {
+                // Event is full — place on waitlist
+                regStatus = RegistrationStatus.LISTE_ATTENTE;
+            } else {
+                // Confirmed seat — decrement available places
+                event.decrementAvailablePlaces();
+                eventRepository.save(event);
+                regStatus = RegistrationStatus.INSCRIT;
+            }
+        } else {
+            // Unlimited capacity
+            regStatus = RegistrationStatus.INSCRIT;
+        }
 
         EventRegistration reg = EventRegistration.builder()
                 .event(event)
                 .userId(userId)
-                .status(status)
+                .status(regStatus)
                 .attended(false)
                 .build();
 
@@ -68,7 +76,7 @@ public class EventRegistrationService {
         try {
             UserResponse user = userClient.getUserById(userId);
             String fullName = user.getName() + " " + user.getPrenom();
-            if (status == RegistrationStatus.INSCRIT) {
+            if (regStatus == RegistrationStatus.INSCRIT) {
                 notificationService.sendRegistrationConfirmed(
                         user.getEmail(), fullName, saved);
             } else {
@@ -99,6 +107,13 @@ public class EventRegistrationService {
         reg.setStatus(RegistrationStatus.ANNULE);
         registrationRepository.save(reg);
 
+        // Restore the seat on the event
+        if (wasConfirmed) {
+            Event event = reg.getEvent();
+            event.incrementAvailablePlaces();
+            eventRepository.save(event);
+        }
+
         try {
             UserResponse user = userClient.getUserById(userId);
             notificationService.sendCancellationConfirmed(
@@ -123,22 +138,25 @@ public class EventRegistrationService {
                 .findFirstByEventIdAndStatusOrderByRegisteredAtAsc(
                         eventId, RegistrationStatus.LISTE_ATTENTE)
                 .ifPresent(waiting -> {
+                    // Consume the seat that was just freed
+                    Event event = waiting.getEvent();
+                    event.decrementAvailablePlaces();
+                    eventRepository.save(event);
+
                     waiting.setStatus(RegistrationStatus.INSCRIT);
                     registrationRepository.save(waiting);
                     log.info("Promoted userId {} from waitlist for eventId {}",
                             waiting.getUserId(), eventId);
 
                     try {
-                        UserResponse user = userClient.getUserById(
-                                waiting.getUserId());
+                        UserResponse user = userClient.getUserById(waiting.getUserId());
                         notificationService.sendWaitlistPromotion(
                                 user.getEmail(),
                                 user.getName() + " " + user.getPrenom(),
                                 waiting
                         );
                     } catch (Exception e) {
-                        log.warn("Could not send promotion email: {}",
-                                e.getMessage());
+                        log.warn("Could not send promotion email: {}", e.getMessage());
                     }
                 });
     }
@@ -159,7 +177,6 @@ public class EventRegistrationService {
         reg.setStatus(RegistrationStatus.PRESENT);
         EventRegistration saved = registrationRepository.save(reg);
 
-        // ── Trigger badge + certificate generation ──────────────────────────
         try {
             badgeService.onAttendanceConfirmed(
                     saved.getUserId(), saved.getEvent().getId());
@@ -202,14 +219,15 @@ public class EventRegistrationService {
         long attended = regs.stream()
                 .filter(EventRegistration::getAttended)
                 .count();
-        int capacity = event.getCapacityMax() != null
-                ? event.getCapacityMax() : 0;
+        int capacity = event.getCapacityMax() != null ? event.getCapacityMax() : 0;
 
         return EventStatsResponse.builder()
                 .eventId(eventId)
                 .eventTitle(event.getTitle())
                 .capacityMax(capacity)
-                .totalRegistrations((int)(confirmed + waitlist))
+                .availablePlaces(event.getAvailablePlaces())
+                .isFull(event.getIsFull())
+                .totalRegistrations((int) (confirmed + waitlist))
                 .confirmed((int) confirmed)
                 .waitlist((int) waitlist)
                 .cancelled((int) cancelled)
@@ -234,8 +252,4 @@ public class EventRegistrationService {
                 .registeredAt(r.getRegisteredAt())
                 .build();
     }
-
-
-
-
 }

@@ -1,0 +1,190 @@
+<div class="panel-backdrop" (click)="close()"></div>
+
+<div class="panel" [class.panel--open]="event">
+
+  <!-- Header -->
+  <div class="panel-header">
+    <button class="panel-close" (click)="close()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+    <button class="panel-open-full" (click)="openDetail()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+        <polyline points="15 3 21 3 21 9"/>
+        <line x1="10" y1="14" x2="21" y2="3"/>
+      </svg>
+      Page complète
+    </button>
+  </div>
+
+  <div class="panel-body" *ngIf="event">
+
+    <!-- Cover -->
+    <div class="panel-cover" *ngIf="event.coverImageUrl">
+      <img [src]="event.coverImageUrl" [alt]="event.title"/>
+    </div>
+    <div class="panel-cover panel-cover--placeholder" *ngIf="!event.coverImageUrl">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
+      </svg>
+    </div>
+
+    <!-- Title & badges -->
+    <div class="panel-title-row">
+      <h2 class="panel-title">{{ event.title }}</h2>
+      <span class="status-pill" [ngClass]="getStatusClass()">{{ getStatusLabel() }}</span>
+    </div>
+
+    <!-- Key info grid -->
+    <div class="panel-info-grid">
+
+      <div class="info-item" *ngIf="event.startDate">
+        <span class="info-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        </span>
+        <div>
+          <div class="info-label">Date de début</div>
+          <div class="info-value">{{ formatDate(event.startDate) }}</div>
+        </div>
+      </div>
+
+      <div class="info-item" *ngIf="event.endDate">
+        <span class="info-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </span>
+        <div>
+          <div class="info-label">Date de fin</div>
+          <div class="info-value">{{ formatDate(event.endDate) }}</div>
+        </div>
+      </div>
+
+      <div class="info-item" *ngIf="event.location || event.locationType">
+        <span class="info-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+        </span>
+        <div>
+          <div class="info-label">Lieu</div>
+          <div class="info-value">{{ event.location || event.locationType }}</div>
+        </div>
+      </div>
+
+      <div class="info-item" *ngIf="event.capacityMax">
+        <span class="info-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+          </svg>
+        </span>
+        <div>
+          <div class="info-label">Capacité</div>
+          <div class="info-value" [class.text-red]="event.isFull">
+            <span *ngIf="!event.isFull">{{ event.availablePlaces }} places disponibles / {{ event.capacityMax }}</span>
+            <span *ngIf="event.isFull">Complet ({{ event.capacityMax }} places)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-item" *ngIf="event.ticketPrice != null">
+        <span class="info-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="1" x2="12" y2="23"/>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </span>
+        <div>
+          <div class="info-label">Tarif</div>
+          <div class="info-value">
+            {{ event.ticketPrice === 0 ? 'Gratuit' : event.ticketPrice + ' TND' }}
+          </div>
+        </div>
+      </div>
+
+      <div class="info-item" *ngIf="event.organizerName">
+        <span class="info-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </span>
+        <div>
+          <div class="info-label">Organisateur</div>
+          <div class="info-value">{{ event.organizerName }}</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Description -->
+    <div class="panel-section" *ngIf="event.description">
+      <div class="section-label">Description</div>
+      <p class="panel-desc">{{ event.description }}</p>
+    </div>
+
+    <!-- Sectors / Stages -->
+    <div class="panel-section" *ngIf="event.targetSector?.length || event.targetStage?.length">
+      <div class="section-label">Ciblage</div>
+      <div class="tags-row">
+        <span class="tag tag-sector" *ngFor="let s of event.targetSector">{{ s }}</span>
+        <span class="tag tag-stage"  *ngFor="let s of event.targetStage">{{ s }}</span>
+      </div>
+    </div>
+
+    <!-- Registration feedback -->
+    <div class="reg-message reg-message--success" *ngIf="regMessage">{{ regMessage }}</div>
+    <div class="reg-message reg-message--error"   *ngIf="regError">{{ regError }}</div>
+
+    <!-- Registration CTA -->
+    <div class="panel-cta" *ngIf="event.status === 'PUBLIE'">
+
+      <!-- Not registered -->
+      <ng-container *ngIf="!myRegistration">
+        <button class="btn-register"
+                [disabled]="isRegistering"
+                (click)="register()">
+          <span class="spinner-sm" *ngIf="isRegistering"></span>
+          <svg *ngIf="!isRegistering" width="14" height="14" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="8.5" cy="7" r="4"/>
+            <line x1="20" y1="8" x2="20" y2="14"/>
+            <line x1="23" y1="11" x2="17" y2="11"/>
+          </svg>
+          {{ event.isFull ? "Rejoindre la liste d'attente" : "S'inscrire" }}
+        </button>
+      </ng-container>
+
+      <!-- Already registered / waitlisted -->
+      <ng-container *ngIf="myRegistration">
+        <div class="reg-status-row">
+          <span class="reg-badge" [class.waitlist]="isOnWaitlist">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline *ngIf="!isOnWaitlist" points="20 6 9 17 4 12"/>
+              <circle   *ngIf="isOnWaitlist"  cx="12" cy="12" r="10"/>
+              <polyline *ngIf="isOnWaitlist"  points="12 6 12 12 16 14"/>
+            </svg>
+            {{ isOnWaitlist ? "Liste d'attente" : 'Inscrit(e)' }}
+          </span>
+          <button class="btn-cancel-reg" [disabled]="isRegistering" (click)="cancelRegistration()">
+            Annuler l'inscription
+          </button>
+        </div>
+      </ng-container>
+
+    </div>
+
+  </div>
+</div>

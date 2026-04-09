@@ -7,6 +7,7 @@ import { Event, EventRequest, UpdateEventRequest, EventStatus, EventType } from 
 export class EventService {
 
   private api = 'http://localhost:8090/api/events';
+  
 
   constructor(private http: HttpClient) {}
 

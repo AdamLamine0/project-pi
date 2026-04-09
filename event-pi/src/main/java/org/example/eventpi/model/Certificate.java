@@ -24,27 +24,24 @@ public class Certificate {
     private Long eventId;
 
     @Column(name = "badge_id")
-    private Long badgeId;          // linked badge
+    private Long badgeId;
 
-
-    @Column(name = "recipient_name", nullable = false, length = 200)
+    @Column(name = "recipient_name", length = 200)
     private String recipientName;
 
-    @Column(name = "event_title", nullable = false, length = 200)
+    @Column(name = "event_title", length = 200)
     private String eventTitle;
 
     @Column(name = "event_date")
     private LocalDateTime eventDate;
 
-
-    @Column(name = "verification_token", nullable = false, unique = true,
-            length = 36)
+    @Column(name = "verification_token", unique = true, length = 100)
     private String verificationToken;
 
+    @Column(name = "pdf_path", length = 300)
+    private String pdfPath;
 
-
-
-    @Column(name = "generated_at", nullable = false)
+    @Column(name = "generated_at", updatable = false)
     private LocalDateTime generatedAt;
 
     @PrePersist
