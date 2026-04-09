@@ -40,16 +40,19 @@ export class EventFormComponent implements OnInit {
     public authService: AuthService
   ) {
     this.form = this.fb.group({
-      title:        ['', [Validators.required, Validators.maxLength(200)]],
-      description:  [''],
-      type:         ['', Validators.required],
-      status:       ['BROUILLON'],
-      startDate:    [''],
-      locationType: [''],
-      capacityMax:  [null, [Validators.min(1)]],
-      coverImageUrl:[''],
-      targetSector: [[]],
-      targetStage:  [[]]
+      title:         ['', [Validators.required, Validators.maxLength(200)]],
+      description:   ['', [Validators.maxLength(5000)]],
+      type:          ['', Validators.required],
+      status:        ['BROUILLON'],
+      startDate:     [''],
+      endDate:       [''],
+      locationType:  [''],
+      location:      ['', [Validators.maxLength(300)]],
+      ticketPrice:   [null, [Validators.min(0)]],
+      capacityMax:   [null, [Validators.min(1)]],
+      coverImageUrl: [''],
+      targetSector:  [[]],
+      targetStage:   [[]]
     });
   }
 
@@ -62,9 +65,7 @@ export class EventFormComponent implements OnInit {
     }
   }
 
-  isAdmin(): boolean {
-    return this.authService.getRole() === 'ADMIN';
-  }
+  isAdmin(): boolean { return this.authService.getRole() === 'ADMIN'; }
 
   loadEvent(id: number): void {
     this.isLoading = true;
@@ -72,7 +73,8 @@ export class EventFormComponent implements OnInit {
       next: (event) => {
         this.form.patchValue({
           ...event,
-          startDate: event.startDate ? event.startDate.substring(0, 16) : ''
+          startDate: event.startDate ? event.startDate.substring(0, 16) : '',
+          endDate:   event.endDate   ? event.endDate.substring(0, 16)   : ''
         });
         if (event.coverImageUrl) this.imagePreview = event.coverImageUrl;
         this.isLoading = false;
@@ -88,15 +90,13 @@ export class EventFormComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (!input.files?.length) return;
     const file = input.files[0];
-
     const reader = new FileReader();
     reader.onload = () => this.imagePreview = reader.result as string;
     reader.readAsDataURL(file);
-
     this.isUploading = true;
     this.eventService.uploadImage(file).subscribe({
       next: (res) => { this.form.patchValue({ coverImageUrl: res.url }); this.isUploading = false; },
-      error: () => { this.errorMessage = "Échec du téléchargement de l'image."; this.isUploading = false; }
+      error: () => { this.errorMessage = "Échec du téléchargement."; this.isUploading = false; }
     });
   }
 
@@ -114,8 +114,7 @@ export class EventFormComponent implements OnInit {
   }
 
   removeSector(s: string): void {
-    const current: string[] = this.form.value.targetSector || [];
-    this.form.patchValue({ targetSector: current.filter(x => x !== s) });
+    this.form.patchValue({ targetSector: (this.form.value.targetSector || []).filter((x: string) => x !== s) });
   }
 
   addStage(): void {
@@ -127,15 +126,26 @@ export class EventFormComponent implements OnInit {
   }
 
   removeStage(s: string): void {
-    const current: string[] = this.form.value.targetStage || [];
-    this.form.patchValue({ targetStage: current.filter(x => x !== s) });
+    this.form.patchValue({ targetStage: (this.form.value.targetStage || []).filter((x: string) => x !== s) });
   }
 
   onSectorKeydown(e: KeyboardEvent): void { if (e.key === 'Enter') { e.preventDefault(); this.addSector(); } }
-  onStageKeydown(e: KeyboardEvent): void  { if (e.key === 'Enter') { e.preventDefault(); this.addStage(); } }
+  onStageKeydown(e: KeyboardEvent):  void { if (e.key === 'Enter') { e.preventDefault(); this.addStage(); } }
 
   onSubmit(): void {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+
+    // Client-side cross-field date check
+    const start = this.form.value.startDate;
+    const end   = this.form.value.endDate;
+    if (start && end && new Date(end) <= new Date(start)) {
+      this.errorMessage = 'La date de fin doit être postérieure à la date de début.';
+      return;
+    }
+    if (start && new Date(start) < new Date()) {
+      this.errorMessage = 'La date de début doit être dans le futur.';
+      return;
+    }
 
     this.isLoading = true;
     this.errorMessage = '';
@@ -149,19 +159,9 @@ export class EventFormComponent implements OnInit {
 
     request$.subscribe({
       next: () => {
-        // ✅ Reset loading BEFORE navigation
         this.isLoading = false;
-        this.successMessage = this.isEdit
-          ? 'Événement mis à jour avec succès !'
-          : 'Événement créé avec succès !';
-
-        setTimeout(() => {
-          // ✅ Clean navigation — timestamp queryParam forces EventList to detect
-          // a real navigation change and re-run ngOnInit via ActivatedRoute subscription
-          this.router.navigate(['/events'], {
-            queryParams: { refresh: Date.now() }
-          });
-        }, 1200);
+        this.successMessage = this.isEdit ? 'Événement mis à jour !' : 'Événement créé !';
+        setTimeout(() => this.router.navigate(['/events'], { queryParams: { refresh: Date.now() } }), 1200);
       },
       error: (err) => {
         this.errorMessage = err.error?.message || 'Une erreur est survenue.';
@@ -172,26 +172,16 @@ export class EventFormComponent implements OnInit {
 
   generateDescription(): void {
     const title = this.form.get('title')?.value?.trim();
-    const date  = this.form.get('startDate')?.value;
-    const type  = this.form.get('type')?.value;
-
-    if (!title) {
-      this.aiError = 'Renseignez le titre avant de générer une description.';
-      return;
-    }
-
+    if (!title) { this.aiError = 'Renseignez le titre avant de générer.'; return; }
     this.aiError = '';
     this.isGenerating = true;
-
-    this.eventService.generateDescription(title, date || '', type || '').subscribe({
-      next: (res) => {
-        this.form.patchValue({ description: res.description });
-        this.isGenerating = false;
-      },
-      error: () => {
-        this.aiError = 'La génération a échoué. Vérifiez votre connexion et réessayez.';
-        this.isGenerating = false;
-      }
+    this.eventService.generateDescription(
+      title,
+      this.form.get('startDate')?.value || '',
+      this.form.get('type')?.value || ''
+    ).subscribe({
+      next: (res) => { this.form.patchValue({ description: res.description }); this.isGenerating = false; },
+      error: () => { this.aiError = 'La génération a échoué.'; this.isGenerating = false; }
     });
   }
 

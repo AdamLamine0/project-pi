@@ -55,8 +55,6 @@ public class EventController {
     }
 
     // ── SUBMIT FOR VALIDATION ─────────────────────────────────────────────
-    // MENTOR/PARTENAIRE submit their draft for admin review
-    // ADMIN calling this publishes directly
     @PatchMapping("/{id}/submit")
     public ResponseEntity<EventResponse> submitForValidation(
             @PathVariable Long id,
@@ -120,27 +118,18 @@ public class EventController {
     public ResponseEntity<List<EventResponse>> getAllEvents(
             @RequestParam(required = false) EventStatus status,
             @RequestParam(required = false) EventType type,
-
-            @RequestParam(required = false) Integer organizerId) {
-
             @RequestParam(required = false) Integer organizerId,
             @RequestHeader(value = "X-User-Role", required = false) String role) {
 
         String r = normalize(role);
 
-            @RequestParam(required = false) Integer organizerId,
-            @RequestHeader(value = "X-User-Role", required = false) String role) {
-
-        String r = normalize(role);   // ← normalize first
-
-
         if (r.isEmpty() || (!r.equals("ADMIN") && !r.equals("MENTOR") && !r.equals("PARTENAIRE"))) {
             return ResponseEntity.ok(eventService.getAllEvents(EventStatus.PUBLIE, type, organizerId));
         }
 
-
         return ResponseEntity.ok(eventService.getAllEvents(status, type, organizerId));
     }
+
     // ── UPDATE ────────────────────────────────────────────────────────────
     @PutMapping("/{id}")
     public ResponseEntity<EventResponse> updateEvent(
@@ -163,19 +152,7 @@ public class EventController {
         return ResponseEntity.noContent().build();
     }
 
-    // ── ROLE HELPER ───────────────────────────────────────────────────────
-    private void requireRole(String role, Set<String> allowed) {
-        if (role == null || !allowed.contains(normalize(role))) {
-            throw new ForbiddenException("Access denied for role: " + role);
-        }
-    }
-
-    private String normalize(String role) {
-        if (role == null) return "";
-        return role.startsWith("ROLE_") ? role.substring(5) : role;
-    }
-
-
+    // ── GENERATE DESCRIPTION (AI) ─────────────────────────────────────────
     @PostMapping("/generate-description")
     public ResponseEntity<DescriptionResponse> generateDescription(
             @RequestBody DescriptionRequest request,
@@ -189,7 +166,15 @@ public class EventController {
         return ResponseEntity.ok(new DescriptionResponse(description));
     }
 
+    // ── ROLE HELPERS ──────────────────────────────────────────────────────
+    private void requireRole(String role, Set<String> allowed) {
+        if (role == null || !allowed.contains(normalize(role))) {
+            throw new ForbiddenException("Access denied for role: " + role);
+        }
+    }
 
-
-
+    private String normalize(String role) {
+        if (role == null) return "";
+        return role.startsWith("ROLE_") ? role.substring(5) : role;
+    }
 }

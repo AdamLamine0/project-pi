@@ -21,29 +21,23 @@ public class Badge {
     private Integer userId;
 
     @Column(name = "event_id")
-
-    private Long eventId;          
-
-    
-
+    private Long eventId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BadgeType type;
 
     @Column(name = "label", length = 200)
-
-
+    private String label;
 
     @Column(name = "earned_at", nullable = false)
     private LocalDateTime earnedAt;
 
     @Column(name = "series_tag", length = 100)
+    private String seriesTag;
 
-    private String seriesTag;      
-
-   
-
+    @Column(name = "image_path")
+    private String imagePath;
 
     @PrePersist
     protected void onCreate() {

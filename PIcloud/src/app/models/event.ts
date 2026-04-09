@@ -16,21 +16,25 @@ export interface Event {
   type: EventType;
   status: EventStatus;
   startDate: string;
+  endDate: string | null;
   locationType: LocationType;
-  capacityMax: number;
+  location: string | null;
+  ticketPrice: number | null;
+  capacityMax: number | null;
+  availablePlaces: number | null;
+  isFull: boolean;
   coverImageUrl: string | null;
   targetSector: string[];
   targetStage: string[];
   organizerId: number;
   organizerRole: string;
+  organizerName: string | null;
+  organizerEmail: string | null;
   createdAt: string;
-  // workflow fields
   rejectionReason: string | null;
   validatedBy: number | null;
   validatedAt: string | null;
   submittedAt: string | null;
-   organizerName: string | null;  
-  organizerEmail: string | null;
 }
 
 export interface EventRequest {
@@ -38,7 +42,10 @@ export interface EventRequest {
   description: string;
   type: EventType;
   startDate: string;
+  endDate?: string;
   locationType: LocationType;
+  location?: string;
+  ticketPrice?: number;
   capacityMax: number;
   coverImageUrl?: string;
   targetSector: string[];
@@ -51,9 +58,18 @@ export interface UpdateEventRequest {
   type?: EventType;
   status?: EventStatus;
   startDate?: string;
+  endDate?: string;
   locationType?: LocationType;
+  location?: string;
+  ticketPrice?: number;
   capacityMax?: number;
   coverImageUrl?: string;
   targetSector?: string[];
   targetStage?: string[];
+}
+
+export interface DayGroup {
+  label: string;
+  date: Date;
+  events: Event[];
 }
