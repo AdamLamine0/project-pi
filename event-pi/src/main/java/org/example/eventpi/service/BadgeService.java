@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -27,7 +28,6 @@ public class BadgeService {
     private final UserClient userClient;
     private final NotificationService notificationService;
 
-    // How many events of the same series to trigger SERIE_COMPLETION badge
     private static final int SERIES_THRESHOLD = 4;
 
     @Value("${app.base-url}")
@@ -42,7 +42,6 @@ public class BadgeService {
             return;
         }
 
-        // Skip if already processed for this user+event
         if (badgeRepository.existsByUserIdAndEventIdAndType(
                 userId, eventId, BadgeType.PARTICIPATION)) {
             log.info("Badge already issued for userId={} eventId={}", userId, eventId);
@@ -75,7 +74,9 @@ public class BadgeService {
         Certificate cert = null;
         try {
             cert = certificateService.generateCertificate(
-                    userId, recipientName, event, participationBadge.getId());
+                    userId, recipientName, event,
+                    participationBadge.getId(),
+                    participationBadge.getLabel());
             log.info("Certificate generated: token={}", cert.getVerificationToken());
         } catch (Exception e) {
             log.error("Certificate generation failed for userId={}: {}",
@@ -87,8 +88,10 @@ public class BadgeService {
             try {
                 String downloadUrl = baseUrl + "/api/certificates/"
                         + cert.getId() + "/download";
+                String eventTitle = event.getTitle();
+                LocalDateTime eventDate = event.getStartDate();
                 notificationService.sendCertificateIssued(
-                        email, recipientName, event, downloadUrl);
+                        email, recipientName, eventTitle, eventDate, downloadUrl);
             } catch (Exception e) {
                 log.warn("Could not send certificate email to {}: {}", email, e.getMessage());
             }
@@ -106,7 +109,6 @@ public class BadgeService {
 
         long count = badgeRepository.countByUserIdAndSeriesTag(userId, seriesTag);
         if (count >= SERIES_THRESHOLD) {
-            // Check not already awarded
             boolean alreadyHas = badgeRepository
                     .findByUserId(userId).stream()
                     .anyMatch(b -> b.getType() == BadgeType.SERIE_COMPLETION
@@ -143,9 +145,10 @@ public class BadgeService {
             case CONFERENCE -> "CONFERENCE";
             case BOOTCAMP   -> "BOOTCAMP";
             case WEBINAIRE  -> "WEBINAIRE";
-            case PITCH      -> null;  // one-off events, no series tracking
+            case PITCH      -> null;
         };
     }
+
     // ── READ ──────────────────────────────────────────────────────────────
     public List<BadgeResponse> getByUser(Integer userId) {
         return badgeRepository.findByUserId(userId)

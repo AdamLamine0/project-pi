@@ -13,4 +13,7 @@ public interface CertificateRepository extends JpaRepository<Certificate, Long> 
     Optional<Certificate> findByVerificationToken(String token);
 
     boolean existsByUserIdAndEventId(Integer userId, Long eventId);
+
+    Optional<Certificate> findByBadgeId(Long badgeId);
+
 }

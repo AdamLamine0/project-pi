@@ -46,20 +46,24 @@ public class CertificateService {
     // ── GENERATE & PERSIST ────────────────────────────────────────────────
     @Transactional
     public Certificate generateCertificate(Integer userId, String recipientName,
-                                           Event event, Long badgeId) {
+                                           Event event, Long badgeId,
+                                           String badgeLabel) {
         if (certificateRepository.existsByUserIdAndEventId(userId, event.getId())) {
-            return certificateRepository
-                    .findByUserId(userId).stream()
+            return certificateRepository.findByUserId(userId).stream()
                     .filter(c -> c.getEventId().equals(event.getId()))
-                    .findFirst()
-                    .orElseThrow();
+                    .findFirst().orElseThrow();
         }
 
         String token = UUID.randomUUID().toString();
         String verificationUrl = frontendUrl + "/verify/" + token;
 
-        byte[] pdfBytes = buildPdf(recipientName, event, token, verificationUrl);
+        // Generate PDF (no QR — clean formal document)
+        byte[] pdfBytes = buildPdf(recipientName, event, token);
         String relativePath = savePdf(pdfBytes, token);
+
+        // Generate badge PNG (with QR)
+        generateAndSaveBadgePng(userId, recipientName, event.getTitle(),
+                badgeLabel, verificationUrl, token);
 
         Certificate cert = Certificate.builder()
                 .userId(userId)
@@ -75,9 +79,8 @@ public class CertificateService {
         return certificateRepository.save(cert);
     }
 
-    // ── BUILD PDF ─────────────────────────────────────────────────────────
-    private byte[] buildPdf(String recipientName, Event event,
-                            String token, String verificationUrl) {
+    // ── BUILD PDF (no QR — clean formal document) ─────────────────────────
+    private byte[] buildPdf(String recipientName, Event event, String token) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
 
             Document doc = new Document(PageSize.A4.rotate(), 40, 40, 60, 60);
@@ -101,23 +104,25 @@ public class CertificateService {
             border.stroke();
 
             // Fonts
-            BaseFont bfTitle = BaseFont.createFont(
+            BaseFont bfBold = BaseFont.createFont(
                     BaseFont.HELVETICA_BOLD, BaseFont.WINANSI, false);
             BaseFont bfBody = BaseFont.createFont(
                     BaseFont.HELVETICA, BaseFont.WINANSI, false);
 
-            Font fontHeader = new Font(bfTitle, 11, Font.NORMAL,
+            Font fontHeader = new Font(bfBold, 11, Font.NORMAL,
                     new java.awt.Color(0xC9, 0xA0, 0x2A));
-            Font fontTitle  = new Font(bfTitle, 36, Font.NORMAL,
+            Font fontTitle  = new Font(bfBold, 36, Font.NORMAL,
                     java.awt.Color.WHITE);
-            Font fontSub    = new Font(bfBody,  14, Font.ITALIC,
+            Font fontSub    = new Font(bfBody, 14, Font.ITALIC,
                     new java.awt.Color(0xCC, 0xCC, 0xCC));
-            Font fontName   = new Font(bfTitle, 28, Font.NORMAL,
+            Font fontName   = new Font(bfBold, 28, Font.NORMAL,
                     new java.awt.Color(0xC9, 0xA0, 0x2A));
-            Font fontBody   = new Font(bfBody,  13, Font.NORMAL,
+            Font fontBody   = new Font(bfBody, 13, Font.NORMAL,
                     new java.awt.Color(0xDD, 0xDD, 0xDD));
-            Font fontEvent  = new Font(bfTitle, 18, Font.NORMAL,
+            Font fontEvent  = new Font(bfBold, 18, Font.NORMAL,
                     java.awt.Color.WHITE);
+            Font fontFooter = new Font(bfBody, 8, Font.NORMAL,
+                    new java.awt.Color(0x88, 0x88, 0x88));
 
             float pageWidth = doc.getPageSize().getWidth();
 
@@ -142,27 +147,15 @@ public class CertificateService {
 
             String dateStr = event.getStartDate() != null
                     ? event.getStartDate().format(DATE_FMT) : "—";
-            addCenteredText(doc, "held on " + dateStr, fontBody, 30f);
+            addCenteredText(doc, "held on " + dateStr, fontBody, 40f);
 
-            // QR Code
-            BufferedImage qrImage = qrCodeService.generateQrImage(verificationUrl);
-            ByteArrayOutputStream qrBaos = new ByteArrayOutputStream();
-            ImageIO.write(qrImage, "PNG", qrBaos);
-            Image qr = Image.getInstance(qrBaos.toByteArray());
-            qr.scaleToFit(90, 90);
-            qr.setAbsolutePosition(pageWidth - 140, 40);
-            doc.add(qr);
-
-            // Verification label
-            PdfContentByte cb = writer.getDirectContent();
-            cb.beginText();
-            cb.setFontAndSize(bfBody, 7);
-            cb.setColorFill(new java.awt.Color(0xAA, 0xAA, 0xAA));
-            cb.showTextAligned(Element.ALIGN_RIGHT,
-                    "Scan to verify authenticity", pageWidth - 50, 35, 0);
-            cb.showTextAligned(Element.ALIGN_RIGHT,
-                    "Token: " + token.substring(0, 8) + "...", pageWidth - 50, 25, 0);
-            cb.endText();
+            // Verification URL as text (no QR)
+            addCenteredText(doc,
+                    "Verify at: " + frontendUrl + "/verify/" + token,
+                    fontFooter, 4f);
+            addCenteredText(doc,
+                    "Certificate ID: " + token.substring(0, 8).toUpperCase(),
+                    fontFooter, 0f);
 
             doc.close();
             return baos.toByteArray();
@@ -170,6 +163,24 @@ public class CertificateService {
         } catch (Exception e) {
             log.error("PDF generation failed", e);
             throw new RuntimeException("Certificate PDF generation failed", e);
+        }
+    }
+
+    // ── GENERATE BADGE PNG WITH QR ────────────────────────────────────────
+    private void generateAndSaveBadgePng(Integer userId, String recipientName,
+                                         String eventTitle, String badgeLabel,
+                                         String verificationUrl, String token) {
+        try {
+            BufferedImage badgeImg = qrCodeService.generateBadgeImage(
+                    recipientName, eventTitle, badgeLabel, verificationUrl);
+
+            Path dir = Paths.get("uploads/badges");
+            Files.createDirectories(dir);
+            Path out = dir.resolve(token + ".png");
+            ImageIO.write(badgeImg, "PNG", out.toFile());
+            log.info("Badge PNG saved: {}", out);
+        } catch (Exception e) {
+            log.warn("Badge PNG generation failed: {}", e.getMessage());
         }
     }
 
@@ -232,6 +243,17 @@ public class CertificateService {
                         .valid(false)
                         .message("Certificate not found or has been revoked.")
                         .build());
+    }
+
+    public Certificate getByBadgeId(Long badgeId) {
+        return certificateRepository.findByBadgeId(badgeId)
+                .orElseThrow(() -> new RuntimeException(
+                        "Certificate not found for badge"));
+    }
+
+    public Certificate getCertificateById(Long id) {
+        return certificateRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Certificate not found"));
     }
 
     // ── MAPPER ────────────────────────────────────────────────────────────
