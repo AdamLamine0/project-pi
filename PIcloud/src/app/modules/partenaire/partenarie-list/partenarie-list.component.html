@@ -1,4 +1,3 @@
-<p>partenarie-list works!</p>
 <div class="pl-page">
 
   <!-- ── HEADER ─────────────────────────────────────────────────── -->
@@ -113,6 +112,14 @@
           Voir
         </button>
 
+        <!-- Request meeting button (for all users) -->
+        <button class="btn-meeting" *ngIf="canRequestMeeting" (click)="openMeetingRequestDialog(o)" title="Demander une réunion">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 7l-7 5 7 5V7z"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+          Réunion
+        </button>
         <!-- ADMIN actions -->
         <div class="admin-actions" *ngIf="isAdmin">
           <button class="btn-edit" (click)="goToDetail(o.id)" title="Modifier">
@@ -163,4 +170,14 @@
     </div>
   </div>
 
+</div>
+
+<div class="meeting-overlay" *ngIf="isMeetingModalOpen && canRequestMeeting" (click)="closeMeetingModal(false)">
+  <div class="meeting-shell" (click)="$event.stopPropagation()">
+    <app-request-meeting
+      *ngIf="selectedPartnerForMeeting"
+      [partner]="selectedPartnerForMeeting"
+      (closed)="closeMeetingModal($event)">
+    </app-request-meeting>
+  </div>
 </div>

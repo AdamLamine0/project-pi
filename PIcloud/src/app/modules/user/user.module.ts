@@ -11,7 +11,6 @@ import { FormUserComponent } from './form-user/form-user.component';
 import { MyBadgesComponent } from './pages/my-badges/my-badges.component';
 import { MyCertificatesComponent } from './pages/my-certificates/my-certificates.component';
 
-
 @NgModule({
   declarations: [
     ProfileComponent,
