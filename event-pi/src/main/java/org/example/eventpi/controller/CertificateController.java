@@ -4,12 +4,19 @@ import lombok.RequiredArgsConstructor;
 import org.example.eventpi.dto.CertificateResponse;
 import org.example.eventpi.dto.VerificationResponse;
 import org.example.eventpi.service.CertificateService;
+
+import org.example.eventpi.model.Certificate;
+import org.example.eventpi.service.CertificateService;
+import org.example.eventpi.service.NotificationService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
@@ -17,6 +24,9 @@ import java.util.List;
 public class CertificateController {
 
     private final CertificateService certificateService;
+
+    private final NotificationService notificationService;
+
 
     @Value("${app.base-url}")
     private String baseUrl;
@@ -47,4 +57,42 @@ public class CertificateController {
     public ResponseEntity<VerificationResponse> verify(@PathVariable String token) {
         return ResponseEntity.ok(certificateService.verify(token));
     }
+
+
+    @GetMapping("/api/certificates/{id}/resend-email")
+    public ResponseEntity<String> resendEmail(
+            @PathVariable Long id,
+            @RequestHeader("X-User-Id") String userId) {
+        Certificate cert = certificateService.getCertificateById(id);
+        notificationService.sendCertificateIssued(
+                "your-test-email@gmail.com",
+                "Test User",
+                cert.getEventTitle(),
+                cert.getEventDate(),
+                baseUrl + "/api/certificates/" + id + "/download"
+        );
+        return ResponseEntity.ok("Email resent");
+    }
+
+
+
+    @GetMapping("/api/badges/{id}/image")
+    public ResponseEntity<byte[]> downloadBadgeImage(
+            @PathVariable Long id,
+            @RequestHeader("X-User-Id") String userId) {
+        try {
+            // token is stored on certificate — find by badgeId
+            Certificate cert = certificateService.getByBadgeId(id);
+            byte[] png = Files.readAllBytes(
+                    Paths.get("uploads/badges/" + cert.getVerificationToken() + ".png"));
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=\"badge-" + id + ".png\"")
+                    .contentType(MediaType.IMAGE_PNG)
+                    .body(png);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 }

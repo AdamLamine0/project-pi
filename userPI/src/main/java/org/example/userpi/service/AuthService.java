@@ -32,7 +32,10 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setDateInscription(LocalDate.now());
         user.setStatut("active");
-        user.setRole(Role.USER);
+
+        // Use provided role or default to USER
+        user.setRole(request.getRole() != null ? request.getRole() : Role.USER);
+
         userRepository.save(user);
         return new AuthResponse(jwtService.generateToken(user));
     }

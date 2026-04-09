@@ -21,6 +21,7 @@ public class EventRegistrationController {
 
     private final EventRegistrationService registrationService;
 
+
     @Autowired
     private JavaMailSender mailSender;
 

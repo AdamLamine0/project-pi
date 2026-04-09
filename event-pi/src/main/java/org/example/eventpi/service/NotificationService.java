@@ -2,6 +2,8 @@ package org.example.eventpi.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.eventpi.dto.UserResponse;
+import org.example.eventpi.feign.UserClient;
 import org.example.eventpi.model.Event;
 import org.example.eventpi.model.EventRegistration;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,12 +14,15 @@ import org.springframework.stereotype.Service;
 
 import jakarta.mail.internet.MimeMessage;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class NotificationService {
 
     private final JavaMailSender mailSender;
+    private final UserClient userClient;
 
     @Value("${app.name}")
     private String appName;
@@ -32,8 +37,7 @@ public class NotificationService {
                                           EventRegistration registration) {
         Event event = registration.getEvent();
         String subject = "✅ Inscription confirmée — " + event.getTitle();
-        String body = buildRegistrationConfirmedHtml(
-                userName, event, registration);
+        String body = buildRegistrationConfirmedHtml(userName, event, registration);
         sendHtml(toEmail, subject, body);
     }
 
@@ -66,6 +70,113 @@ public class NotificationService {
                                           Event event) {
         String subject = "❌ Inscription annulée — " + event.getTitle();
         String body = buildCancellationHtml(userName, event);
+        sendHtml(toEmail, subject, body);
+    }
+
+    // ── EVENT APPROVED ────────────────────────────────────────────────────
+    @Async
+    public void sendEventApproved(Integer organizerId, Event event) {
+        try {
+            UserResponse user = userClient.getUserById(organizerId);
+            String subject = "✅ Événement approuvé — " + event.getTitle();
+            String body = baseTemplate(
+                    "Votre événement est approuvé !",
+                    "Bonjour " + user.getName() + ",",
+                    "Votre événement <strong>" + event.getTitle() +
+                            "</strong> a été approuvé par notre équipe. " +
+                            "Vous pouvez maintenant le publier.",
+                    "",
+                    "Publier l'événement",
+                    frontendUrl + "/events/" + event.getId()
+            );
+            sendHtml(user.getEmail(), subject, body);
+        } catch (Exception e) {
+            log.error("Could not send approval email: {}", e.getMessage());
+        }
+    }
+
+    // ── EVENT REJECTED ────────────────────────────────────────────────────
+    @Async
+    public void sendEventRejected(Integer organizerId, Event event, String reason) {
+        try {
+            UserResponse user = userClient.getUserById(organizerId);
+            String subject = "❌ Événement rejeté — " + event.getTitle();
+            String details = "<div style='background:#fef2f2;border-radius:8px;" +
+                    "padding:16px;margin:16px 0;border-left:4px solid #dc2626;'>" +
+                    "<p style='margin:0;font-size:13px;color:#b91c1c'>" +
+                    "<strong>Motif:</strong> " + reason + "</p></div>";
+            String body = baseTemplate(
+                    "Votre événement a été rejeté",
+                    "Bonjour " + user.getName() + ",",
+                    "Votre événement <strong>" + event.getTitle() +
+                            "</strong> n'a pas été approuvé. " +
+                            "Vous pouvez le modifier et le soumettre à nouveau.",
+                    details,
+                    "Modifier l'événement",
+                    frontendUrl + "/events/" + event.getId() + "/edit"
+            );
+            sendHtml(user.getEmail(), subject, body);
+        } catch (Exception e) {
+            log.error("Could not send rejection email: {}", e.getMessage());
+        }
+    }
+
+    // ── CERTIFICATE ISSUED ────────────────────────────────────────────────
+    @Async
+    public void sendCertificateIssued(String toEmail, String userName,
+                                      String eventTitle, LocalDateTime eventDate,
+                                      String downloadUrl) {
+        String subject = "🎓 Votre certificat est disponible — " + eventTitle;
+
+        String details = "<div style='background:#f0fdf4;border-radius:8px;" +
+                "padding:16px;margin:16px 0;border-left:4px solid #16a34a;'>" +
+                "<p style='margin:0 0 8px;font-size:13px;color:#166534'>" +
+                "<strong>Événement :</strong> " + eventTitle + "</p>" +
+                (eventDate != null
+                        ? "<p style='margin:0;font-size:13px;color:#166534'>" +
+                        "<strong>Date :</strong> " +
+                        eventDate.toString().replace("T", " à ") +
+                        "</p>"
+                        : "") +
+                "</div>";
+
+        String body = baseTemplate(
+                "🎓 Votre certificat de participation",
+                "Félicitations " + userName + " !",
+                "Vous avez validé votre présence à <strong>" + eventTitle +
+                        "</strong>. Votre certificat officiel avec QR code de " +
+                        "vérification est maintenant disponible.",
+                details,
+                "Télécharger mon certificat (PDF)",
+                downloadUrl
+        );
+        sendHtml(toEmail, subject, body);
+    }
+
+    // ── SERIES BADGE EARNED ───────────────────────────────────────────────
+    @Async
+    public void sendSeriesBadgeEarned(String toEmail, String userName,
+                                      String seriesTag) {
+        String subject = "🏆 Badge de série débloqué — " + seriesTag;
+
+        String details = "<div style='background:#fefce8;border-radius:8px;" +
+                "padding:16px;margin:16px 0;border-left:4px solid #ca8a04;'>" +
+                "<p style='margin:0;font-size:13px;color:#854d0e'>" +
+                "Vous avez complété la série <strong>" + seriesTag +
+                "</strong> et débloqué un badge de complétion. " +
+                "Ce badge est maintenant visible sur votre profil public " +
+                "et contribue au score IA de votre startup." +
+                "</p></div>";
+
+        String body = baseTemplate(
+                "🏆 Badge de série débloqué !",
+                "Bravo " + userName + " !",
+                "Vous avez atteint le seuil de participation requis " +
+                        "pour la série <strong>" + seriesTag + "</strong>.",
+                details,
+                "Voir mon profil & mes badges",
+                frontendUrl + "/profile/badges"
+        );
         sendHtml(toEmail, subject, body);
     }
 
@@ -182,117 +293,4 @@ public class NotificationService {
             log.error("Failed to send email to {}: {}", to, e.getMessage());
         }
     }
-<<<<<<< Updated upstream
-=======
-    @Async
-    public void sendEventApproved(Integer organizerId, Event event) {
-        try {
-            UserResponse user = userClient.getUserById(organizerId);
-            String subject = "✅ Événement approuvé — " + event.getTitle();
-            String body = baseTemplate(
-                    "Votre événement est approuvé !",
-                    "Bonjour " + user.getName() + ",",
-                    "Votre événement <strong>" + event.getTitle() +
-                            "</strong> a été approuvé par notre équipe. " +
-                            "Vous pouvez maintenant le publier.",
-                    "",
-                    "Publier l'événement",
-                    frontendUrl + "/events/" + event.getId()
-            );
-            sendHtml(user.getEmail(), subject, body);
-        } catch (Exception e) {
-            log.error("Could not send approval email: {}", e.getMessage());
-        }
-    }
-
-    // ── EVENT REJECTED ────────────────────────────────────────────────────
-    @Async
-    public void sendEventRejected(Integer organizerId, Event event,
-                                  String reason) {
-        try {
-            UserResponse user = userClient.getUserById(organizerId);
-            String subject = "❌ Événement rejeté — " + event.getTitle();
-            String details = "<div style='background:#fef2f2;border-radius:8px;" +
-                    "padding:16px;margin:16px 0;border-left:4px solid #dc2626;'>" +
-                    "<p style='margin:0;font-size:13px;color:#b91c1c'>" +
-                    "<strong>Motif:</strong> " + reason + "</p></div>";
-            String body = baseTemplate(
-                    "Votre événement a été rejeté",
-                    "Bonjour " + user.getName() + ",",
-                    "Votre événement <strong>" + event.getTitle() +
-                            "</strong> n'a pas été approuvé. " +
-                            "Vous pouvez le modifier et le soumettre à nouveau.",
-                    details,
-                    "Modifier l'événement",
-                    frontendUrl + "/events/" + event.getId() + "/edit"
-            );
-            sendHtml(user.getEmail(), subject, body);
-        } catch (Exception e) {
-            log.error("Could not send rejection email: {}", e.getMessage());
-        }
-    }
-
-
-
-    // ── CERTIFICATE ISSUED ────────────────────────────────────────────────
-    @Async
-    public void sendCertificateIssued(String toEmail, String userName,
-                                      Event event, String downloadUrl) {
-        String subject = "🎓 Votre certificat est disponible — " + event.getTitle();
-
-        String details = "<div style='background:#f0fdf4;border-radius:8px;" +
-                "padding:16px;margin:16px 0;border-left:4px solid #16a34a;'>" +
-                "<p style='margin:0 0 8px;font-size:13px;color:#166534'>" +
-                "<strong>Événement :</strong> " + event.getTitle() + "</p>" +
-                (event.getStartDate() != null
-                        ? "<p style='margin:0;font-size:13px;color:#166534'>" +
-                        "<strong>Date :</strong> " +
-                        event.getStartDate().toString().replace("T", " à ") +
-                        "</p>"
-                        : "") +
-                "</div>";
-
-        String body = baseTemplate(
-                "🎓 Votre certificat de participation",
-                "Félicitations " + userName + " !",
-                "Vous avez validé votre présence à <strong>" + event.getTitle() +
-                        "</strong>. Votre certificat officiel avec QR code de " +
-                        "vérification est maintenant disponible.",
-                details,
-                "Télécharger mon certificat (PDF)",
-                downloadUrl
-        );
-        sendHtml(toEmail, subject, body);
-    }
-
-    // ── SERIES BADGE EARNED ───────────────────────────────────────────────
-    @Async
-    public void sendSeriesBadgeEarned(String toEmail, String userName,
-                                      String seriesTag) {
-        String subject = "🏆 Badge de série débloqué — " + seriesTag;
-
-        String details = "<div style='background:#fefce8;border-radius:8px;" +
-                "padding:16px;margin:16px 0;border-left:4px solid #ca8a04;'>" +
-                "<p style='margin:0;font-size:13px;color:#854d0e'>" +
-                "Vous avez complété la série <strong>" + seriesTag +
-                "</strong> et débloqué un badge de complétion. " +
-                "Ce badge est maintenant visible sur votre profil public " +
-                "et contribue au score IA de votre startup." +
-                "</p></div>";
-
-        String body = baseTemplate(
-                "🏆 Badge de série débloqué !",
-                "Bravo " + userName + " !",
-                "Vous avez atteint le seuil de participation requis " +
-                        "pour la série <strong>" + seriesTag + "</strong>.",
-                details,
-                "Voir mon profil & mes badges",
-                frontendUrl + "/profile/badges"
-        );
-        sendHtml(toEmail, subject, body);
-    }
-
-
-
->>>>>>> Stashed changes
 }

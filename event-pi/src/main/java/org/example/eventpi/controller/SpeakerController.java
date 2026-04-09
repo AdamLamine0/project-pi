@@ -23,7 +23,7 @@ public class SpeakerController {
     private final ImageStorageService imageStorageService; // ← ADD THIS
 
     private static final Set<String> WRITE_ROLES =
-            Set.of("ROLE_ADMIN", "ROLE_MENTOR", "ROLE_PARTENAIRE");
+            Set.of("ADMIN", "MENTOR", "PARTNER");
 
     @GetMapping("/api/speakers")
     public ResponseEntity<List<SpeakerResponse>> getAll() {

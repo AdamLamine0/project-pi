@@ -13,6 +13,5 @@ public interface BadgeRepository extends JpaRepository<Badge, Long> {
     boolean existsByUserIdAndEventIdAndType(Integer userId, Long eventId,
                                             BadgeType type);
 
-    // Count how many events of a given seriesTag a user has completed
     long countByUserIdAndSeriesTag(Integer userId, String seriesTag);
 }

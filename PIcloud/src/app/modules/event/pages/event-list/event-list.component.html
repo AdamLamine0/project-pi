@@ -6,12 +6,29 @@
       <div class="page-label">Plateforme PIcloud</div>
       <h1 class="page-title">Événements</h1>
     </div>
-    <a routerLink="/events/new" class="btn-new">
+    <!-- Only ADMIN, MENTOR, PARTENAIRE can create events -->
+    <a routerLink="/events/new" class="btn-new" *ngIf="canCreate()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="12" y1="5" x2="12" y2="19"/>
         <line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
       Nouvel événement
+    </a>
+  </div>
+
+  <!-- Admin validation shortcut -->
+  <div class="admin-banner" *ngIf="isAdmin()">
+    <div class="admin-banner-left">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <span>File de validation admin</span>
+    </div>
+    <a routerLink="/events/pending" class="btn-pending">
+      Voir les événements en attente
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
     </a>
   </div>
 
@@ -24,7 +41,8 @@
         <option *ngFor="let t of eventTypes" [value]="t">{{ t }}</option>
       </select>
     </div>
-    <div class="filter-group">
+    <!-- Status filter only for admin/mentor/partenaire -->
+    <div class="filter-group" *ngIf="canCreate()">
       <label>Statut</label>
       <select class="filter-select" [(ngModel)]="selectedStatus" (change)="onFilterChange()">
         <option value="">Tous les statuts</option>
@@ -63,8 +81,9 @@
       </svg>
     </div>
     <p class="empty-title">Aucun événement trouvé</p>
-    <p class="empty-sub">Créez votre premier événement pour commencer.</p>
-    <a routerLink="/events/new" class="btn-new">Créer un événement</a>
+    <p class="empty-sub" *ngIf="canCreate()">Créez votre premier événement pour commencer.</p>
+    <p class="empty-sub" *ngIf="!canCreate()">Aucun événement publié pour le moment.</p>
+    <a routerLink="/events/new" class="btn-new" *ngIf="canCreate()">Créer un événement</a>
   </div>
 
   <!-- Grid -->

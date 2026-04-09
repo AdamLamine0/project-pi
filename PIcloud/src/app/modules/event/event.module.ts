@@ -7,13 +7,27 @@ import { EventListComponent } from './pages/event-list/event-list.component';
 import { EventDetailComponent } from './pages/event-detail/event-detail.component';
 import { EventFormComponent } from './pages/event-form/event-form.component';
 import { EventCardComponent } from './components/event-card/event-card.component';
+import { SpeakerCardComponent } from './components/speaker-card/speaker-card.component';
+import { SpeakerFormComponent } from './components/speaker-form/speaker-form.component';
+import { SpeakerListComponent } from './pages/speaker-list/speaker-list.component';
+import { ProgramSlotComponent } from './components/program-slot/program-slot.component';
+import { ProgramFormComponent } from './components/program-form/program-form.component';
+import { RegistrationListComponent } from './components/registration-list/registration-list.component';
+import { PendingEventsComponent } from './pages/pending-events/pending-events.component';
 
 @NgModule({
   declarations: [
     EventListComponent,
     EventDetailComponent,
     EventFormComponent,
-    EventCardComponent
+    EventCardComponent,
+    SpeakerCardComponent,
+    SpeakerFormComponent,
+    SpeakerListComponent,
+    ProgramSlotComponent,
+    ProgramFormComponent,
+    RegistrationListComponent,
+    PendingEventsComponent
   ],
   imports: [
     CommonModule,

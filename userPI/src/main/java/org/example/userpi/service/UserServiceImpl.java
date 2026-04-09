@@ -1,11 +1,14 @@
 package org.example.userpi.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.userpi.Enum.Role;
+import org.example.userpi.dto.AdminCreateUserRequest;
 import org.example.userpi.dto.ChangePasswordRequest;
 import org.example.userpi.model.User;
 import org.example.userpi.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -30,21 +33,27 @@ public class UserServiceImpl implements UserService {
     @Override
     public User updateUser(User user, int requestingUserId) {
         User existing = userRepository.findById(user.getId())
-                .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // own data check using ID
-        if (existing.getId() != requestingUserId) {
-            throw new RuntimeException(
-                    "You can only update your own data"
-            );
+        User requester = userRepository.findById(requestingUserId)
+                .orElseThrow(() -> new RuntimeException("Requesting user not found"));
+
+        boolean isAdmin = requester.getRole() == Role.ADMIN;
+
+        // Non-admins can only edit themselves
+        if (!isAdmin && existing.getId() != requestingUserId) {
+            throw new RuntimeException("You can only update your own data");
         }
 
         existing.setName(user.getName());
         existing.setPrenom(user.getPrenom());
         existing.setStatut(user.getStatut());
 
-        // email change — check not taken
+        // Only admins can change the role
+        if (isAdmin) {
+            existing.setRole(user.getRole());
+        }
+
         if (!existing.getEmail().equals(user.getEmail())) {
             if (userRepository.existsByEmail(user.getEmail())) {
                 throw new RuntimeException("Email already in use");
@@ -61,6 +70,25 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(user);
     }
 
+    // ── ADMIN: create a user with a specific role ──────────────────────────────
+    @Override
+    public User createUser(AdminCreateUserRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email already in use");
+        }
+
+        User user = new User();
+        user.setName(request.getName());
+        user.setPrenom(request.getPrenom());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setDateInscription(LocalDate.now());
+        user.setStatut("active");
+        user.setRole(request.getRole());   // ← admin chooses the role
+
+        return userRepository.save(user);
+    }
+
     @Override
     public void deleteUser(int id) {
         userRepository.deleteById(id);
@@ -69,20 +97,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public void setPassword(int id, String password, int requestingUserId) {
         User user = userRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // own data check
         if (user.getId() != requestingUserId) {
-            throw new RuntimeException(
-                    "You can only set your own password"
-            );
+            throw new RuntimeException("You can only set your own password");
         }
 
         if (user.getPassword() != null) {
-            throw new RuntimeException(
-                    "Password already set. Use change-password instead."
-            );
+            throw new RuntimeException("Password already set. Use change-password instead.");
         }
 
         user.setPassword(passwordEncoder.encode(password));
@@ -90,27 +112,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void changePassword(int id, ChangePasswordRequest request,
-                               int requestingUserId) {
+    public void changePassword(int id, ChangePasswordRequest request, int requestingUserId) {
         User existing = userRepository.findById(id)
-                .orElseThrow(() ->
-                        new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
-        // own data check
         if (existing.getId() != requestingUserId) {
-            throw new RuntimeException(
-                    "You can only change your own password"
-            );
+            throw new RuntimeException("You can only change your own password");
         }
 
-        if (!passwordEncoder.matches(request.getOldPassword(),
-                existing.getPassword())) {
+        if (!passwordEncoder.matches(request.getOldPassword(), existing.getPassword())) {
             throw new RuntimeException("Old password is incorrect");
         }
 
-        existing.setPassword(passwordEncoder.encode(
-                request.getNewPassword()
-        ));
+        existing.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(existing);
     }
 }

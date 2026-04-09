@@ -359,3 +359,58 @@ select.field-input { appearance: none; cursor: pointer; }
   .fields-row { grid-template-columns: 1fr; }
   .form-page { padding: 1rem 1rem 3rem; padding-top: calc(56px + 1rem); }
 }
+.workflow-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 8px;
+}
+
+.workflow-link {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+/* ── AI GENERATE BUTTON ── */
+.desc-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.btn-ai-generate {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #7c3aed;
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  padding: 5px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-ai-generate:hover:not(:disabled) { background: #ede9fe; color: #5b21b6; }
+.btn-ai-generate:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.ai-error {
+  font-size: 11.5px;
+  color: #b91c1c;
+}
+
+/* Override spinner color for the purple button */
+.btn-ai-generate .spinner-sm {
+  border-color: rgba(124,58,237,0.25);
+  border-top-color: #7c3aed;
+}
