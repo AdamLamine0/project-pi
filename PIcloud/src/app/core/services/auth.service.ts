@@ -10,7 +10,7 @@ import { AuthResponse, LoginRequest, RegisterRequest, Role } from '../models/use
 })
 export class AuthService {
 
-  private apiUrl = 'http://localhost:8090/api/auth';
+  private apiUrl = 'http://localhost:8091/api/auth';
   private isBrowser: boolean;
 
   constructor(

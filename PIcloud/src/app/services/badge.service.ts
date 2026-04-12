@@ -6,7 +6,7 @@ import { Badge } from '../models/badge';
 @Injectable({ providedIn: 'root' })
 export class BadgeService {
 
-  private api = 'http://localhost:8090/api/badges';
+  private api = 'http://localhost:8091/api/badges';
 
   constructor(private http: HttpClient) {}
 
@@ -19,6 +19,6 @@ export class BadgeService {
   }
 
   getBadgeImageUrl(badgeId: number): string {
-    return `http://localhost:8090/api/badges/${badgeId}/image`;
+    return `http://localhost:8091/api/badges/${badgeId}/image`;
   }
 }

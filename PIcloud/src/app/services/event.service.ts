@@ -6,7 +6,7 @@ import { Event, EventRequest, UpdateEventRequest, EventStatus, EventType } from 
 @Injectable({ providedIn: 'root' })
 export class EventService {
 
-  private api = 'http://localhost:8090/api/events';
+  private api = 'http://localhost:8091/api/events';
   
 
   constructor(private http: HttpClient) {}

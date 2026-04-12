@@ -6,7 +6,7 @@ import { EventRegistration } from '../models/registration';
 @Injectable({ providedIn: 'root' })
 export class RegistrationService {
 
-  private api = 'http://localhost:8090/api/events';
+  private api = 'http://localhost:8091/api/events';
 
   constructor(private http: HttpClient) {}
 

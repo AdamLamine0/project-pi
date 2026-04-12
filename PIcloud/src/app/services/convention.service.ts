@@ -14,8 +14,8 @@ import {
 @Injectable({ providedIn: 'root' })
 export class ConventionService {
 
-  private base    = 'http://localhost:8090/api/conventions';
-  private objBase = 'http://localhost:8090/api/objectifs';
+  private base    = 'http://localhost:8091/api/conventions';
+  private objBase = 'http://localhost:8091/api/objectifs';
 
   constructor(
     private http: HttpClient,
