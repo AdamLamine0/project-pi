@@ -18,7 +18,6 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/legal-procedures")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200")
 public class LegalProcedureController {
 
     private final LegalProcedureService service;
@@ -26,6 +25,13 @@ public class LegalProcedureController {
     @PostMapping
     public ResponseEntity<LegalProcedureResponse> create(@Valid @RequestBody CreateLegalProcedureRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
+    }
+    @GetMapping
+    public ResponseEntity<?> example(
+            @RequestHeader("X-User-Id") String userId,
+            @RequestHeader("X-User-Role") String role) {
+
+        return null;
     }
 
     @GetMapping
