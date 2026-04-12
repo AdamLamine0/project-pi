@@ -45,6 +45,9 @@ public class LegalDocument {
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
 
+    @Column(name = "requirement_code", nullable = false)
+    private String requirementCode;
+
     @PrePersist
     public void prePersist() {
         this.uploadedAt = LocalDateTime.now();

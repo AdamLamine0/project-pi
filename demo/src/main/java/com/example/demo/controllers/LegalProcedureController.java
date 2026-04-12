@@ -4,6 +4,7 @@ import com.example.demo.dto.ChangeProcedureStatusRequest;
 import com.example.demo.dto.CreateLegalProcedureRequest;
 import com.example.demo.dto.LegalProcedureResponse;
 import com.example.demo.dto.UpdateLegalProcedureRequest;
+import com.example.demo.services.ChecklistService;
 import com.example.demo.services.LegalProcedureService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ import java.util.UUID;
 public class LegalProcedureController {
 
     private final LegalProcedureService service;
-
+    private final ChecklistService checklistService;
     @PostMapping
     public ResponseEntity<LegalProcedureResponse> create(@Valid @RequestBody CreateLegalProcedureRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
@@ -59,6 +60,11 @@ public class LegalProcedureController {
     public ResponseEntity<Void> deleteDraft(@PathVariable UUID id) {
         service.deleteDraft(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/checklist")
+    public Object getChecklist(@PathVariable UUID id) {
+        return checklistService.getChecklist(id);
     }
 }
 

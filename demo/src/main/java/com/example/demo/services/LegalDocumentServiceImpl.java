@@ -15,7 +15,9 @@ import com.example.demo.repository.LegalProcedureRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,9 +29,10 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
     private final LegalDocumentRepository documentRepository;
     private final LegalProcedureRepository procedureRepository;
     private final LegalMapper mapper;
+    private final FileStorageService fileStorageService;
 
     @Override
-    public LegalDocumentResponse create(UUID procedureId, CreateLegalDocumentRequest request) {
+    public LegalDocumentResponse upload(UUID procedureId, String requirementCode, MultipartFile file, LocalDateTime expiresAt) {
         LegalProcedure procedure = procedureRepository.findById(procedureId)
                 .orElseThrow(() -> new ResourceNotFoundException("Dossier introuvable avec l'id : " + procedureId));
 
@@ -37,16 +40,18 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
             throw new BusinessException("Impossible d'ajouter un document à un dossier archivé.");
         }
 
+        String fileUrl = fileStorageService.store(file);
+
         LegalDocument document = LegalDocument.builder()
                 .procedure(procedure)
-                .documentType(request.documentType())
-                .fileUrl(request.fileUrl())
-                .expiresAt(request.expiresAt())
+                .requirementCode(requirementCode)
+                .documentType(requirementCode)
+                .fileUrl(fileUrl)
+                .expiresAt(expiresAt)
                 .build();
 
         return mapper.toDocumentResponse(documentRepository.save(document));
     }
-
     @Override
     @Transactional(readOnly = true)
     public List<LegalDocumentResponse> findByProcedure(UUID procedureId) {
