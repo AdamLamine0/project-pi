@@ -6,7 +6,7 @@ import { Speaker, SpeakerRequest } from '../models/speaker';
 @Injectable({ providedIn: 'root' })
 export class SpeakerService {
 
-  private api = 'http://localhost:8090/api';
+  private api = 'http://localhost:8091/api';
 
   constructor(private http: HttpClient) {}
 

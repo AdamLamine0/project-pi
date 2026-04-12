@@ -26,7 +26,7 @@ export interface MeetingResponse {
 
 @Injectable({ providedIn: 'root' })
 export class MeetingService {
-  private baseUrl = 'http://localhost:8090/api/meeting-invitations';
+  private baseUrl = 'http://localhost:8091/api/meeting-invitations';
 
   constructor(
     private http: HttpClient,

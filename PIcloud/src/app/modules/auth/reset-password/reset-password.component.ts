@@ -54,7 +54,7 @@ export class ResetPasswordComponent implements OnInit {
 
     try {
       await firstValueFrom(
-        this.http.post('http://localhost:8090/api/auth/reset-password',
+        this.http.post('http://localhost:8091/api/auth/reset-password',
           { token: this.token, newPassword: this.form.value.newPassword },
           { responseType: 'text' }
         )

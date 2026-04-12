@@ -50,7 +50,7 @@ export class LoginComponent {
   }
 
   loginWithGoogle(): void {
-  // goes through gateway :8090 now
-  window.location.href = 'http://localhost:8090/oauth2/authorization/google';
+  // goes through gateway :8091 now
+  window.location.href = 'http://localhost:8091/oauth2/authorization/google';
 }
 }

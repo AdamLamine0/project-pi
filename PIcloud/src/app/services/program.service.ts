@@ -6,7 +6,7 @@ import { EventProgram, EventProgramRequest } from '../models/program';
 @Injectable({ providedIn: 'root' })
 export class ProgramService {
 
-  private api = 'http://localhost:8090/api/events';
+  private api = 'http://localhost:8091/api/events';
 
   constructor(private http: HttpClient) {}
 

@@ -12,7 +12,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class PartenaireService {
 
-  private apiUrl = 'http://localhost:8090/api/organisations';
+  private apiUrl = 'http://localhost:8091/api/organisations';
 
   constructor(
     private http: HttpClient,

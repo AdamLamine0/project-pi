@@ -38,7 +38,7 @@ public class EventRegistrationService {
             throw new ForbiddenException("Vous êtes déjà inscrit(e) à cet événement.");
         }
 
-        Event event = eventRepository.findById(eventId)
+        Event event = eventRepository.findByIdForUpdate(eventId)
                 .orElseThrow(() -> new EventNotFoundException(eventId));
 
         if (event.getStatus() != EventStatus.PUBLIE) {
@@ -107,9 +107,11 @@ public class EventRegistrationService {
         reg.setStatus(RegistrationStatus.ANNULE);
         registrationRepository.save(reg);
 
-        // Restore the seat on the event
+        // Restore the seat on the event (use write lock so concurrent registrations
+        // that are checking capacity see the freed seat immediately)
         if (wasConfirmed) {
-            Event event = reg.getEvent();
+            Event event = eventRepository.findByIdForUpdate(eventId)
+                    .orElseThrow(() -> new EventNotFoundException(eventId));
             event.incrementAvailablePlaces();
             eventRepository.save(event);
         }
@@ -138,8 +140,9 @@ public class EventRegistrationService {
                 .findFirstByEventIdAndStatusOrderByRegisteredAtAsc(
                         eventId, RegistrationStatus.LISTE_ATTENTE)
                 .ifPresent(waiting -> {
-                    // Consume the seat that was just freed
-                    Event event = waiting.getEvent();
+                    // Consume the seat that was just freed (re-fetch with lock)
+                    Event event = eventRepository.findByIdForUpdate(eventId)
+                            .orElseThrow(() -> new EventNotFoundException(eventId));
                     event.decrementAvailablePlaces();
                     eventRepository.save(event);
 
