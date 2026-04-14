@@ -26,13 +26,7 @@ public class LegalProcedureController {
     public ResponseEntity<LegalProcedureResponse> create(@Valid @RequestBody CreateLegalProcedureRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
     }
-    @GetMapping
-    public ResponseEntity<?> example(
-            @RequestHeader("X-User-Id") String userId,
-            @RequestHeader("X-User-Role") String role) {
 
-        return null;
-    }
 
     @GetMapping
     public ResponseEntity<List<LegalProcedureResponse>> findAll() {

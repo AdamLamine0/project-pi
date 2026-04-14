@@ -36,15 +36,6 @@ public class LegalDocumentController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(service.upload(procedureId, requirementCode, file, expiresAt));
     }
-
-    // In any controller method:
-    @GetMapping
-    public ResponseEntity<?> example(
-            @RequestHeader("X-User-Id") String userId,
-            @RequestHeader("X-User-Role") String role) {
-
-        return null;
-    }
     @GetMapping
     public ResponseEntity<List<LegalDocumentResponse>> findByProcedure(@PathVariable UUID procedureId) {
         return ResponseEntity.ok(service.findByProcedure(procedureId));

@@ -96,7 +96,7 @@ public class GatewayRoutes {
     @Bean
     public RouterFunction<ServerResponse> legalProcedureRoute() {
         return RouterFunctions
-                .route(path("/api/legal-procedures/**"), HandlerFunctions.http())
+                .route(path("/api/procedures-types/**"), HandlerFunctions.http())
                 .filter(lb("legal-pi"))
                 .filter(authFilter.jwtFilter());
     }

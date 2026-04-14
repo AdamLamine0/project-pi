@@ -1,2 +1,23 @@
-<app-navbar></app-navbar>
-<router-outlet></router-outlet>
+<div class="page-shell">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-badge">LJ</div>
+        <div>
+          <p class="brand-title">Legal Portal</p>
+          <p class="brand-subtitle">Gestion moderne des procédures juridiques</p>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <a class="nav-pill" routerLink="" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+  Accueil
+</a>
+        <a class="nav-pill" routerLink="/legal-procedures">Dossiers</a>
+        <a class="nav-pill" routerLink="/legal-procedures/new">Nouveau dossier</a>
+      </div>
+    </div>
+  </div>
+
+  <router-outlet></router-outlet>
+</div>

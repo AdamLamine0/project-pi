@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+
 import { LegalProcedure, ProcedureStatus } from '../../../../models/legal-procedure.model';
 import { LegalProcedureService } from '../../../../services/legal-procedure.service';
 
@@ -36,7 +35,9 @@ export class LegalProcedureListComponent implements OnInit {
   ngOnInit(): void {
     this.loadProcedures();
   }
-
+  getStatusClass(status: string): string {
+  return `status-${status}`;
+}
   loadProcedures(): void {
     this.loading = true;
     this.errorMessage = '';
