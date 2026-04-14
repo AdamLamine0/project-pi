@@ -42,7 +42,11 @@ export class LegalProcedureFormComponent implements OnInit {
       expertId: [''],
       procedureType: ['', Validators.required],
       notes: ['']
-    });
+    })
+    const typeFromQuery = this.route.snapshot.queryParamMap.get('type');
+if (typeFromQuery) {
+  this.form.patchValue({ procedureType: typeFromQuery });
+};
 
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {

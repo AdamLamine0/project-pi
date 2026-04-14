@@ -1,0 +1,92 @@
+<div class="page-container">
+  <div class="hero">
+    <div class="hero-card">
+      <div class="hero-eyebrow">Module juridique intelligent</div>
+      <h1 class="hero-title">Portail des procédures juridiques</h1>
+      <p class="hero-text">
+        Consulte les procédures disponibles, comprends les exigences documentaires,
+        crée tes dossiers et assure le suivi de conformité avec une interface claire,
+        moderne et orientée métier.
+      </p>
+
+      <div class="hero-actions">
+        <a class="btn btn-primary-pro" routerLink="/legal-procedures">Voir tous les dossiers</a>
+        <a class="btn btn-soft" routerLink="/legal-procedures/new">Créer un dossier</a>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Types de procédure</div>
+        <div class="stat-value">{{ procedureTypes.length }}</div>
+      </div> 
+      
+      <div class="stat-card">
+        <div class="stat-label">Dossiers déposés</div>
+        <div class="stat-value">{{ totalProcedures }}</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-label">Pilotage documentaire</div>
+        <div class="stat-value">Checklist</div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <div class="section-header">
+    <div>
+      <h2 class="section-title">Procédures disponibles</h2>
+      <p class="section-subtitle">
+        Chaque procédure contient ses exigences documentaires et son volume de dossiers.
+      </p>
+    </div>
+  </div>
+
+  <div class="cards-grid" *ngIf="!loading && procedureTypes.length > 0">
+  <div class="card-premium" *ngFor="let item of procedureTypes">
+    <div class="card-top">
+      <div class="d-flex gap-3">
+        <div class="icon-tile" [ngClass]="getProcedureIconClass(item.procedureType)">
+          {{ getProcedureShortLabel(item.procedureType) }}
+        </div>
+
+        <div>
+          <h3 class="card-title">{{ item.title }}</h3>
+          <div class="card-code">{{ item.procedureType }}</div>
+        </div>
+      </div>
+
+      <span class="metric-badge">{{ item.procedureCount }} dossier(s)</span>
+    </div>
+
+    <p class="card-description">
+      {{ getDescription(item.procedureType) }}
+    </p>
+
+    <div class="mb-3">
+      <div class="modern-label">Documents requis</div>
+      <ul class="doc-list">
+        <li *ngFor="let doc of item.requiredDocuments">{{ doc }}</li>
+      </ul>
+    </div>
+
+    <div class="card-actions">
+      <button class="btn btn-primary-pro btn-card-main" (click)="createProcedure(item.procedureType)">
+        Créer un dossier
+      </button>
+      <a class="btn btn-soft btn-card-secondary" routerLink="/legal-procedures">
+        Voir les dossiers
+      </a>
+    </div>
+  </div>
+</div>
+
+  <div class="empty-state card-premium" *ngIf="!loading && procedureTypes.length === 0">
+    <h4 class="mb-2">Aucune procédure disponible</h4>
+    <p class="mb-0">Initialise les exigences documentaires pour afficher les cartes métier.</p>
+  </div>
+</div>

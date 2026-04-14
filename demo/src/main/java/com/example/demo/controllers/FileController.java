@@ -29,13 +29,6 @@ public class FileController {
         this.uploadPath = Paths.get(dir).toAbsolutePath().normalize();
     }
     // In any controller method:
-    @GetMapping
-    public ResponseEntity<?> example(
-            @RequestHeader("X-User-Id") String userId,
-            @RequestHeader("X-User-Role") String role) {
-        // userId and role come from the gateway — no JWT parsing needed
-        return null;
-    }
 
     @GetMapping("/{filename:.+}")
     public ResponseEntity<Resource> getFile(@PathVariable String filename) {
