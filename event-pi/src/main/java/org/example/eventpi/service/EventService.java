@@ -13,6 +13,8 @@ import org.example.eventpi.feign.UserClient;
 import org.example.eventpi.model.Event;
 import org.example.eventpi.model.EventStatus;
 import org.example.eventpi.model.EventType;
+import org.example.eventpi.model.RegistrationStatus;
+import org.example.eventpi.repository.EventRegistrationRepository;
 import org.example.eventpi.repository.EventRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +29,9 @@ import java.util.List;
 public class EventService {
 
     private final EventRepository eventRepository;
+    private final EventRegistrationRepository registrationRepository;
     private final ImageStorageService imageStorageService;
+
     private final NotificationService notificationService;
     private final UserClient userClient;
 
@@ -62,10 +66,13 @@ public class EventService {
     // ── SUBMIT FOR VALIDATION ─────────────────────────────────────────────
     @Transactional
     public EventResponse submitForValidation(Long id, Integer userId, String role) {
+        String normalizedRole = normalizeRole(role);
+        boolean isAdmin = "ADMIN".equals(normalizedRole);
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
 
-        if (!event.getOrganizerId().equals(userId)) {
+        // Admins may submit any event; non-admins may only submit their own
+        if (!isAdmin && !event.getOrganizerId().equals(userId)) {
             throw new ForbiddenException("Vous ne pouvez soumettre que vos propres événements.");
         }
         if (event.getStatus() != EventStatus.BROUILLON) {
@@ -76,13 +83,16 @@ public class EventService {
             throw new EventPastException();
         }
 
-        if ("ADMIN".equals(role)) {
+        if (isAdmin) {
+            // Admin submitting any event goes directly to PUBLIE
             event.setStatus(EventStatus.PUBLIE);
-            log.info("Admin {} published event {} directly", userId, id);
+            event.setValidatedBy(userId);
+            event.setValidatedAt(LocalDateTime.now());
+            log.info("Admin {} published event {} directly via submit", userId, id);
         } else {
             event.setStatus(EventStatus.EN_ATTENTE_VALIDATION);
             event.setSubmittedAt(LocalDateTime.now());
-            log.info("Event {} submitted for validation by userId {} ({})", id, userId, role);
+            log.info("Event {} submitted for validation by userId {} ({})", id, userId, normalizedRole);
         }
 
         return toResponse(eventRepository.save(event));
@@ -94,8 +104,12 @@ public class EventService {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
 
-        if (event.getStatus() != EventStatus.EN_ATTENTE_VALIDATION) {
-            throw new ForbiddenException("Seuls les événements en attente peuvent être approuvés.");
+        // Admin can approve from any status that isn't already published, cancelled, or terminated
+        if (event.getStatus() == EventStatus.PUBLIE
+                || event.getStatus() == EventStatus.ANNULE
+                || event.getStatus() == EventStatus.TERMINE) {
+            throw new ForbiddenException(
+                    "L'événement ne peut pas être approuvé depuis le statut : " + event.getStatus());
         }
 
         event.setStatus(EventStatus.APPROUVE);
@@ -121,8 +135,13 @@ public class EventService {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
 
-        if (event.getStatus() != EventStatus.EN_ATTENTE_VALIDATION) {
-            throw new ForbiddenException("Seuls les événements en attente peuvent être rejetés.");
+        // Admin can reject from any status except already rejected, published, cancelled, or terminated
+        if (event.getStatus() == EventStatus.REJETE
+                || event.getStatus() == EventStatus.PUBLIE
+                || event.getStatus() == EventStatus.ANNULE
+                || event.getStatus() == EventStatus.TERMINE) {
+            throw new ForbiddenException(
+                    "L'événement ne peut pas être rejeté depuis le statut : " + event.getStatus());
         }
 
         event.setStatus(EventStatus.REJETE);
@@ -145,19 +164,25 @@ public class EventService {
     // ── PUBLISH ───────────────────────────────────────────────────────────
     @Transactional
     public EventResponse publishEvent(Long id, Integer userId, String role) {
+        String normalizedRole = normalizeRole(role);
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
 
-        boolean isAdmin = "ADMIN".equals(role);
+        boolean isAdmin = "ADMIN".equals(normalizedRole);
         boolean isOwner = event.getOrganizerId().equals(userId);
 
         if (!isAdmin && !isOwner) {
             throw new ForbiddenException("Vous ne pouvez publier que vos propres événements.");
         }
         if (isAdmin) {
-            if (event.getStatus() != EventStatus.BROUILLON &&
-                    event.getStatus() != EventStatus.APPROUVE) {
-                throw new ForbiddenException("L'événement ne peut pas être publié depuis ce statut.");
+            // Admin can publish from any status except already published, cancelled, or terminated
+            if (event.getStatus() == EventStatus.PUBLIE) {
+                throw new ForbiddenException("L'événement est déjà publié.");
+            }
+            if (event.getStatus() == EventStatus.ANNULE
+                    || event.getStatus() == EventStatus.TERMINE) {
+                throw new ForbiddenException(
+                        "L'événement ne peut pas être publié depuis le statut : " + event.getStatus());
             }
         } else {
             if (event.getStatus() != EventStatus.APPROUVE) {
@@ -210,12 +235,14 @@ public class EventService {
     @Transactional
     public EventResponse updateEvent(Long id, UpdateEventRequest request,
                                      Integer userId, String role) {
+        String normalizedRole = normalizeRole(role);
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
 
-        boolean isAdmin = "ADMIN".equals(role);
+        boolean isAdmin = "ADMIN".equals(normalizedRole);
         boolean isOwner = event.getOrganizerId().equals(userId);
 
+        // Mentors and partners can only modify events they created themselves
         if (!isAdmin && !isOwner) {
             throw new ForbiddenException("Vous ne pouvez modifier que vos propres événements.");
         }
@@ -231,16 +258,16 @@ public class EventService {
                 ? request.getEndDate() : event.getEndDate();
         validateDates(effectiveStart, effectiveEnd);
 
-        if (request.getTitle() != null)        event.setTitle(request.getTitle());
-        if (request.getDescription() != null)  event.setDescription(request.getDescription());
-        if (request.getType() != null)         event.setType(request.getType());
-        if (request.getStartDate() != null)    event.setStartDate(request.getStartDate());
-        if (request.getEndDate() != null)      event.setEndDate(request.getEndDate());
+        if (request.getTitle() != null) event.setTitle(request.getTitle());
+        if (request.getDescription() != null) event.setDescription(request.getDescription());
+        if (request.getType() != null) event.setType(request.getType());
+        if (request.getStartDate() != null) event.setStartDate(request.getStartDate());
+        if (request.getEndDate() != null) event.setEndDate(request.getEndDate());
         if (request.getLocationType() != null) event.setLocationType(request.getLocationType());
-        if (request.getLocation() != null)     event.setLocation(request.getLocation());
-        if (request.getTicketPrice() != null)  event.setTicketPrice(request.getTicketPrice());
+        if (request.getLocation() != null) event.setLocation(request.getLocation());
+        if (request.getTicketPrice() != null) event.setTicketPrice(request.getTicketPrice());
         if (request.getTargetSector() != null) event.setTargetSector(request.getTargetSector());
-        if (request.getTargetStage() != null)  event.setTargetStage(request.getTargetStage());
+        if (request.getTargetStage() != null) event.setTargetStage(request.getTargetStage());
 
         // When capacity is increased, recalculate availablePlaces
         if (request.getCapacityMax() != null) {
@@ -286,6 +313,16 @@ public class EventService {
         }
     }
 
+
+    // ── ROLE NORMALIZATION ────────────────────────────────────────────────
+    private String normalizeRole(String role) {
+        if (role == null) return "";
+        String r = role.trim().toUpperCase();
+        if (r.startsWith("ROLE_")) r = r.substring(5);
+        return r;
+    }
+
+
     // ── MAPPER ────────────────────────────────────────────────────────────
     private EventResponse toResponse(Event event) {
         String organizerName = "Organisateur #" + event.getOrganizerId();
@@ -307,6 +344,15 @@ public class EventService {
                     event.getOrganizerId(), event.getId(), t.getMessage());
         }
 
+        // ── COUNT from DB, excluding ANNULE and LISTE_ATTENTE ─────────────────
+        int registeredCount = 0;
+        if (event.getId() != null) {
+            registeredCount = (int) registrationRepository.countByEventIdAndStatusIn(
+                    event.getId(),
+                    List.of(RegistrationStatus.INSCRIT, RegistrationStatus.PRESENT)
+            );
+        }
+
         return EventResponse.builder()
                 .id(event.getId())
                 .title(event.getTitle())
@@ -321,6 +367,7 @@ public class EventService {
                 .capacityMax(event.getCapacityMax())
                 .availablePlaces(event.getAvailablePlaces())
                 .isFull(event.getIsFull())
+                .registeredCount(registeredCount)           // ← ADD THIS
                 .coverImageUrl(event.getCoverImageUrl())
                 .targetSector(event.getTargetSector())
                 .targetStage(event.getTargetStage())

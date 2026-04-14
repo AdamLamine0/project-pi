@@ -27,7 +27,7 @@ export class EventService {
   publish(id: number): Observable<Event>  { return this.http.patch<Event>(`${this.api}/${id}/publish`, {}); }
   getPending(): Observable<Event[]>       { return this.http.get<Event[]>(`${this.api}/pending`); }
   approve(id: number): Observable<Event>  { return this.http.patch<Event>(`${this.api}/${id}/approve`, {}); }
-  reject(id: number, reason: string): Observable<Event> { return this.http.patch<Event>(`${this.api}/${id}/reject`, { reason }); }
+  reject(id: number, reason: string): Observable<Event> { return this.http.patch<Event>(`${this.api}/${id}/reject`, { rejectionReason: reason }); }
 
   uploadImage(file: File): Observable<{ url: string }> {
     const formData = new FormData();

@@ -151,17 +151,28 @@ export class EventFormComponent implements OnInit {
     this.errorMessage = '';
     this.successMessage = '';
 
-    const payload = { ...this.form.value };
+    const raw = { ...this.form.value };
+    // Convert empty strings to null for enum fields so the backend doesn't
+    // receive "" which Jackson refuses to coerce to an enum value.
+    const payload = {
+      ...raw,
+      locationType: raw.locationType || null,
+      type: raw.type || null,
+      status: raw.status || null,
+    };
 
     const request$ = this.isEdit && this.eventId
       ? this.eventService.update(this.eventId, payload)
       : this.eventService.create(payload);
 
     request$.subscribe({
-      next: () => {
+      next: (saved) => {
         this.isLoading = false;
-        this.successMessage = this.isEdit ? 'Événement mis à jour !' : 'Événement créé !';
-        setTimeout(() => this.router.navigate(['/events'], { queryParams: { refresh: Date.now() } }), 1200);
+        this.successMessage = this.isEdit
+          ? 'Événement mis à jour !'
+          : 'Événement créé ! Vous pouvez maintenant ajouter un programme depuis la page de détail.';
+        const targetId = this.isEdit ? this.eventId! : saved.id;
+        setTimeout(() => this.router.navigate(['/events', targetId]), 1500);
       },
       error: (err) => {
         this.errorMessage = err.error?.message || 'Une erreur est survenue.';

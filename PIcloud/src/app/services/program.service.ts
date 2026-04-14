@@ -25,4 +25,9 @@ export class ProgramService {
   delete(eventId: number, slotId: number): Observable<void> {
     return this.http.delete<void>(`${this.api}/${eventId}/program/${slotId}`);
   }
+
+  /** Ask the backend to generate and persist an AI program for the event. */
+  generate(eventId: number): Observable<EventProgram[]> {
+    return this.http.post<EventProgram[]>(`${this.api}/${eventId}/program/generate`, {});
+  }
 }

@@ -30,8 +30,13 @@ export class EventDetailComponent implements OnInit {
   isDeleting = false;
   isSubmitting = false;
   isPublishing = false;
+  isApproving = false;
+  isRejecting = false;
+  showRejectForm = false;
+  rejectReason = '';
   showDeleteConfirm = false;
   isRegistering = false;
+  isGeneratingProgram = false;
 
   activeTab: 'apercu' | 'programme' | 'intervenants' | 'inscriptions' = 'apercu';
 
@@ -189,6 +194,33 @@ export class EventDetailComponent implements OnInit {
     });
   }
 
+  generateProgram(): void {
+    if (!this.event) return;
+    const hasExisting = this.program.length > 0;
+    if (hasExisting) {
+      const ok = confirm(
+        `Un programme de ${this.program.length} créneau(x) existe déjà.\n` +
+        `L'IA va ajouter de nouveaux créneaux à la suite.\n\n` +
+        `Continuer ?`
+      );
+      if (!ok) return;
+    }
+    this.isGeneratingProgram = true;
+    this.errorMessage = '';
+    this.programService.generate(this.event.id).subscribe({
+      next: (generated) => {
+        this.program = [...this.program, ...generated]
+          .sort((a, b) => a.orderIndex - b.orderIndex);
+        this.isGeneratingProgram = false;
+        this.successMessage = `Programme généré : ${generated.length} créneau(x) ajouté(s).`;
+      },
+      error: (err) => {
+        this.errorMessage = err.error?.message || 'Échec de la génération du programme.';
+        this.isGeneratingProgram = false;
+      }
+    });
+  }
+
   // ── SPEAKERS ──────────────────────────────────────────────────────────
   unlinkSpeaker(speakerId: number): void {
     if (!this.event) return;
@@ -205,22 +237,33 @@ export class EventDetailComponent implements OnInit {
     return ['ADMIN', 'MENTOR', 'PARTENAIRE'].includes(role);
   }
 
+  canApprove(): boolean {
+    if (!this.event || !this.isAdmin) return false;
+    return !['PUBLIE', 'APPROUVE', 'ANNULE', 'TERMINE'].includes(this.event.status);
+  }
+
+  canReject(): boolean {
+    if (!this.event || !this.isAdmin) return false;
+    return !['PUBLIE', 'REJETE', 'ANNULE', 'TERMINE'].includes(this.event.status);
+  }
+
   canSubmit(): boolean {
     if (!this.event) return false;
+    if (this.event.status !== 'BROUILLON') return false;
     const role = this.authService.getRole();
+    if (role === 'ADMIN') return true; // admin can submit any BROUILLON event
     const isOwner = this.event.organizerId === this.authService.getUserId();
-    return isOwner
-      && ['MENTOR', 'PARTENAIRE'].includes(role)
-      && this.event.status === 'BROUILLON';
+    return isOwner && ['MENTOR', 'PARTENAIRE'].includes(role);
   }
 
   canPublish(): boolean {
     if (!this.event) return false;
     const role = this.authService.getRole();
-    const isOwner = this.event.organizerId === this.authService.getUserId();
     if (role === 'ADMIN') {
-      return this.event.status === 'BROUILLON' || this.event.status === 'APPROUVE';
+      // Admin can publish from any status except already published, cancelled, or terminated
+      return !['PUBLIE', 'ANNULE', 'TERMINE'].includes(this.event.status);
     }
+    const isOwner = this.event.organizerId === this.authService.getUserId();
     return isOwner && this.event.status === 'APPROUVE';
   }
 
@@ -249,6 +292,44 @@ export class EventDetailComponent implements OnInit {
         this.successMessage = 'Événement publié avec succès !';
       },
       error: () => { this.errorMessage = 'Échec de la publication.'; this.isPublishing = false; }
+    });
+  }
+
+  approveEvent(): void {
+    if (!this.event) return;
+    this.isApproving = true;
+    this.errorMessage = '';
+    this.eventService.approve(this.event.id).subscribe({
+      next: (updated) => {
+        this.event = updated;
+        this.isApproving = false;
+        this.successMessage = 'Événement approuvé.';
+      },
+      error: (err) => {
+        this.errorMessage = err.error?.message || "Échec de l'approbation.";
+        this.isApproving = false;
+      }
+    });
+  }
+
+  startReject(): void { this.showRejectForm = true; this.rejectReason = ''; }
+  cancelReject(): void { this.showRejectForm = false; }
+
+  confirmReject(): void {
+    if (!this.event || !this.rejectReason.trim()) return;
+    this.isRejecting = true;
+    this.errorMessage = '';
+    this.eventService.reject(this.event.id, this.rejectReason).subscribe({
+      next: (updated) => {
+        this.event = updated;
+        this.isRejecting = false;
+        this.showRejectForm = false;
+        this.successMessage = 'Événement rejeté.';
+      },
+      error: (err) => {
+        this.errorMessage = err.error?.message || 'Échec du rejet.';
+        this.isRejecting = false;
+      }
     });
   }
 

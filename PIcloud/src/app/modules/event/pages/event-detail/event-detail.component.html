@@ -26,14 +26,39 @@
           Rejeté : {{ event.rejectionReason }}
         </div>
 
-        <!-- Submit for validation — Mentor/Partenaire on BROUILLON -->
+        <!-- Submit for validation — owner (Mentor/Partenaire) OR Admin on any BROUILLON -->
         <button class="btn-submit-validation" *ngIf="canSubmit()"
                 (click)="submitForValidation()" [disabled]="isSubmitting">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          {{ isSubmitting ? 'Soumission...' : 'Soumettre pour validation' }}
+          {{ isSubmitting ? 'Soumission...' : (isAdmin ? 'Publier directement' : 'Soumettre pour validation') }}
         </button>
 
-        <!-- Publish — Admin on BROUILLON/APPROUVE, owner on APPROUVE -->
+        <!-- Approve — Admin only, on any non-approved/published/cancelled/terminated event -->
+        <button class="btn-approve" *ngIf="canApprove()"
+                (click)="approveEvent()" [disabled]="isApproving">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          {{ isApproving ? 'Approbation...' : 'Approuver' }}
+        </button>
+
+        <!-- Reject — Admin only, on non-rejected/published/cancelled/terminated event -->
+        <ng-container *ngIf="canReject()">
+          <button class="btn-reject-action" *ngIf="!showRejectForm" (click)="startReject()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Rejeter
+          </button>
+          <ng-container *ngIf="showRejectForm">
+            <input class="reject-reason-input" type="text"
+                   placeholder="Motif du rejet..."
+                   [(ngModel)]="rejectReason"/>
+            <button class="btn-reject-confirm" [disabled]="!rejectReason.trim() || isRejecting"
+                    (click)="confirmReject()">
+              {{ isRejecting ? '...' : 'Confirmer' }}
+            </button>
+            <button class="btn-reject-cancel" (click)="cancelReject()">Annuler</button>
+          </ng-container>
+        </ng-container>
+
+        <!-- Publish — Admin (any status) or owner on APPROUVE -->
         <button class="btn-publish" *ngIf="canPublish()"
                 (click)="publishEvent()" [disabled]="isPublishing">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -196,10 +221,21 @@
     <div class="tab-content" *ngIf="activeTab === 'programme'">
       <div class="tab-header">
         <h2 class="tab-title">Programme</h2>
-        <button class="btn-add" *ngIf="canEdit()" (click)="openAddSlot()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Ajouter un créneau
-        </button>
+        <div class="tab-header-actions" *ngIf="canEdit()">
+          <!-- AI generate button -->
+          <button class="btn-ai-generate" [disabled]="isGeneratingProgram" (click)="generateProgram()">
+            <span class="spinner-sm spinner-dark" *ngIf="isGeneratingProgram"></span>
+            <svg *ngIf="!isGeneratingProgram" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+            </svg>
+            {{ isGeneratingProgram ? 'Génération en cours...' : 'Générer avec l\'IA' }}
+          </button>
+          <!-- Manual add -->
+          <button class="btn-add" (click)="openAddSlot()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Ajouter un créneau
+          </button>
+        </div>
       </div>
       <div class="inline-form" *ngIf="showProgramForm">
         <div class="inline-form-grid">

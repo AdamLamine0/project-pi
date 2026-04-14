@@ -56,9 +56,25 @@ public class EventProgramController {
         return ResponseEntity.noContent().build();
     }
 
+    // ── AI GENERATE ───────────────────────────────────────────────────────
+    @PostMapping("/generate")
+    public ResponseEntity<List<EventProgramResponse>> generate(
+            @PathVariable Long eventId,
+            @RequestHeader("X-User-Role") String role) {
+        requireRole(role, WRITE_ROLES);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(programService.generateProgram(eventId));
+    }
+
     private void requireRole(String role, Set<String> allowed) {
-        if (role == null || !allowed.contains(role)) {
+        String normalized = normalizeRole(role);
+        if (normalized == null || !allowed.contains(normalized)) {
             throw new ForbiddenException("Access denied for role: " + role);
         }
+    }
+
+    private String normalizeRole(String role) {
+        if (role == null) return null;
+        return role.startsWith("ROLE_") ? role.substring(5) : role;
     }
 }

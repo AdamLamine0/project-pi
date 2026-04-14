@@ -23,6 +23,7 @@ export interface Event {
   capacityMax: number | null;
   availablePlaces: number | null;
   isFull: boolean;
+  registeredCount: number;     
   coverImageUrl: string | null;
   targetSector: string[];
   targetStage: string[];

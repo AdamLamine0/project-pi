@@ -32,23 +32,64 @@
 
   <!-- Filters -->
   <div class="filters-bar">
-    <div class="filter-group">
-      <label>Type</label>
-      <select class="filter-select" [(ngModel)]="selectedType" (change)="onFilterChange()">
-        <option value="">Tous les types</option>
-        <option *ngFor="let t of eventTypes" [value]="t">{{ t }}</option>
-      </select>
+
+    <!-- Search -->
+    <div class="search-wrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input
+        class="search-input"
+        type="text"
+        placeholder="Search events..."
+        [(ngModel)]="searchQuery"
+        (input)="onSearchChange()"/>
     </div>
+
+    <!-- Type pills -->
+    <div class="type-pills">
+      <button class="type-btn" [class.active]="selectedType === ''"
+              (click)="selectedType = ''; onFilterChange()">All</button>
+      <button class="type-btn" *ngFor="let t of eventTypes"
+              [class.active]="selectedType === t"
+              (click)="selectedType = t; onFilterChange()">
+        {{ t | titlecase }}
+      </button>
+    </div>
+
+    <!-- Status filter (admin/creator only) -->
     <div class="filter-group" *ngIf="canCreate()">
-      <label>Statut</label>
       <select class="filter-select" [(ngModel)]="selectedStatus" (change)="onFilterChange()">
         <option value="">Tous les statuts</option>
         <option *ngFor="let s of eventStatuses" [value]="s">{{ s }}</option>
       </select>
     </div>
-    <div class="filter-count" *ngIf="!loading">
-      {{ events.length }} événement{{ events.length !== 1 ? 's' : '' }}
+
+    <!-- View toggle -->
+    <div class="view-toggle">
+      <button class="view-btn" [class.active]="viewMode === 'grid'" (click)="viewMode = 'grid'">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+        </svg>
+        Grid
+      </button>
+      <button class="view-btn" [class.active]="viewMode === 'list'" (click)="viewMode = 'list'">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+          <line x1="8" y1="18" x2="21" y2="18"/>
+          <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/>
+          <line x1="3" y1="18" x2="3.01" y2="18"/>
+        </svg>
+        List
+      </button>
     </div>
+
+    <!-- Count -->
+    <div class="filter-count" *ngIf="!loading">
+      {{ filteredEvents.length }} événement{{ filteredEvents.length !== 1 ? 's' : '' }}
+    </div>
+
   </div>
 
   <!-- Loading -->
@@ -61,7 +102,7 @@
   <div class="alert-error" *ngIf="error && !loading">{{ error }}</div>
 
   <!-- Empty -->
-  <div class="empty-state" *ngIf="!loading && !error && events.length === 0">
+  <div class="empty-state" *ngIf="!loading && !error && filteredEvents.length === 0">
     <div class="empty-icon">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
         <rect x="3" y="4" width="18" height="18" rx="2"/>
@@ -71,39 +112,29 @@
       </svg>
     </div>
     <p class="empty-title">Aucun événement trouvé</p>
-    <p class="empty-sub">{{ canCreate() ? 'Créez votre premier événement.' : 'Aucun événement publié pour le moment.' }}</p>
-    <a routerLink="/events/new" class="btn-new" *ngIf="canCreate()">Créer un événement</a>
+    <p class="empty-sub">
+      {{ searchQuery ? 'Aucun résultat pour "' + searchQuery + '".' :
+         canCreate() ? 'Créez votre premier événement.' :
+         'Aucun événement publié pour le moment.' }}
+    </p>
+    <a routerLink="/events/new" class="btn-new" *ngIf="canCreate() && !searchQuery">
+      Créer un événement
+    </a>
   </div>
 
-  <!-- Timeline -->
-  <div class="timeline" *ngIf="!loading && !error && dayGroups.length > 0">
-
-    <div class="day-group" *ngFor="let group of dayGroups">
-
-      <!-- Day header -->
-      <div class="day-header">
-        <span class="day-dot"></span>
-        <span class="day-label">{{ group.label }}</span>
-        <span class="day-date">
-          {{ group.date.getTime() > 0
-            ? group.date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-            : '' }}
-        </span>
-      </div>
-
-      <!-- Cards for this day -->
-      <div class="day-cards">
-        <app-event-card
-          *ngFor="let event of group.events"
-          [event]="event"
-          [selected]="selectedEvent?.id === event.id"
-          (selected$)="onEventSelected($event)"
-          (deleted)="onDelete($event)">
-        </app-event-card>
-      </div>
-
-    </div>
-  </div>
+  <!-- Events grid / list -->
+  <div *ngIf="!loading && !error && events.length > 0"
+     [ngClass]="viewMode === 'grid' ? 'events-grid' : 'events-list'">
+  <app-event-card
+    *ngFor="let event of events"
+    [event]="event"
+    [selected]="selectedEvent?.id === event.id"
+    [myRegistration]="getRegistrationForEvent(event.id)"
+    (selected$)="onEventSelected($event)"
+    (deleted)="onDelete($event)"
+    (eventUpdated)="onEventUpdated()">
+  </app-event-card>
+</div>
 
 </div>
 

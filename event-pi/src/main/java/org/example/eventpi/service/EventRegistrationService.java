@@ -5,11 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.eventpi.dto.EventRegistrationResponse;
 import org.example.eventpi.dto.EventStatsResponse;
 import org.example.eventpi.dto.UserResponse;
-import org.example.eventpi.exception.EventFullException;
 import org.example.eventpi.exception.EventNotFoundException;
 import org.example.eventpi.exception.ForbiddenException;
 import org.example.eventpi.feign.UserClient;
 import org.example.eventpi.model.*;
+import org.example.eventpi.model.PaymentStatus;
 import org.example.eventpi.repository.EventRegistrationRepository;
 import org.example.eventpi.repository.EventRepository;
 import org.springframework.stereotype.Service;
@@ -34,7 +34,9 @@ public class EventRegistrationService {
     @Transactional
     public EventRegistrationResponse register(Long eventId, Integer userId) {
 
-        if (registrationRepository.existsByEventIdAndUserId(eventId, userId)) {
+        // Only block if an active (non-cancelled) registration already exists
+        if (registrationRepository.existsByEventIdAndUserIdAndStatusNot(
+                eventId, userId, RegistrationStatus.ANNULE)) {
             throw new ForbiddenException("Vous êtes déjà inscrit(e) à cet événement.");
         }
 
@@ -46,30 +48,39 @@ public class EventRegistrationService {
                     "Les inscriptions ne sont pas ouvertes pour cet événement.");
         }
 
-        // Determine if the user goes to waitlist or gets a confirmed seat
         RegistrationStatus regStatus;
-
         if (event.getCapacityMax() != null) {
             if (Boolean.TRUE.equals(event.getIsFull())) {
-                // Event is full — place on waitlist
                 regStatus = RegistrationStatus.LISTE_ATTENTE;
             } else {
-                // Confirmed seat — decrement available places
                 event.decrementAvailablePlaces();
                 eventRepository.save(event);
                 regStatus = RegistrationStatus.INSCRIT;
             }
         } else {
-            // Unlimited capacity
             regStatus = RegistrationStatus.INSCRIT;
         }
 
-        EventRegistration reg = EventRegistration.builder()
-                .event(event)
-                .userId(userId)
-                .status(regStatus)
-                .attended(false)
-                .build();
+        // Re-use the cancelled row if it exists — avoids unique constraint violation
+        EventRegistration reg = registrationRepository
+                .findByEventIdAndUserId(eventId, userId)
+                .orElse(EventRegistration.builder()
+                        .event(event)
+                        .userId(userId)
+                        .attended(false)
+                        .build());
+
+        reg.setStatus(regStatus);
+        reg.setAttended(false);
+        reg.setCheckInTime(null);
+
+        // Generate ticket number if not already set (new registration or re-registration)
+        if (reg.getTicketNumber() == null) {
+            reg.setTicketNumber(java.util.UUID.randomUUID().toString());
+        }
+        // Set payment status
+        boolean isFree = event.getTicketPrice() == null || event.getTicketPrice() == 0.0;
+        reg.setPaymentStatus(isFree ? PaymentStatus.FREE : PaymentStatus.PENDING);
 
         EventRegistration saved = registrationRepository.save(reg);
 
@@ -107,8 +118,6 @@ public class EventRegistrationService {
         reg.setStatus(RegistrationStatus.ANNULE);
         registrationRepository.save(reg);
 
-        // Restore the seat on the event (use write lock so concurrent registrations
-        // that are checking capacity see the freed seat immediately)
         if (wasConfirmed) {
             Event event = eventRepository.findByIdForUpdate(eventId)
                     .orElseThrow(() -> new EventNotFoundException(eventId));
@@ -140,7 +149,6 @@ public class EventRegistrationService {
                 .findFirstByEventIdAndStatusOrderByRegisteredAtAsc(
                         eventId, RegistrationStatus.LISTE_ATTENTE)
                 .ifPresent(waiting -> {
-                    // Consume the seat that was just freed (re-fetch with lock)
                     Event event = eventRepository.findByIdForUpdate(eventId)
                             .orElseThrow(() -> new EventNotFoundException(eventId));
                     event.decrementAvailablePlaces();
@@ -198,7 +206,7 @@ public class EventRegistrationService {
     }
 
     public List<EventRegistrationResponse> getByUser(Integer userId) {
-        return registrationRepository.findByUserId(userId)
+        return registrationRepository.findByUserIdWithEvent(userId)
                 .stream().map(this::toResponse).toList();
     }
 
@@ -253,6 +261,8 @@ public class EventRegistrationService {
                 .attended(r.getAttended())
                 .checkInTime(r.getCheckInTime())
                 .registeredAt(r.getRegisteredAt())
+                .ticketNumber(r.getTicketNumber())
+                .paymentStatus(r.getPaymentStatus())
                 .build();
     }
 }
