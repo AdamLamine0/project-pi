@@ -18,17 +18,17 @@ const routes: Routes = [
     loadChildren: () =>
       import('./modules/user/user.module').then(m => m.UserModule)
   },
-   {
-    path: 'legal-procedures',
-    loadChildren: () =>
-      import('./modules/legal/legal.module').then(m => m.LegalModule)
-  },
   {
     path: 'events',
     canActivate: [authGuard],
     loadChildren: () =>
       import('./modules/event/event.module').then(m => m.EventModule)
   },
+  {
+  path: 'legal-procedures',
+  loadChildren: () =>
+    import('./modules/legal/legal.module').then(m => m.LegalModule)
+},
   {
     path: 'partenariat',
     canActivate: [authGuard],
