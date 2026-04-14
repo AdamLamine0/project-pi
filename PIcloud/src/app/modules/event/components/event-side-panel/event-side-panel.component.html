@@ -1,54 +1,51 @@
-<div class="panel-backdrop" (click)="close()"></div>
+<!-- Backdrop -->
+<div class="modal-backdrop" (click)="close()"></div>
 
-<div class="panel" [class.panel--open]="event">
+<!-- Modal -->
+<div class="modal-box" *ngIf="event">
 
-  <!-- Header -->
-  <div class="panel-header">
-    <button class="panel-close" (click)="close()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-      </svg>
-    </button>
-    <button class="panel-open-full" (click)="openDetail()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-        <polyline points="15 3 21 3 21 9"/>
-        <line x1="10" y1="14" x2="21" y2="3"/>
-      </svg>
-      Page complète
-    </button>
+  <!-- Cover image -->
+  <div class="modal-cover" *ngIf="event.coverImageUrl">
+    <img [src]="event.coverImageUrl" [alt]="event.title"/>
+    <div class="modal-cover-overlay">
+      <span class="cover-type-badge">{{ event.type }}</span>
+    </div>
+  </div>
+  <div class="modal-cover modal-cover--placeholder" *ngIf="!event.coverImageUrl">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+      <rect x="3" y="3" width="18" height="18" rx="2"/>
+      <circle cx="8.5" cy="8.5" r="1.5"/>
+      <polyline points="21 15 16 10 5 21"/>
+    </svg>
+    <span class="cover-type-badge">{{ event.type }}</span>
   </div>
 
-  <div class="panel-body" *ngIf="event">
+  <!-- Close button -->
+  <button class="modal-close" (click)="close()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  </button>
 
-    <!-- Cover -->
-    <div class="panel-cover" *ngIf="event.coverImageUrl">
-      <img [src]="event.coverImageUrl" [alt]="event.title"/>
-    </div>
-    <div class="panel-cover panel-cover--placeholder" *ngIf="!event.coverImageUrl">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
-        <rect x="3" y="3" width="18" height="18" rx="2"/>
-        <circle cx="8.5" cy="8.5" r="1.5"/>
-        <polyline points="21 15 16 10 5 21"/>
-      </svg>
-    </div>
+  <!-- Scrollable body -->
+  <div class="modal-body">
 
-    <!-- Title & badges -->
-    <div class="panel-title-row">
-      <h2 class="panel-title">{{ event.title }}</h2>
+    <!-- Title + status -->
+    <div class="modal-title-row">
+      <h2 class="modal-title">{{ event.title }}</h2>
       <span class="status-pill" [ngClass]="getStatusClass()">{{ getStatusLabel() }}</span>
     </div>
 
-    <!-- Key info grid -->
-    <div class="panel-info-grid">
+    <!-- Info grid -->
+    <div class="modal-info-grid">
 
       <div class="info-item" *ngIf="event.startDate">
         <span class="info-icon">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="4" width="18" height="18" rx="2"/>
             <line x1="16" y1="2" x2="16" y2="6"/>
-            <line x1="8" y1="2" x2="8" y2="6"/>
-            <line x1="3" y1="10" x2="21" y2="10"/>
+            <line x1="8"  y1="2" x2="8"  y2="6"/>
+            <line x1="3"  y1="10" x2="21" y2="10"/>
           </svg>
         </span>
         <div>
@@ -129,13 +126,13 @@
     </div>
 
     <!-- Description -->
-    <div class="panel-section" *ngIf="event.description">
+    <div class="modal-section" *ngIf="event.description">
       <div class="section-label">Description</div>
-      <p class="panel-desc">{{ event.description }}</p>
+      <p class="modal-desc">{{ event.description }}</p>
     </div>
 
     <!-- Sectors / Stages -->
-    <div class="panel-section" *ngIf="event.targetSector?.length || event.targetStage?.length">
+    <div class="modal-section" *ngIf="event.targetSector?.length || event.targetStage?.length">
       <div class="section-label">Ciblage</div>
       <div class="tags-row">
         <span class="tag tag-sector" *ngFor="let s of event.targetSector">{{ s }}</span>
@@ -143,27 +140,25 @@
       </div>
     </div>
 
-    <!-- Registration feedback -->
+    <!-- Feedback messages -->
     <div class="reg-message reg-message--success" *ngIf="regMessage">{{ regMessage }}</div>
     <div class="reg-message reg-message--error"   *ngIf="regError">{{ regError }}</div>
 
-    <!-- Registration CTA -->
-    <div class="panel-cta" *ngIf="event.status === 'PUBLIE'">
+    <!-- CTA -->
+    <div class="modal-cta" *ngIf="event.status === 'PUBLIE'">
 
       <!-- Not registered -->
       <ng-container *ngIf="!myRegistration">
-        <button class="btn-register"
-                [disabled]="isRegistering"
-                (click)="register()">
+        <button class="btn-register" [disabled]="isRegistering" (click)="register()">
           <span class="spinner-sm" *ngIf="isRegistering"></span>
-          <svg *ngIf="!isRegistering" width="14" height="14" viewBox="0 0 24 24"
+          <svg *ngIf="!isRegistering" width="15" height="15" viewBox="0 0 24 24"
                fill="none" stroke="currentColor" stroke-width="2">
             <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
             <circle cx="8.5" cy="7" r="4"/>
             <line x1="20" y1="8" x2="20" y2="14"/>
             <line x1="23" y1="11" x2="17" y2="11"/>
           </svg>
-          {{ event.isFull ? "Rejoindre la liste d'attente" : "S'inscrire" }}
+          {{ event.isFull ? "Rejoindre la liste d'attente" : "S'inscrire à l'événement" }}
         </button>
       </ng-container>
 
@@ -171,7 +166,7 @@
       <ng-container *ngIf="myRegistration">
         <div class="reg-status-row">
           <span class="reg-badge" [class.waitlist]="isOnWaitlist">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline *ngIf="!isOnWaitlist" points="20 6 9 17 4 12"/>
               <circle   *ngIf="isOnWaitlist"  cx="12" cy="12" r="10"/>
               <polyline *ngIf="isOnWaitlist"  points="12 6 12 12 16 14"/>
@@ -184,6 +179,171 @@
         </div>
       </ng-container>
 
+    </div>
+
+    <!-- ── TICKET SECTION (visible when registered/present) ────────────── -->
+    <div class="ticket-section" *ngIf="isRegistered && ticket">
+
+      <div class="ticket-header">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M2 9a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V9z"/>
+        </svg>
+        <span>Votre ticket</span>
+      </div>
+
+      <div class="ticket-row">
+        <span class="ticket-label">N° Ticket</span>
+        <span class="ticket-value ticket-number">{{ ticket.ticketNumber.substring(0, 8).toUpperCase() }}</span>
+      </div>
+
+      <div class="ticket-row">
+        <span class="ticket-label">Paiement</span>
+        <span class="ticket-payment-badge" [ngClass]="paymentClass">{{ paymentLabel }}</span>
+      </div>
+
+      <div class="ticket-error" *ngIf="ticketError">{{ ticketError }}</div>
+
+      <div class="ticket-actions">
+        <!-- Pay now (only if PENDING) -->
+        <button class="btn-pay" *ngIf="ticket.paymentStatus === 'PENDING'"
+                [disabled]="isPaying" (click)="payNow()">
+          <span class="spinner-sm" *ngIf="isPaying"></span>
+          <svg *ngIf="!isPaying" width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+            <line x1="1" y1="10" x2="23" y2="10"/>
+          </svg>
+          {{ isPaying ? 'Traitement...' : 'Payer maintenant' }}
+        </button>
+
+        <!-- Download PDF -->
+        <button class="btn-download-ticket" [disabled]="isDownloading" (click)="downloadTicket()">
+          <span class="spinner-sm spinner-dark" *ngIf="isDownloading"></span>
+          <svg *ngIf="!isDownloading" width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          {{ isDownloading ? 'Téléchargement...' : 'Télécharger le ticket (PDF)' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- ── ADMIN STATUS MANAGEMENT ────────────────────────────────────── -->
+    <div class="admin-status-section" *ngIf="isOrganizer && authService.getRole() === 'ADMIN'">
+
+      <div class="ticket-header">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
+        </svg>
+        <span>Gestion admin — statut actuel : <strong>{{ event?.status }}</strong></span>
+      </div>
+
+      <div class="admin-action-success" *ngIf="statusActionSuccess">{{ statusActionSuccess }}</div>
+      <div class="admin-action-error"   *ngIf="statusActionError">{{ statusActionError }}</div>
+
+      <div class="admin-action-row" *ngIf="!showRejectForm">
+
+        <!-- Publier directement (BROUILLON only via submit) -->
+        <button class="btn-admin-publish"
+                *ngIf="event?.status === 'BROUILLON'"
+                [disabled]="isStatusActing" (click)="adminSubmit()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+          Publier directement
+        </button>
+
+        <!-- Approuver -->
+        <button class="btn-admin-approve"
+                *ngIf="adminCanApprove"
+                [disabled]="isStatusActing" (click)="adminApprove()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Approuver
+        </button>
+
+        <!-- Publier (from APPROUVE or EN_ATTENTE) -->
+        <button class="btn-admin-publish"
+                *ngIf="adminCanPublish && event?.status !== 'BROUILLON'"
+                [disabled]="isStatusActing" (click)="adminPublish()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+          Publier
+        </button>
+
+        <!-- Rejeter -->
+        <button class="btn-admin-reject"
+                *ngIf="adminCanReject"
+                [disabled]="isStatusActing" (click)="adminStartReject()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+          Rejeter
+        </button>
+      </div>
+
+      <!-- Reject form -->
+      <div class="reject-form-row" *ngIf="showRejectForm">
+        <input class="admin-reject-input" type="text"
+               placeholder="Motif du rejet..."
+               [(ngModel)]="adminRejectReason"/>
+        <button class="btn-admin-reject-confirm"
+                [disabled]="!adminRejectReason.trim() || isStatusActing"
+                (click)="adminConfirmReject()">
+          Confirmer
+        </button>
+        <button class="btn-admin-reject-cancel" (click)="adminCancelReject()">Annuler</button>
+      </div>
+
+    </div>
+
+    <!-- ── ORGANIZER CHECK-IN SECTION ──────────────────────────────────── -->
+    <div class="checkin-section" *ngIf="isOrganizer && event.status === 'PUBLIE'">
+      <div class="ticket-header">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 11 12 14 22 4"/>
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+        </svg>
+        <span>Check-in participant</span>
+      </div>
+
+      <div class="checkin-input-row">
+        <input class="checkin-input" type="text"
+               placeholder="Numéro de ticket..."
+               [(ngModel)]="checkInInput"
+               (keyup.enter)="doCheckIn()"/>
+        <button class="btn-checkin" [disabled]="isCheckingIn || !checkInInput.trim()" (click)="doCheckIn()">
+          <span class="spinner-sm" *ngIf="isCheckingIn"></span>
+          <svg *ngIf="!isCheckingIn" width="13" height="13" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="checkin-result" *ngIf="checkInResult">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Check-in effectué — ticket {{ checkInResult.ticketNumber.substring(0, 8).toUpperCase() }}
+      </div>
+      <div class="checkin-error" *ngIf="checkInError">{{ checkInError }}</div>
+    </div>
+
+    <!-- Full detail link -->
+    <div class="modal-footer-link">
+      <button class="btn-full-detail" (click)="openDetail()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          <polyline points="15 3 21 3 21 9"/>
+          <line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+        Voir la page complète
+      </button>
     </div>
 
   </div>

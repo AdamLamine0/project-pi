@@ -38,4 +38,5 @@ public class EventResponse {
     private Integer validatedBy;
     private LocalDateTime validatedAt;
     private LocalDateTime submittedAt;
+    private Integer registeredCount;
 }

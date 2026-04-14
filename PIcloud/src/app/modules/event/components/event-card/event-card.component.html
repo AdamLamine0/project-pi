@@ -1,69 +1,148 @@
 <div class="card" [class.card--selected]="selected" (click)="onCardClick()">
 
-  <!-- Time bar -->
-  <div class="card-time-bar">
-    <span class="time-range">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+  <!-- Cover -->
+  <div class="card-cover" [class.no-cover]="!event.coverImageUrl">
+    <img *ngIf="event.coverImageUrl" class="cover-img" [src]="event.coverImageUrl" [alt]="event.title"/>
+    <div *ngIf="!event.coverImageUrl" class="cover-placeholder">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <polyline points="21 15 16 10 5 21"/>
       </svg>
-      {{ formatTime(event.startDate) }}
-      <span *ngIf="event.endDate"> → {{ formatTime(event.endDate) }}</span>
-    </span>
-    <span class="type-pill">{{ event.type }}</span>
+    </div>
+    <div class="cover-badges">
+      <span class="type-pill">{{ event.type | titlecase }}</span>
+      <span class="status-pill" [ngClass]="statusClass">{{ statusLabel }}</span>
+    </div>
+    <div class="cover-date" *ngIf="event.startDate">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      {{ formatDate(event.startDate) }}
+      <span> · {{ formatTime(event.startDate) }}
+        <span *ngIf="event.endDate"> – {{ formatTime(event.endDate) }}</span>
+      </span>
+    </div>
+    <div class="cover-location" *ngIf="event.location || event.locationType">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+        <circle cx="12" cy="10" r="3"/>
+      </svg>
+      {{ event.location || (event.locationType === 'DISTANCIEL' ? 'Online' : event.locationType) }}
+    </div>
   </div>
 
-  <!-- Cover + Body row -->
-  <div class="card-main">
+  <!-- Body -->
+  <div class="card-body">
+    <h3 class="card-title">{{ event.title }}</h3>
+    <p class="card-desc" *ngIf="event.description">{{ event.description }}</p>
 
-    <div class="card-body">
-      <h3 class="card-title">{{ event.title }}</h3>
+    <div class="card-organizer" *ngIf="event.organizerName">
+      <div class="organizer-avatar">{{ getInitials(event.organizerName) }}</div>
+      <span class="organizer-name">By {{ event.organizerName }}</span>
+    </div>
 
-      <div class="card-meta">
-        <div class="meta-item" *ngIf="event.location || event.locationType">
+    <!-- Capacity progress bar -->
+    <div class="capacity-row" *ngIf="event.capacityMax">
+
+      <div class="capacity-header">
+        <div class="capacity-left">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-            <circle cx="12" cy="10" r="3"/>
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
           </svg>
-          {{ event.location || event.locationType }}
-        </div>
-
-        <div class="meta-row">
-          <!-- Capacity / full badge -->
-          <span class="capacity-badge" *ngIf="event.capacityMax" [class.full]="event.isFull">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="9" cy="7" r="4"/>
+          <span *ngIf="!event.isFull" class="capacity-count">
+            <strong>{{ registeredCount }}</strong> / {{ event.capacityMax }} registered
+          </span>
+          <span *ngIf="event.isFull" class="capacity-full-badge">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
             </svg>
-            <span *ngIf="!event.isFull">{{ event.availablePlaces }} / {{ event.capacityMax }}</span>
-            <span *ngIf="event.isFull">Complet</span>
-          </span>
-
-          <!-- Ticket price -->
-          <span class="price-badge" *ngIf="event.ticketPrice != null">
-            {{ event.ticketPrice === 0 ? 'Gratuit' : event.ticketPrice + ' TND' }}
+            SOLD OUT
           </span>
         </div>
-      </div>
-
-      <!-- Sector tags -->
-      <div class="card-tags" *ngIf="event.targetSector?.length">
-        <span class="tag" *ngFor="let s of event.targetSector | slice:0:2">{{ s }}</span>
-        <span class="tag tag-more" *ngIf="event.targetSector.length > 2">
-          +{{ event.targetSector.length - 2 }}
+        <span class="fill-pct-badge"
+              [class.pct-low]="fillPct < 50"
+              [class.pct-mid]="fillPct >= 50 && fillPct < 80"
+              [class.pct-high]="fillPct >= 80 && !event.isFull"
+              [class.pct-full]="event.isFull">
+          {{ fillPct }}%
         </span>
       </div>
+
+      <div class="progress-track">
+        <div class="progress-fill"
+             [style.width.%]="fillPct"
+             [class.progress-low]="fillPct < 50"
+             [class.progress-mid]="fillPct >= 50 && fillPct < 80"
+             [class.progress-high]="fillPct >= 80 && !event.isFull"
+             [class.progress-full]="event.isFull"
+             [class.progress-me]="isRegistered">
+        </div>
+        <!-- Animated pulse dot at the tip when user just registered -->
+        <div class="progress-tip" *ngIf="isRegistered && !event.isFull"
+             [style.left.%]="fillPct">
+        </div>
+      </div>
+
+      <!-- My registration indicator -->
+      <div class="my-reg-indicator" *ngIf="isRegistered || isOnWaitlist">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline *ngIf="isRegistered" points="20 6 9 17 4 12"/>
+          <circle   *ngIf="isOnWaitlist" cx="12" cy="12" r="10"/>
+          <polyline *ngIf="isOnWaitlist" points="12 6 12 12 16 14"/>
+        </svg>
+        <span>{{ isRegistered ? 'You are registered' : 'You are on the waitlist' }}</span>
+      </div>
+
     </div>
 
-    <!-- Thumbnail -->
-    <div class="card-thumb" *ngIf="event.coverImageUrl">
-      <img [src]="event.coverImageUrl" [alt]="event.title"/>
+    <!-- Tags -->
+    <div class="card-tags" *ngIf="event.targetSector.length || event.targetStage.length">
+      <span class="tag" *ngFor="let s of event.targetSector.slice(0,2)">{{ s }}</span>
+      <span class="tag" *ngFor="let s of event.targetStage.slice(0,1)">{{ s }}</span>
+      <span class="tag tag-more"
+            *ngIf="event.targetSector.length + event.targetStage.length > 3">
+        +{{ event.targetSector.length + event.targetStage.length - 3 }}
+      </span>
     </div>
-
   </div>
 
   <!-- Footer -->
   <div class="card-footer">
-    <span class="status-pill" [ngClass]="statusClass">{{ statusLabel }}</span>
+
+    <!-- Register button: shown only when user has no active registration -->
+    <button *ngIf="!canEdit && event.status === 'PUBLIE' && !isRegistered && !isOnWaitlist"
+            class="btn-register"
+            [class.btn-full]="event.isFull && !localRegistration"
+            [disabled]="isRegistering"
+            (click)="onRegisterClick($event)">
+      <span class="spinner-sm" *ngIf="isRegistering"></span>
+      <ng-container *ngIf="!isRegistering">
+        {{ event.isFull ? 'Join Waitlist' : 'Register Now' }}
+      </ng-container>
+    </button>
+
+    <!-- Registered/waitlist badge: passive display, never clickable -->
+    <div *ngIf="!canEdit && (isRegistered || isOnWaitlist)"
+         class="btn-register btn-registered"
+         [class.btn-waitlist]="isOnWaitlist">
+      <svg *ngIf="isRegistered" width="13" height="13" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      <svg *ngIf="isOnWaitlist" width="13" height="13" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+      {{ isRegistered ? 'Registered ✓' : 'On Waitlist' }}
+    </div>
+
+    <!-- Edit/Delete actions for creators -->
     <div class="card-actions" *ngIf="canEdit" (click)="$event.stopPropagation()">
       <a [routerLink]="['/events', event.id, 'edit']"
          class="btn-icon btn-icon-edit" title="Modifier" (click)="onEdit($event)">
@@ -72,8 +151,7 @@
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
         </svg>
       </a>
-      <button *ngIf="isAdmin" class="btn-icon btn-icon-delete"
-              title="Supprimer" (click)="onDelete($event)">
+      <button *ngIf="isAdmin" class="btn-icon btn-icon-delete" title="Supprimer" (click)="onDelete($event)">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="3 6 5 6 21 6"/>
           <path d="M19 6l-1 14H6L5 6"/>
@@ -81,6 +159,7 @@
         </svg>
       </button>
     </div>
+
   </div>
 
 </div>

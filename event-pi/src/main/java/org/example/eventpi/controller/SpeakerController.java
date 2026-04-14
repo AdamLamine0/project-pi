@@ -57,7 +57,7 @@ public class SpeakerController {
     public ResponseEntity<Void> delete(
             @PathVariable Long id,
             @RequestHeader("X-User-Role") String role) {
-        requireRole(role, Set.of("ROLE_ADMIN"));
+        requireRole(role, Set.of("ADMIN"));
         speakerService.delete(id);
         return ResponseEntity.noContent().build();
     }
@@ -104,8 +104,14 @@ public class SpeakerController {
 
 
     private void requireRole(String role, Set<String> allowed) {
-        if (role == null || !allowed.contains(role)) {
+        String normalized = normalizeRole(role);
+        if (normalized == null || !allowed.contains(normalized)) {
             throw new ForbiddenException("Access denied for role: " + role);
         }
+    }
+
+    private String normalizeRole(String role) {
+        if (role == null) return null;
+        return role.startsWith("ROLE_") ? role.substring(5) : role;
     }
 }

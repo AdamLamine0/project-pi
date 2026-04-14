@@ -1,4 +1,5 @@
 export type RegistrationStatus = 'INSCRIT' | 'LISTE_ATTENTE' | 'ANNULE' | 'PRESENT';
+export type PaymentStatus = 'FREE' | 'PENDING' | 'PAID' | 'FAILED';
 
 export interface EventRegistration {
   id: number;
@@ -9,4 +10,6 @@ export interface EventRegistration {
   attended: boolean;
   checkInTime: string | null;
   registeredAt: string;
+  ticketNumber: string | null;
+  paymentStatus: PaymentStatus | null;
 }

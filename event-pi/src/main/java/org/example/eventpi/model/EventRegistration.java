@@ -2,6 +2,7 @@ package org.example.eventpi.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.eventpi.model.PaymentStatus;
 import java.time.LocalDateTime;
 
 @Entity
@@ -41,6 +42,13 @@ public class EventRegistration {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "ticket_number", unique = true, length = 36)
+    private String ticketNumber;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status", length = 20)
+    private PaymentStatus paymentStatus;
 
     @PrePersist
     protected void onCreate() {
