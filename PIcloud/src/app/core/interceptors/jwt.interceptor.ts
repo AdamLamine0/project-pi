@@ -8,7 +8,7 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
   const token =authService.getToken();
-
+  console.log("TOKEN =", token);
   // hedhi 3malnah bch taddi toekn automatiquement
    const authReq = token
     ? req.clone({

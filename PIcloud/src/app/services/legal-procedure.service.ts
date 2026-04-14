@@ -13,7 +13,7 @@ import { ProcedureChecklist, ProcedureRequirement, ProcedureTypeOverview } from 
   providedIn: 'root'
 })
 export class LegalProcedureService {
-  private readonly apiUrl = 'http://localhost:8087/api/legal-procedures';
+  private readonly apiUrl = 'http://localhost:8090/api/legal-procedures';
 
   constructor(private http: HttpClient) {}
 
@@ -76,11 +76,11 @@ export class LegalProcedureService {
     return this.http.delete<void>(`${this.apiUrl}/${procedureId}/documents/${documentId}`);
   }
   getProcedureTypesOverview() {
-  return this.http.get<ProcedureTypeOverview[]>('http://localhost:8087/api/procedure-types/overview');
+  return this.http.get<ProcedureTypeOverview[]>('http://localhost:8090/api/procedure-types/overview');
 }
 
 getRequirementsByType(type: string) {
-  return this.http.get<ProcedureRequirement[]>(`http://localhost:8087/api/procedure-types/${type}/requirements`);
+  return this.http.get<ProcedureRequirement[]>(`http://localhost:8090/api/procedure-types/${type}/requirements`);
 }
 
 getChecklist(procedureId: string) {

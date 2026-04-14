@@ -62,14 +62,21 @@ export class ProcedureHomeComponent implements OnInit {
   }
 
   getDescription(type: string): string {
-    const map: Record<string, string> = {
-      SARL: 'Constitution d\'une société à responsabilité limitée.',
-      SUARL: 'Création d\'une société unipersonnelle.',
-      LABEL_STARTUP: 'Obtention du label startup.',
-      PI: 'Protection des actifs immatériels.',
-      FISCALITE: 'Gestion des obligations fiscales.',
-      CONFORMITE: 'Mise en conformité réglementaire.'
-    };
-    return map[type] || 'Procédure juridique spécifique.';
+  switch (type) {
+    case 'SARL':
+      return "Constitution d'une société à responsabilité limitée avec gestion des statuts, capital et immatriculation.";
+    case 'SUARL':
+      return "Création d'une société unipersonnelle permettant à un entrepreneur d'exercer avec responsabilité limitée.";
+    case 'LABEL_STARTUP':
+      return "Procédure d'obtention du label startup incluant dossier technique, juridique et financier.";
+    case 'PI':
+      return "Protection des actifs immatériels tels que marque, brevet ou dessin industriel.";
+    case 'FISCALITE':
+      return "Gestion des obligations fiscales et constitution des dossiers déclaratifs et justificatifs.";
+    case 'CONFORMITE':
+      return "Vérification et mise en conformité avec les exigences légales et réglementaires.";
+    default:
+      return "Procédure juridique spécifique nécessitant un traitement personnalisé.";
   }
+}
 }
