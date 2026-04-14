@@ -1,6 +1,7 @@
 package org.example.partenariatpi.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.example.partenariatpi.enums.StatutConvention;
 
@@ -33,7 +34,10 @@ public class Convention {
 
     // ── Dates ─────────────────────────────────────────────────────────────────
 
+    @NotNull(message = "Date debut is required")
     private LocalDate dateDebut;
+
+    @NotNull(message = "Date fin is required")
     private LocalDate dateFin;
 
     // ── Objectifs ─────────────────────────────────────────────────────────────
@@ -52,9 +56,25 @@ public class Convention {
     // Auto-set when statut changes to SIGNEE
     private LocalDate signedAt;
 
+    // Ajouter après confirmeParPartenaire :
+    @Column(columnDefinition = "TEXT")
+    private String signatureUser;
+
+    @Column(columnDefinition = "TEXT")
+    private String signaturePartenaire;
+
     // ── Renewal ───────────────────────────────────────────────────────────────
     // null           → no renewal pending
     // "ROLE_USER"    → entrepreneur requested → PARTNER must accept
     // "ROLE_PARTNER" → institution requested → USER must accept
+    @Column(name = "renouvellement_demande_par_role")
     private String renouvellementDemandeParRole;
-}
+
+    // NEW: tracks who last modified (so the OTHER party must re-confirm)
+    @Column(name = "modifie_par_role")
+    private String modifieParRole;   // "ROLE_USER" | "ROLE_PARTNER" | null
+
+    // NEW: tracks confirmations
+    private Boolean confirmeParUser      = false;
+    private Boolean confirmeParPartenaire = false;}
+

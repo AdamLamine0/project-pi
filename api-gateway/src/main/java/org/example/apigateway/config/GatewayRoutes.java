@@ -54,6 +54,14 @@ public class GatewayRoutes {
     }
 
     @Bean
+    public RouterFunction<ServerResponse> meetingServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/meeting-invitations/**"), HandlerFunctions.http())
+                .filter(lb("partenariat-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
     public RouterFunction<ServerResponse> organisationServiceRoute() {
         return RouterFunctions
                 .route(path("/api/organisations/**"), HandlerFunctions.http())
@@ -93,19 +101,32 @@ public class GatewayRoutes {
                 .filter(lb("event-pi"))
                 .filter(authFilter.jwtFilter());
     }
+
     @Bean
-    public RouterFunction<ServerResponse> legalProcedureRoute() {
+    public RouterFunction<ServerResponse> badgeServiceRoute() {
         return RouterFunctions
-                .route(path("/api/procedures-types/**"), HandlerFunctions.http())
-                .filter(lb("legal-pi"))
+                .route(path("/api/badges/**"), HandlerFunctions.http())
+                .filter(lb("event-pi"))
                 .filter(authFilter.jwtFilter());
     }
 
     @Bean
-    public RouterFunction<ServerResponse> legalFilesRoute() {
+    public RouterFunction<ServerResponse> certificateServiceRoute() {
         return RouterFunctions
-                .route(path("/api/files/**"), HandlerFunctions.http())
-                .filter(lb("legal-pi"));
-        // No JWT filter — file serving is public
+                .route(path("/api/certificates/**"), HandlerFunctions.http())
+                .filter(lb("event-pi"))
+                .filter(authFilter.jwtFilter());
     }
+
+    @Bean
+    public RouterFunction<ServerResponse> verifyRoute() {
+        return RouterFunctions
+                .route(path("/api/verify/**"), HandlerFunctions.http())
+                .filter(lb("event-pi"));
+        // no authFilter — public endpoint for QR code scanning
+    }
+
+
+
+
 }

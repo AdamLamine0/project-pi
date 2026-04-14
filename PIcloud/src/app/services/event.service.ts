@@ -33,4 +33,15 @@ export class EventService {
     formData.append('file', file);
     return this.http.post<{ url: string }>(`${this.api}/upload-image`, formData);
   }
+
+  generateDescription(
+    title: string,
+    date: string,
+    eventType?: string
+  ): Observable<{ description: string }> {
+    return this.http.post<{ description: string }>(
+      `${this.api}/generate-description`,
+      { title, date, eventType }
+    );
+  }
 }

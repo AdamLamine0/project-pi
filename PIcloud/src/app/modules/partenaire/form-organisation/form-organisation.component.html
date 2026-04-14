@@ -1,0 +1,201 @@
+<p>form-organisation works!</p>
+<div class="fo-page">
+
+  <!-- ── back ──────────────────────────────────────────────────── -->
+  <button class="back-btn" type="button" (click)="goBack()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+    Retour à la liste
+  </button>
+
+  <!-- ── page header ───────────────────────────────────────────── -->
+  <div class="fo-header">
+    <p class="fo-eyebrow">Administration</p>
+    <h1 class="fo-title">
+      {{ isEditMode ? 'Modifier l\'organisation' : 'Ajouter un partenaire' }}
+    </h1>
+    <p class="fo-sub">
+      {{ isEditMode
+          ? 'Modifiez les informations ci-dessous puis enregistrez.'
+          : 'Remplissez le formulaire pour créer une nouvelle organisation partenaire.' }}
+    </p>
+  </div>
+
+  <!-- ── loading skeleton ──────────────────────────────────────── -->
+  <div class="skeleton-card" *ngIf="isLoading">
+    <div class="sk-row">
+      <div class="sk-block"></div><div class="sk-block"></div>
+    </div>
+    <div class="sk-block full"></div>
+    <div class="sk-block full"></div>
+    <div class="sk-block short"></div>
+  </div>
+
+  <!-- ── alerts ────────────────────────────────────────────────── -->
+  <div class="alert success" *ngIf="successMessage">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+    {{ successMessage }}
+  </div>
+  <div class="alert error" *ngIf="errorMessage">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ errorMessage }}
+  </div>
+
+  <!-- ── form card ─────────────────────────────────────────────── -->
+  <div class="fo-card" *ngIf="!isLoading">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+
+      <!-- section 01: identité -->
+      <div class="form-section">
+        <h3 class="section-title"><span class="section-num">01</span> Identité</h3>
+        <div class="row-2">
+
+          <!-- nom -->
+          <div class="fg full">
+            <label for="fo-nom">Nom de l'organisation</label>
+            <input id="fo-nom" type="text" formControlName="nom"
+              [class.err]="f['nom'].invalid && f['nom'].touched"
+              placeholder="Ex : Flat6Labs Tunis"/>
+            <span class="ferr" *ngIf="f['nom'].touched && f['nom'].hasError('required')">Le nom est requis</span>
+            <span class="ferr" *ngIf="f['nom'].touched && f['nom'].hasError('minlength')">Minimum 2 caractères</span>
+          </div>
+
+          <!-- type -->
+          <div class="fg">
+            <label for="fo-type">Type</label>
+            <div class="sel-wrap">
+              <select id="fo-type" formControlName="type"
+                [class.err]="f['type'].invalid && f['type'].touched">
+                <option value="" disabled>Choisir un type…</option>
+                <option *ngFor="let t of types" [value]="t">{{ t }}</option>
+              </select>
+              <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </div>
+            <span class="ferr" *ngIf="f['type'].touched && f['type'].hasError('required')">Le type est requis</span>
+          </div>
+
+          <!-- region -->
+          <div class="fg">
+            <label for="fo-region">Région</label>
+            <input id="fo-region" type="text" formControlName="region"
+              placeholder="Ex : Tunis, Sfax…"/>
+          </div>
+
+        </div>
+
+        <!-- description -->
+        <div class="fg">
+          <label for="fo-desc">Description</label>
+          <textarea id="fo-desc" formControlName="description" rows="3"
+            placeholder="Décrivez brièvement l'organisation…"></textarea>
+        </div>
+      </div>
+
+      <!-- section 02: contact -->
+      <div class="form-section">
+        <h3 class="section-title"><span class="section-num">02</span> Contact</h3>
+        <div class="row-2">
+
+          <!-- contactNom -->
+          <div class="fg">
+            <label for="fo-cnom">Nom du contact</label>
+            <input id="fo-cnom" type="text" formControlName="contactNom"
+              [class.err]="f['contactNom'].invalid && f['contactNom'].touched"
+              placeholder="Ex : Ahmed Ben Ali"/>
+            <span class="ferr" *ngIf="f['contactNom'].touched && f['contactNom'].hasError('required')">Le nom du contact est requis</span>
+          </div>
+
+          <!-- contactEmail -->
+          <div class="fg">
+            <label for="fo-cemail">Email du contact</label>
+            <div class="input-wrap">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+              <input id="fo-cemail" type="email" formControlName="contactEmail"
+                [class.err]="f['contactEmail'].invalid && f['contactEmail'].touched"
+                placeholder="contact@organisation.tn"/>
+            </div>
+            <span class="ferr" *ngIf="f['contactEmail'].touched && f['contactEmail'].hasError('required')">L'email est requis</span>
+            <span class="ferr" *ngIf="f['contactEmail'].touched && f['contactEmail'].hasError('email')">Email invalide</span>
+          </div>
+
+        </div>
+
+        <!-- siteWeb -->
+        <div class="fg">
+          <label for="fo-site">Site web</label>
+          <div class="input-wrap">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="2" y1="12" x2="22" y2="12"/>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+            <input id="fo-site" type="url" formControlName="siteWeb"
+              placeholder="https://www.organisation.tn"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- section 03: utilisateur lié (optional) -->
+<!-- section 03: utilisateur partenaire -->
+<div class="form-section">
+  <h3 class="section-title"><span class="section-num">03</span> Utilisateur partenaire</h3>
+  <div class="fg">
+    <label for="fo-user">
+      Utilisateur partenaire
+      <span class="label-hint">(optionnel — peut être assigné plus tard)</span>
+    </label>
+    <div class="sel-wrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+      </svg>
+      <select id="fo-user" formControlName="userId">
+        <option [ngValue]="null">— Aucun utilisateur —</option>
+        <option *ngFor="let u of availablePartners" [ngValue]="u.id">
+          {{ u.name }} {{ u.prenom }} · {{ u.email }}
+        </option>
+      </select>
+      <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </div>
+    <span class="field-hint" *ngIf="availablePartners.length === 0">
+      Aucun utilisateur PARTNER disponible.
+    </span>
+  </div>
+</div>
+
+      <!-- ── actions ────────────────────────────────────────────── -->
+      <div class="form-actions">
+        <button type="button" class="btn-ghost" (click)="goBack()" [disabled]="isSubmitting">
+          Annuler
+        </button>
+        <button type="submit" class="btn-primary" [disabled]="isSubmitting">
+          <span class="spin" *ngIf="isSubmitting"></span>
+          <svg *ngIf="!isSubmitting" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path *ngIf="isEditMode" d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v14a2 2 0 0 1-2 2z"/>
+            <polyline *ngIf="isEditMode" points="17 21 17 13 7 13 7 21"/>
+            <polyline *ngIf="isEditMode" points="7 3 7 8 15 8"/>
+            <line *ngIf="!isEditMode" x1="12" y1="5" x2="12" y2="19"/>
+            <line *ngIf="!isEditMode" x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          {{ isSubmitting
+              ? (isEditMode ? 'Enregistrement…' : 'Création…')
+              : (isEditMode ? 'Enregistrer les modifications' : 'Créer l\'organisation') }}
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+</div>

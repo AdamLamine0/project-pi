@@ -18,7 +18,10 @@ public class OrganisationPartenaireController {
 
     private final OrganisationPartenaireService service;
 
-    // ── ANY AUTHENTICATED USER ────────────────────────────────────────────────
+    private String cleanRole(String role) {
+        if (role == null) return "";
+        return role.split(",")[0].trim();
+    }
 
     @GetMapping
     public ResponseEntity<List<OrganisationPartenaireResponse>> getAll() {
@@ -26,8 +29,7 @@ public class OrganisationPartenaireController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<OrganisationPartenaireResponse> getById(
-            @PathVariable Integer id) {
+    public ResponseEntity<OrganisationPartenaireResponse> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(service.getById(id));
     }
 
@@ -37,36 +39,29 @@ public class OrganisationPartenaireController {
         return ResponseEntity.ok(service.getByStatut(statut));
     }
 
-    // ── PARTNER: own dashboard only ───────────────────────────────────────────
-
-    // PARTNER clicks "Mon tableau de bord"
-    // Gateway injects X-User-Id from JWT automatically
     @GetMapping("/my-dashboard")
     public ResponseEntity<OrganisationPartenaireResponse> getMyDashboard(
             @RequestHeader("X-User-Id") Integer userId,
             @RequestHeader("X-User-Role") String role) {
-        checkRole(role, "ROLE_PARTNER");
+        checkRole(cleanRole(role), "ROLE_PARTNER");
         return ResponseEntity.ok(service.getMyDashboard(userId));
     }
 
-    // PARTNER: update only their contact info (contactNom, contactEmail, siteWeb)
     @PutMapping("/{id}/contact")
     public ResponseEntity<OrganisationPartenaireResponse> updateContactInfo(
             @PathVariable Integer id,
             @Valid @RequestBody OrganisationPartenaireRequest request,
             @RequestHeader("X-User-Id") Integer userId,
             @RequestHeader("X-User-Role") String role) {
-        checkRole(role, "ROLE_PARTNER");
+        checkRole(cleanRole(role), "ROLE_PARTNER");
         return ResponseEntity.ok(service.updateContactInfo(id, request, userId));
     }
-
-    // ── ADMIN only ────────────────────────────────────────────────────────────
 
     @PostMapping
     public ResponseEntity<OrganisationPartenaireResponse> create(
             @Valid @RequestBody OrganisationPartenaireRequest request,
             @RequestHeader("X-User-Role") String role) {
-        checkAdmin(role);
+        checkAdmin(cleanRole(role));
         return ResponseEntity.ok(service.create(request));
     }
 
@@ -75,7 +70,7 @@ public class OrganisationPartenaireController {
             @PathVariable Integer id,
             @Valid @RequestBody OrganisationPartenaireRequest request,
             @RequestHeader("X-User-Role") String role) {
-        checkAdmin(role);
+        checkAdmin(cleanRole(role));
         return ResponseEntity.ok(service.update(id, request));
     }
 
@@ -84,17 +79,16 @@ public class OrganisationPartenaireController {
             @PathVariable Integer id,
             @RequestParam StatutPartenaire statut,
             @RequestHeader("X-User-Role") String role) {
-        checkAdmin(role);
+        checkAdmin(cleanRole(role));
         return ResponseEntity.ok(service.updateStatut(id, statut));
     }
 
-    // ADMIN assigns a User (Role.PARTNER) to manage this institution's dashboard
     @PutMapping("/{id}/assign-user/{userId}")
     public ResponseEntity<OrganisationPartenaireResponse> assignUser(
             @PathVariable Integer id,
             @PathVariable Integer userId,
             @RequestHeader("X-User-Role") String role) {
-        checkAdmin(role);
+        checkAdmin(cleanRole(role));
         return ResponseEntity.ok(service.assignUser(id, userId));
     }
 
@@ -102,12 +96,10 @@ public class OrganisationPartenaireController {
     public ResponseEntity<Void> delete(
             @PathVariable Integer id,
             @RequestHeader("X-User-Role") String role) {
-        checkAdmin(role);
+        checkAdmin(cleanRole(role));
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
-
-    // ── HELPERS ───────────────────────────────────────────────────────────────
 
     private void checkAdmin(String role) {
         if (!"ROLE_ADMIN".equals(role))
