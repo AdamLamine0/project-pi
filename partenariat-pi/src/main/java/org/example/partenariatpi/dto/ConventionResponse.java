@@ -26,8 +26,14 @@ public class ConventionResponse {
     private String documentUrl;
     private LocalDate signedAt;
 
+    private Boolean confirmeParUser;
+    private Boolean confirmeParPartenaire;
+    private String modifieParRole;
     // null           → no renewal requested
     // "ROLE_USER"    → entrepreneur requested, waiting for PARTNER to accept
     // "ROLE_PARTNER" → institution requested, waiting for USER to accept
     private String renouvellementDemandeParRole;
+    // Ajouter à la fin de la classe :
+    private String signatureUser;
+    private String signaturePartenaire;
 }

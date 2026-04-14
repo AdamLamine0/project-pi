@@ -67,42 +67,42 @@
           </div>
         </div>
 
-       <!-- Type & Status -->
-<div class="card">
-  <div class="card-label">Classification</div>
-  <div class="field-group">
-    <label>Type d'événement <span class="req">*</span></label>
-    <select class="field-input" formControlName="type"
-      [class.input-error]="form.get('type')?.invalid && form.get('type')?.touched">
-      <option value="">Sélectionner un type</option>
-      <option *ngFor="let t of eventTypes" [value]="t">{{ t }}</option>
-    </select>
-    <span class="field-error"
-      *ngIf="form.get('type')?.invalid && form.get('type')?.touched">
-      Type requis
-    </span>
-  </div>
+        <!-- Type & Status -->
+        <div class="card">
+          <div class="card-label">Classification</div>
+          <div class="field-group">
+            <label>Type d'événement <span class="req">*</span></label>
+            <select class="field-input" formControlName="type"
+              [class.input-error]="form.get('type')?.invalid && form.get('type')?.touched">
+              <option value="">Sélectionner un type</option>
+              <option *ngFor="let t of eventTypes" [value]="t">{{ t }}</option>
+            </select>
+            <span class="field-error"
+              *ngIf="form.get('type')?.invalid && form.get('type')?.touched">
+              Type requis
+            </span>
+          </div>
 
-  <!-- Status — ADMIN only in edit mode -->
-  <div class="field-group" *ngIf="isEdit && isAdmin()">
-    <label>Statut</label>
-    <select class="field-input" formControlName="status">
-      <option *ngFor="let s of eventStatuses" [value]="s">{{ s }}</option>
-    </select>
-  </div>
+          <!-- Status — ADMIN only in edit mode -->
+          <div class="field-group" *ngIf="isEdit && isAdmin()">
+            <label>Statut</label>
+            <select class="field-input" formControlName="status">
+              <option *ngFor="let s of eventStatuses" [value]="s">{{ s }}</option>
+            </select>
+          </div>
 
-  <!-- Info for Mentor/Partenaire in edit mode -->
-  <div class="workflow-info" *ngIf="isEdit && !isAdmin()">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="12" y1="8" x2="12" y2="12"/>
-      <line x1="12" y1="16" x2="12.01" y2="16"/>
-    </svg>
-    Pour soumettre l'événement à la validation, retournez à la
-    <a [routerLink]="['/events', eventId]" class="workflow-link">page de détail</a>
-    et cliquez sur "Soumettre pour validation".
-  </div>
-</div>
+          <!-- Info for Mentor/Partenaire in edit mode -->
+          <div class="workflow-info" *ngIf="isEdit && !isAdmin()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            Pour soumettre l'événement à la validation, retournez à la
+            <a [routerLink]="['/events', eventId]" class="workflow-link">page de détail</a>
+            et cliquez sur "Soumettre pour validation".
+          </div>
+        </div>
       </div>
 
       <!-- RIGHT column -->
@@ -124,7 +124,24 @@
           </div>
 
           <div class="field-group">
-            <label>Description</label>
+            <div class="desc-label-row">
+              <label>Description</label>
+              <button
+                type="button"
+                class="btn-ai-generate"
+                [disabled]="isGenerating"
+                (click)="generateDescription()">
+                <span class="spinner-sm" *ngIf="isGenerating"></span>
+                <svg *ngIf="!isGenerating" width="13" height="13" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                </svg>
+                {{ isGenerating ? 'Génération...' : 'Générer avec IA' }}
+              </button>
+            </div>
+
+            <span class="ai-error" *ngIf="aiError">{{ aiError }}</span>
+
             <textarea class="field-input field-textarea" formControlName="description"
               placeholder="Décrivez l'événement, le programme, les intervenants..."
               rows="4"></textarea>

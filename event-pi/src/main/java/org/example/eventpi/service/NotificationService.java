@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import jakarta.mail.internet.MimeMessage;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -232,4 +234,66 @@ public class NotificationService {
             log.error("Could not send rejection email: {}", e.getMessage());
         }
     }
+
+
+    // ── CERTIFICATE ISSUED ────────────────────────────────────────────────
+    @Async
+    public void sendCertificateIssued(String toEmail, String userName,
+                                      String eventTitle, LocalDateTime eventDate,
+                                      String downloadUrl) {
+        String subject = "🎓 Votre certificat est disponible — " + eventTitle;
+
+        String details = "<div style='background:#f0fdf4;border-radius:8px;" +
+                "padding:16px;margin:16px 0;border-left:4px solid #16a34a;'>" +
+                "<p style='margin:0 0 8px;font-size:13px;color:#166534'>" +
+                "<strong>Événement :</strong> " + eventTitle + "</p>" +
+                (eventDate != null
+                        ? "<p style='margin:0;font-size:13px;color:#166534'>" +
+                        "<strong>Date :</strong> " +
+                        eventDate.toString().replace("T", " à ") +
+                        "</p>"
+                        : "") +
+                "</div>";
+
+        String body = baseTemplate(
+                "🎓 Votre certificat de participation",
+                "Félicitations " + userName + " !",
+                "Vous avez validé votre présence à <strong>" + eventTitle +
+                        "</strong>. Votre certificat officiel avec QR code de " +
+                        "vérification est maintenant disponible.",
+                details,
+                "Télécharger mon certificat (PDF)",
+                downloadUrl
+        );
+        sendHtml(toEmail, subject, body);
+    }
+
+    // ── SERIES BADGE EARNED ───────────────────────────────────────────────
+    @Async
+    public void sendSeriesBadgeEarned(String toEmail, String userName,
+                                      String seriesTag) {
+        String subject = "🏆 Badge de série débloqué — " + seriesTag;
+
+        String details = "<div style='background:#fefce8;border-radius:8px;" +
+                "padding:16px;margin:16px 0;border-left:4px solid #ca8a04;'>" +
+                "<p style='margin:0;font-size:13px;color:#854d0e'>" +
+                "Vous avez complété la série <strong>" + seriesTag +
+                "</strong> et débloqué un badge de complétion. " +
+                "Ce badge est maintenant visible sur votre profil public " +
+                "et contribue au score IA de votre startup." +
+                "</p></div>";
+
+        String body = baseTemplate(
+                "🏆 Badge de série débloqué !",
+                "Bravo " + userName + " !",
+                "Vous avez atteint le seuil de participation requis " +
+                        "pour la série <strong>" + seriesTag + "</strong>.",
+                details,
+                "Voir mon profil & mes badges",
+                frontendUrl + "/profile/badges"
+        );
+        sendHtml(toEmail, subject, body);
+    }
+
+
 }

@@ -23,20 +23,16 @@ public class ObjectifService {
 
     // ── READ ──────────────────────────────────────────────────────────────────
 
-    // Get all objectifs of a convention
     public List<ObjectifResponse> getByConvention(Integer conventionId) {
         return repository.findByConventionId(conventionId)
                 .stream().map(mapper::toResponse).toList();
     }
 
-    // Filter by statut: EN_COURS, ATTEINT, EN_RETARD, ANNULE
-    public List<ObjectifResponse> getByConventionAndStatut(Integer conventionId,
-                                                           StatutObjectif statut) {
+    public List<ObjectifResponse> getByConventionAndStatut(Integer conventionId, StatutObjectif statut) {
         return repository.findByConventionIdAndStatut(conventionId, statut)
                 .stream().map(mapper::toResponse).toList();
     }
 
-    // Filter by responsable: USER objectifs vs PARTENAIRE objectifs
     public List<ObjectifResponse> getByConventionAndResponsable(
             Integer conventionId, ResponsableObjectif responsable) {
         return repository.findByConventionIdAndResponsable(conventionId, responsable)
@@ -49,57 +45,74 @@ public class ObjectifService {
 
     // ── CREATE ────────────────────────────────────────────────────────────────
 
-    // Created by front automatically when convention is created.
-    // Any party (USER, PARTNER, ADMIN) can create objectifs on their convention.
-    // The responsable field in the request tells who is committed:
-    //   USER → the entrepreneur commits to this objectif
-    //   PARTENAIRE → the institution commits to this objectif
-    //   LES_DEUX → both commit
     public ObjectifResponse create(ObjectifRequest request,
                                    String requestingRole,
                                    Integer requestingUserId) {
         Convention convention = conventionService.findById(request.getConventionId());
-
-        // Verify requester is a party of this convention (or admin)
         conventionService.checkIsParty(convention, requestingRole, requestingUserId);
 
+        // Valider que dateEcheance <= dateFin de la convention
+        if (request.getDateEcheance() != null && convention.getDateFin() != null) {
+            if (request.getDateEcheance().isAfter(convention.getDateFin())) {
+                throw new RuntimeException(
+                        "La date d'échéance ne peut pas dépasser la date de fin de la convention ("
+                                + convention.getDateFin() + ").");
+            }
+        }
+
         Objectif o = mapper.toEntity(request, convention);
-        return mapper.toResponse(repository.save(o));
+        ObjectifResponse saved = mapper.toResponse(repository.save(o));
+        conventionService.resetConfirmationsAfterObjectifChange(
+                request.getConventionId(), requestingRole);
+        return saved;
     }
 
     // ── UPDATE ────────────────────────────────────────────────────────────────
 
-    // Any party of the convention can update objectifs
     public ObjectifResponse update(Integer id,
                                    ObjectifRequest request,
                                    String requestingRole,
                                    Integer requestingUserId) {
         Objectif existing = findById(id);
+        conventionService.checkIsParty(existing.getConvention(), requestingRole, requestingUserId);
 
-        // Verify requester is a party of the convention this objectif belongs to
-        conventionService.checkIsParty(
-                existing.getConvention(), requestingRole, requestingUserId);
+        // Valider que dateEcheance <= dateFin de la convention
+        if (request.getDateEcheance() != null && existing.getConvention().getDateFin() != null) {
+            if (request.getDateEcheance().isAfter(existing.getConvention().getDateFin())) {
+                throw new RuntimeException(
+                        "La date d'échéance ne peut pas dépasser la date de fin de la convention ("
+                                + existing.getConvention().getDateFin() + ").");
+            }
+        }
 
         existing.setTitre(request.getTitre());
         existing.setDescription(request.getDescription());
         existing.setResponsable(request.getResponsable());
         existing.setDateEcheance(request.getDateEcheance());
         existing.setCommentaire(request.getCommentaire());
-        return mapper.toResponse(repository.save(existing));
+        ObjectifResponse saved = mapper.toResponse(repository.save(existing));
+        conventionService.resetConfirmationsAfterObjectifChange(
+                existing.getConvention().getId(), requestingRole);
+        return saved;
     }
 
     // ── UPDATE STATUT ─────────────────────────────────────────────────────────
+    // Updating statut (EN_COURS → ATTEINT etc.) does NOT reset confirmations
+    // — it is a progress update, not a structural change to the convention
 
-    // Any party can mark an objectif as ATTEINT, EN_RETARD, ANNULE
     public ObjectifResponse updateStatut(Integer id,
                                          StatutObjectif statut,
                                          String commentaire,
                                          String requestingRole,
                                          Integer requestingUserId) {
         Objectif existing = findById(id);
+        conventionService.checkIsParty(existing.getConvention(), requestingRole, requestingUserId);
 
-        conventionService.checkIsParty(
-                existing.getConvention(), requestingRole, requestingUserId);
+        // Peut changer le statut seulement si la convention est ACTIVE
+        if (existing.getConvention().getStatut() != org.example.partenariatpi.enums.StatutConvention.ACTIVE) {
+            throw new RuntimeException(
+                    "Le statut des objectifs ne peut être modifié que sur une convention ACTIVE.");
+        }
 
         existing.setStatut(statut);
         if (commentaire != null && !commentaire.isBlank()) {
@@ -110,23 +123,21 @@ public class ObjectifService {
 
     // ── DELETE ────────────────────────────────────────────────────────────────
 
-    // Any party of the convention can delete their objectifs
-    public void delete(Integer id,
-                       String requestingRole,
-                       Integer requestingUserId) {
+    public void delete(Integer id, String requestingRole, Integer requestingUserId) {
         Objectif existing = findById(id);
+        conventionService.checkIsParty(existing.getConvention(), requestingRole, requestingUserId);
 
-        conventionService.checkIsParty(
-                existing.getConvention(), requestingRole, requestingUserId);
-
+        Integer conventionId = existing.getConvention().getId();
         repository.deleteById(id);
+
+        // ── KEY FIX: deleting an objectif also resets confirmations ──────────
+        conventionService.resetConfirmationsAfterObjectifChange(conventionId, requestingRole);
     }
 
     // ── HELPER ───────────────────────────────────────────────────────────────
 
     private Objectif findById(Integer id) {
         return repository.findById(id)
-                .orElseThrow(() -> new RuntimeException(
-                        "Objectif not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("Objectif not found with id: " + id));
     }
 }
