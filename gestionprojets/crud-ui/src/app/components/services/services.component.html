@@ -1,0 +1,50 @@
+<div class="page-header">
+  <div class="header-content">
+    <h2>Linked Services</h2>
+    <p>Discover other registered microservices via Eureka</p>
+  </div>
+  <button class="btn btn-secondary action-btn" (click)="refresh()" [disabled]="loading">
+    <span class="spinner-small" *ngIf="loading"></span>
+    <span class="icon" *ngIf="!loading">🔄</span> 
+    {{ loading ? 'Scanning...' : 'Refresh List' }}
+  </button>
+</div>
+
+<div class="loader-container" *ngIf="loading">
+  <div class="spinner"></div>
+</div>
+
+<div class="services-container" *ngIf="!loading">
+  <div class="alert error" *ngIf="error">
+    <span class="icon">⚠️</span>
+    <p>{{ error }}</p>
+  </div>
+
+  <div class="services-grid" *ngIf="!error">
+    <div class="service-card" *ngFor="let svc of services">
+      <div class="svc-header">
+        <div class="svc-icon">🔌</div>
+        <div class="svc-title">
+          <h3>{{ svc.serviceName || 'UNKNOWN' }}</h3>
+          <span class="badge" [class.up]="svc.status === 'UP'">{{ svc.status }}</span>
+        </div>
+      </div>
+      
+      <div class="svc-details">
+        <div class="detail-row">
+          <label>Instance ID</label>
+          <span>{{ svc.instanceId }}</span>
+        </div>
+        <div class="detail-row">
+          <label>Base URI</label>
+          <a [href]="svc.uri" target="_blank">{{ svc.uri }}</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="empty-state" *ngIf="services.length === 0">
+      <span class="icon">🌍</span>
+      <p>No other services found. Is Eureka Discovery active?</p>
+    </div>
+  </div>
+</div>

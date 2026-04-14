@@ -30,14 +30,22 @@ import java.util.stream.Collectors;
 public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
+    private final AiValidationService aiValidationService;
+    private final PlagiarismService plagiarismService;
+    private final MaturityScoringService maturityScoringService;
+    private final RoadmapGeneratorService roadmapGeneratorService;
+    private final ProgressCalculationService progressCalculationService;
+    private final AdaptiveRoadmapService adaptiveRoadmapService;
 
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
 
+    // ─── CRUD ──────────────────────────────────────────────────────────────────
+
     @Override
     public ProjectResponse createProject(CreateProjectRequest request, String userId) {
-        log.info("Creating new project: {}", request.getTitre());
-        
+        log.info("Creating project: {}", request.getTitre());
+
         Project project = new Project();
         project.setId(UUID.randomUUID().toString());
         project.setTitre(request.getTitre());
@@ -53,22 +61,55 @@ public class ProjectServiceImpl implements ProjectService {
         project.setProgressPercentage(0.0);
         project.setDateCreation(LocalDateTime.now());
         project.setDateModification(LocalDateTime.now());
-        
-        Project savedProject = projectRepository.save(project);
-        log.info("Project created with ID: {}", savedProject.getId());
-        
-        return mapToResponse(savedProject);
+
+        // ── AI Pipeline ────────────────────────────────────────────────────────
+
+        // 1. Validate
+        AiValidationService.ValidationResult validation = aiValidationService.validate(project);
+        project.setAiValidationStatus(validation.status());
+        if ("INVALID".equals(validation.status())) {
+            throw new RuntimeException("AI Validation failed: " + String.join("; ", validation.reasons()));
+        }
+
+        // 2. Save first so plagiarism can query DB (new project won't be compared to itself)
+        Project saved = projectRepository.save(project);
+
+        // 3. Plagiarism check
+        PlagiarismService.PlagiarismResult plagiarism = plagiarismService.check(saved);
+        saved.setPlagiarismStatus(plagiarism.status());
+        saved.setPlagiarismSimilarityScore(plagiarism.similarityScore());
+        saved.setPlagiarismDetails(plagiarism.details());
+        if ("REJECTED".equals(plagiarism.status())) {
+            projectRepository.delete(saved);
+            throw new RuntimeException("Plagiarism detected: " + plagiarism.details());
+        }
+
+        // 4. Generate roadmap
+        List<RoadmapStep> generatedSteps = roadmapGeneratorService.generate(saved, userId);
+        saved.setRoadmapSteps(generatedSteps);
+
+        // 5. Compute maturity score
+        MaturityScoringService.ScoreBreakdown scoreBreakdown = maturityScoringService.computeScore(saved);
+        saved.setAiScore((double) scoreBreakdown.total());
+
+        // 6. Compute progress
+        double progress = progressCalculationService.calculate(saved);
+        saved.setProgressPercentage(progress);
+
+        saved.setDateModification(LocalDateTime.now());
+        Project finalProject = projectRepository.save(saved);
+        log.info("Project created with AI score: {}, plagiarism: {}", scoreBreakdown.total(), plagiarism.status());
+
+        return mapToResponse(finalProject);
     }
 
     @Override
     public Optional<ProjectResponse> getProjectById(String projectId) {
-        log.info("Fetching project with ID: {}", projectId);
         return projectRepository.findById(projectId).map(this::mapToResponse);
     }
 
     @Override
     public List<ProjectResponse> getAllProjects() {
-        log.info("Fetching all projects");
         return projectRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -76,12 +117,11 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ProjectResponse updateProject(String projectId, UpdateProjectRequest request, String userId) {
-        log.info("Updating project with ID: {}", projectId);
-        
+        log.info("Updating project: {}", projectId);
+
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
-        
-        // Update fields if provided
+
         if (request.getTitre() != null) project.setTitre(request.getTitre());
         if (request.getDescription() != null) project.setDescription(request.getDescription());
         if (request.getDateDebut() != null) project.setDateDebut(request.getDateDebut());
@@ -91,89 +131,71 @@ public class ProjectServiceImpl implements ProjectService {
         if (request.getMemberIds() != null) project.setMemberIds(request.getMemberIds());
         if (request.getPriorite() != null) project.setPriorite(request.getPriorite());
         if (request.getCategorie() != null) project.setCategorie(request.getCategorie());
-        
+
         project.setDateModification(LocalDateTime.now());
-        
-        Project updatedProject = projectRepository.save(project);
-        log.info("Project updated successfully");
-        
-        return mapToResponse(updatedProject);
+
+        // Re-score on update
+        MaturityScoringService.ScoreBreakdown score = maturityScoringService.computeScore(project);
+        project.setAiScore((double) score.total());
+
+        // Recalculate progress
+        double progress = progressCalculationService.calculate(project);
+        project.setProgressPercentage(progress);
+
+        return mapToResponse(projectRepository.save(project));
     }
 
     @Override
     public void deleteProject(String projectId, String userId) {
-        log.info("Deleting project with ID: {}", projectId);
-        
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
-        
         projectRepository.delete(project);
-        log.info("Project deleted successfully");
     }
+
+    // ─── Filter Queries ─────────────────────────────────────────────────────────
 
     @Override
     public List<ProjectResponse> getProjectsByManager(String managerId) {
-        log.info("Fetching projects managed by: {}", managerId);
-        return projectRepository.findByManagerId(managerId).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return projectRepository.findByManagerId(managerId).stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
     @Override
     public List<ProjectResponse> getProjectsByMember(String userId) {
-        log.info("Fetching projects for member: {}", userId);
-        return projectRepository.findByMemberIdsContaining(userId).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return projectRepository.findByMemberIdsContaining(userId).stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
     @Override
     public List<ProjectResponse> getProjectsByStatus(String statut) {
-        log.info("Fetching projects with status: {}", statut);
-        return projectRepository.findByStatut(statut).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return projectRepository.findByStatut(statut).stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
     @Override
     public List<ProjectResponse> getProjectsByPriority(String priorite) {
-        log.info("Fetching projects with priority: {}", priorite);
-        return projectRepository.findByPriorite(priorite).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return projectRepository.findByPriorite(priorite).stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
     @Override
     public List<ProjectResponse> getProjectsByCategory(String categorie) {
-        log.info("Fetching projects in category: {}", categorie);
-        return projectRepository.findByCategorie(categorie).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return projectRepository.findByCategorie(categorie).stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
     @Override
     public List<ProjectResponse> getProjectsInDateRange(LocalDate startDate, LocalDate endDate) {
-        log.info("Fetching projects between {} and {}", startDate, endDate);
-        return projectRepository.findProjectsInDateRange(startDate, endDate).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return projectRepository.findProjectsInDateRange(startDate, endDate).stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
     @Override
     public List<ProjectResponse> searchProjects(String titre) {
-        log.info("Searching projects with title: {}", titre);
-        return projectRepository.searchByTitle(titre).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        return projectRepository.searchByTitle(titre).stream().map(this::mapToResponse).collect(Collectors.toList());
     }
+
+    // ─── Roadmap ─────────────────────────────────────────────────────────────
 
     @Override
     public ProjectResponse addRoadmapStep(String projectId, CreateRoadmapStepRequest request, String userId) {
-        log.info("Adding roadmap step to project: {}", projectId);
-        
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
-        
+
         RoadmapStep step = new RoadmapStep();
         step.setId(UUID.randomUUID().toString());
         step.setTitre(request.getTitre());
@@ -184,114 +206,77 @@ public class ProjectServiceImpl implements ProjectService {
         step.setDateCreation(LocalDateTime.now());
         step.setDateModification(LocalDateTime.now());
         step.setCreePar(userId);
-        
+
         project.getRoadmapSteps().add(step);
         project.setDateModification(LocalDateTime.now());
-        
-        Project updatedProject = projectRepository.save(project);
-        log.info("Roadmap step added successfully");
-        
-        return mapToResponse(updatedProject);
+
+        // Recalculate
+        project.setAiScore((double) maturityScoringService.computeScore(project).total());
+        project.setProgressPercentage(progressCalculationService.calculate(project));
+
+        return mapToResponse(projectRepository.save(project));
     }
 
     @Override
     public ProjectResponse updateRoadmapStepStatus(String projectId, String stepId, String newStatus, String userId) {
-        log.info("Updating roadmap step {} status to: {}", stepId, newStatus);
-        
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
-        
+
         RoadmapStep step = project.getRoadmapSteps().stream()
                 .filter(s -> s.getId().equals(stepId))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Roadmap step not found"));
-        
+
         step.setStatut(newStatus);
         step.setDateModification(LocalDateTime.now());
         project.setDateModification(LocalDateTime.now());
-        
-        // Recalculate progress
-        project.setProgressPercentage(calculateProjectProgress(projectId));
-        
-        Project updatedProject = projectRepository.save(project);
-        log.info("Roadmap step status updated successfully");
-        
-        return mapToResponse(updatedProject);
+
+        // Recalculate progress & score
+        project.setProgressPercentage(progressCalculationService.calculate(project));
+        project.setAiScore((double) maturityScoringService.computeScore(project).total());
+
+        return mapToResponse(projectRepository.save(project));
     }
 
     @Override
     public ProjectResponse deleteRoadmapStep(String projectId, String stepId, String userId) {
-        log.info("Deleting roadmap step {} from project: {}", stepId, projectId);
-        
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
-        
+
         project.getRoadmapSteps().removeIf(s -> s.getId().equals(stepId));
         project.setDateModification(LocalDateTime.now());
-        
-        Project updatedProject = projectRepository.save(project);
-        log.info("Roadmap step deleted successfully");
-        
-        return mapToResponse(updatedProject);
+        project.setProgressPercentage(progressCalculationService.calculate(project));
+
+        return mapToResponse(projectRepository.save(project));
+    }
+
+    @Override
+    public ProjectResponse generateAiRoadmap(String projectId, String userId) {
+        log.info("Generating AI roadmap for project: {}", projectId);
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        project.getRoadmapSteps().clear();
+        List<RoadmapStep> steps = roadmapGeneratorService.generate(project, userId);
+        project.setRoadmapSteps(steps);
+        project.setDateModification(LocalDateTime.now());
+
+        // Recalculate score & progress
+        project.setAiScore((double) maturityScoringService.computeScore(project).total());
+        project.setProgressPercentage(progressCalculationService.calculate(project));
+
+        return mapToResponse(projectRepository.save(project));
     }
 
     @Override
     public Double calculateProjectProgress(String projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
-        
-        if (project.getRoadmapSteps().isEmpty()) {
-            return 0.0;
-        }
-        
-        long completedSteps = project.getRoadmapSteps().stream()
-                .filter(s -> "DONE".equals(s.getStatut()))
-                .count();
-        
-        double progress = (completedSteps * 100.0) / project.getRoadmapSteps().size();
-        return Math.round(progress * 100.0) / 100.0; // Round to 2 decimal places
+        return progressCalculationService.calculate(project);
     }
 
-    @Override
-    public ProjectResponse generateAiRoadmap(String projectId, String userId) {
-        log.info("Generating AI roadmap for project: {}", projectId);
-        
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new RuntimeException("Project not found"));
-        
-        // Generate basic roadmap structure based on project dates
-        project.getRoadmapSteps().clear();
-        
-        LocalDate start = project.getDateDebut();
-        LocalDate end = project.getDateFin();
-        long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(start, end);
-        
-        // Generate 4 main phases based on project duration
-        String[] phases = {"Planning & Analysis", "Development & Implementation", 
-                          "Testing & QA", "Deployment & Launch"};
-        
-        for (int i = 0; i < phases.length; i++) {
-            RoadmapStep step = new RoadmapStep();
-            step.setId(UUID.randomUUID().toString());
-            step.setTitre(phases[i]);
-            step.setDescription("Phase " + (i + 1) + ": " + phases[i]);
-            step.setStatut("PENDING");
-            step.setOrdre(i + 1);
-            step.setDateCreation(LocalDateTime.now());
-            step.setDateModification(LocalDateTime.now());
-            step.setCreePar(userId);
-            
-            project.getRoadmapSteps().add(step);
-        }
-        
-        project.setDateModification(LocalDateTime.now());
-        project.setProgressPercentage(0.0);
-        
-        Project updatedProject = projectRepository.save(project);
-        log.info("AI roadmap generated successfully with {} steps", updatedProject.getRoadmapSteps().size());
-        
-        return mapToResponse(updatedProject);
-    }
+    // ─── Documents ────────────────────────────────────────────────────────────
 
     @Override
     public ProjectResponse addProjectDocument(String projectId, MultipartFile file, String type, String title, String userId) {
@@ -309,7 +294,6 @@ public class ProjectServiceImpl implements ProjectService {
         try {
             Path projectUploadDir = Paths.get(uploadDir, "projects", projectId).toAbsolutePath().normalize();
             Files.createDirectories(projectUploadDir);
-
             Path targetPath = projectUploadDir.resolve(storedFileName);
             Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
@@ -325,8 +309,14 @@ public class ProjectServiceImpl implements ProjectService {
             project.getDocuments().add(document);
             project.setDateModification(LocalDateTime.now());
 
-            Project updatedProject = projectRepository.save(project);
-            return mapToResponse(updatedProject);
+            // ── Adaptive Roadmap ─────────────────────────────────────────────
+            adaptiveRoadmapService.adapt(project, document, userId);
+
+            // ── Recalculate score & progress ─────────────────────────────────
+            project.setAiScore((double) maturityScoringService.computeScore(project).total());
+            project.setProgressPercentage(progressCalculationService.calculate(project));
+
+            return mapToResponse(projectRepository.save(project));
         } catch (IOException ex) {
             throw new RuntimeException("Could not store document", ex);
         }
@@ -352,14 +342,15 @@ public class ProjectServiceImpl implements ProjectService {
 
         project.getDocuments().removeIf(d -> d.getId().equals(documentId));
         project.setDateModification(LocalDateTime.now());
-        Project updatedProject = projectRepository.save(project);
-        return mapToResponse(updatedProject);
+        project.setProgressPercentage(progressCalculationService.calculate(project));
+        project.setAiScore((double) maturityScoringService.computeScore(project).total());
+
+        return mapToResponse(projectRepository.save(project));
     }
 
     @Override
     public Resource downloadProjectDocument(String projectId, String documentId) {
         ProjectDocumentResponse metadata = getProjectDocumentMetadata(projectId, documentId);
-
         try {
             Path filePath = Paths.get(metadata.getFilePath()).toAbsolutePath().normalize();
             Resource resource = new UrlResource(filePath.toUri());
@@ -385,7 +376,8 @@ public class ProjectServiceImpl implements ProjectService {
         return mapDocumentToResponse(document);
     }
 
-    // Helper method to map Project to ProjectResponse
+    // ─── Mapping ──────────────────────────────────────────────────────────────
+
     private ProjectResponse mapToResponse(Project project) {
         ProjectResponse response = new ProjectResponse();
         response.setId(project.getId());
@@ -399,16 +391,23 @@ public class ProjectServiceImpl implements ProjectService {
         response.setManagerName(project.getManagerName());
         response.setMemberIds(project.getMemberIds());
         response.setRoadmapSteps(project.getRoadmapSteps().stream()
+                .sorted(Comparator.comparingInt(RoadmapStep::getOrdre))
                 .map(this::mapRoadmapStepToResponse)
                 .collect(Collectors.toList()));
         response.setDocuments(project.getDocuments().stream()
-            .map(this::mapDocumentToResponse)
-            .collect(Collectors.toList()));
+                .map(this::mapDocumentToResponse)
+                .collect(Collectors.toList()));
         response.setDateCreation(project.getDateCreation());
         response.setDateModification(project.getDateModification());
         response.setPriorite(project.getPriorite());
         response.setCategorie(project.getCategorie());
         response.setProgressPercentage(project.getProgressPercentage());
+        // AI fields
+        response.setAiScore(project.getAiScore());
+        response.setAiValidationStatus(project.getAiValidationStatus());
+        response.setPlagiarismStatus(project.getPlagiarismStatus());
+        response.setPlagiarismSimilarityScore(project.getPlagiarismSimilarityScore());
+        response.setPlagiarismDetails(project.getPlagiarismDetails());
         return response;
     }
 

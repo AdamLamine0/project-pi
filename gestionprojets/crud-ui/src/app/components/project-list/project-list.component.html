@@ -1,0 +1,83 @@
+<div class="page-header">
+  <div class="header-content">
+    <h2>Project Portfolio</h2>
+    <p>View and manage your active projects</p>
+  </div>
+  <a *ngIf="canCreate" routerLink="/projects/new" class="btn btn-primary">
+    Create Project
+  </a>
+</div>
+
+<div class="card p-0">
+  <div class="controls-bar">
+    <div class="search-box form-group mb-0">
+      <input type="text" class="form-control" placeholder="Search projects by title or description..." [(ngModel)]="search" (ngModelChange)="applyFilter()">
+    </div>
+    <div class="filter-box form-group mb-0">
+      <select class="form-control" [(ngModel)]="categoryFilter" (ngModelChange)="applyFilter()">
+        <option value="ALL">All Categories</option>
+        <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="loader-container" *ngIf="loading">
+    <div class="spinner"></div>
+  </div>
+
+  <div class="table-responsive" *ngIf="!loading">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Project Name</th>
+          <th>Category</th>
+          <th *ngIf="canViewAiFields">AI Status</th>
+          <th>Progress</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of filtered">
+          <td>
+            <div class="title-cell">
+              <strong>{{ p.titre }}</strong>
+              <div class="subtitle">{{ p.dateDebut | date }} &rarr; {{ p.dateFin | date }}</div>
+            </div>
+          </td>
+          <td>
+            <span class="badge badge-neutral">{{ p.categorie || 'General' }}</span>
+          </td>
+          <td *ngIf="canViewAiFields">
+            <div class="ai-status">
+              <span class="badge" [ngClass]="{'badge-success': (p.aiScore || 0) >= 70, 'badge-warning': (p.aiScore || 0) < 70}">
+                Score: {{ p.aiScore || 'N/A' }}
+              </span>
+              <span class="badge badge-danger" *ngIf="p.plagiarismStatus === 'REJECTED'">Plagiarized</span>
+            </div>
+          </td>
+          <td>
+            <div class="progress-wrap">
+              <div class="progress-bar">
+                <div class="fill" [style.width.%]="p.progressPercentage || 0"></div>
+              </div>
+              <span class="pct">{{ p.progressPercentage || 0 }}%</span>
+            </div>
+          </td>
+          <td class="text-right">
+            <div class="actions-cell">
+              <a [routerLink]="['/projects', p.id]" class="btn-icon">👁️</a>
+              <a *ngIf="canCreate" [routerLink]="['/projects', p.id, 'edit']" class="btn-icon">✏️</a>
+              <button *ngIf="canDelete" class="btn-icon danger" (click)="deleteProject(p.id!)">🗑️</button>
+            </div>
+          </td>
+        </tr>
+        
+        <tr *ngIf="filtered.length === 0">
+          <td [attr.colspan]="canViewAiFields ? 5 : 4" class="empty-cell">
+            No projects match your filter criteria.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

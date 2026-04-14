@@ -1,0 +1,160 @@
+<div class="page-header compact">
+  <button class="btn-icon circle" (click)="goBack()"><span class="icon">⬅️</span></button>
+  <div class="header-content">
+    <h2>Project Hub</h2>
+    <p>AI Insights & Management Center</p>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-secondary action-btn" (click)="reanalyze()" [disabled]="analyzing || loading">
+      <span class="spinner-small" *ngIf="analyzing"></span>
+      <span class="icon" *ngIf="!analyzing">🔄</span> 
+      {{ analyzing ? 'Re-analyzing...' : 'Force AI Re-analysis' }}
+    </button>
+  </div>
+</div>
+
+<div class="loader-container" *ngIf="loading">
+  <div class="spinner"></div>
+</div>
+
+<div class="detail-grid" *ngIf="!loading && project">
+  
+  <!-- Left Column: Core Info -->
+  <div class="left-col">
+    <div class="detail-card info-card">
+      <div class="card-header-flex">
+        <h3>{{ project.titre }}</h3>
+        <span class="status-badge" [class]="project.statut?.toLowerCase()">{{ project.statut?.replace('_', ' ') }}</span>
+      </div>
+      
+      <p class="description">{{ project.description }}</p>
+      
+      <div class="meta-grid">
+        <div class="meta-item">
+          <label>Category</label>
+          <span>{{ project.categorie || 'General' }}</span>
+        </div>
+        <div class="meta-item">
+          <label>Priority</label>
+          <span>{{ project.priorite }}</span>
+        </div>
+        <div class="meta-item">
+          <label>Manager</label>
+          <span>{{ project.managerId }}</span>
+        </div>
+        <div class="meta-item">
+          <label>Budget</label>
+          <span>${{ project.budget | number }}</span>
+        </div>
+        <div class="meta-item">
+          <label>Timeline</label>
+          <span>{{ project.dateDebut | date }} — {{ project.dateFin | date }}</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Roadmap Quick View -->
+    <div class="detail-card">
+      <div class="card-header-flex">
+        <h3>Roadmap <span>({{ project.roadmapSteps?.length || 0 }} steps)</span></h3>
+        <a [routerLink]="['/projects', project.id, 'roadmap']" class="link-btn">Manage Roadmap →</a>
+      </div>
+      <div class="progress-wrap">
+        <div class="progress-bar">
+          <div class="fill" [style.width.%]="project.progressPercentage || 0"></div>
+        </div>
+        <span class="pct">{{ project.progressPercentage || 0 }}%</span>
+      </div>
+    </div>
+    
+    <!-- Documents Quick View -->
+    <div class="detail-card">
+      <div class="card-header-flex">
+        <h3>Documents <span>({{ project.documents?.length || 0 }})</span></h3>
+        <a [routerLink]="['/projects', project.id, 'documents']" class="link-btn">Manage Documents →</a>
+      </div>
+      <div class="doc-mini-list" *ngIf="project.documents && project.documents.length > 0">
+        <div class="doc-mini" *ngFor="let d of project.documents.slice(0,3)">
+          <span class="icon">📄</span> {{ d.title }} <span class="tag">{{ d.type }}</span>
+        </div>
+        <div class="more-docs" *ngIf="project.documents.length > 3">
+          +{{ project.documents.length - 3 }} more
+        </div>
+      </div>
+      <div class="empty-state-mini" *ngIf="!project.documents || project.documents.length === 0">
+        No documents uploaded. Uploading documents automatically triggers AI roadmap adaptation.
+      </div>
+    </div>
+  </div>
+  
+  <!-- Right Column: AI Analysis -->
+  <div class="right-col">
+    <div class="ai-card">
+      <div class="ai-header">
+        <div class="title-wrap">
+          <span class="icon">🤖</span>
+          <h3>AI Maturity Score</h3>
+        </div>
+        <div class="big-score" [style.color]="getScoreColor(project.aiScore)">
+          {{ project.aiScore || 0 }}<small>/100</small>
+        </div>
+      </div>
+      
+      <div class="score-breakdown" *ngIf="aiScore">
+        <div class="score-row">
+          <span>Innovation / Depth</span>
+          <div class="bar-bg"><div class="bar-fill" [style.width.%]="aiScore.innovationScore" [style.backgroundColor]="getScoreColor(aiScore.innovationScore)"></div></div>
+          <span class="val">{{ aiScore.innovationScore }}</span>
+        </div>
+        <div class="score-row">
+          <span>Market Viability</span>
+          <div class="bar-bg"><div class="bar-fill" [style.width.%]="aiScore.marketViabilityScore" [style.backgroundColor]="getScoreColor(aiScore.marketViabilityScore)"></div></div>
+          <span class="val">{{ aiScore.marketViabilityScore }}</span>
+        </div>
+        <div class="score-row">
+          <span>Team Capability</span>
+          <div class="bar-bg"><div class="bar-fill" [style.width.%]="aiScore.teamScore" [style.backgroundColor]="getScoreColor(aiScore.teamScore)"></div></div>
+          <span class="val">{{ aiScore.teamScore }}</span>
+        </div>
+        <div class="score-row">
+          <span>Traction</span>
+          <div class="bar-bg"><div class="bar-fill" [style.width.%]="aiScore.tractionScore" [style.backgroundColor]="getScoreColor(aiScore.tractionScore)"></div></div>
+          <span class="val">{{ aiScore.tractionScore }}</span>
+        </div>
+        <div class="score-row">
+          <span>Feasibility</span>
+          <div class="bar-bg"><div class="bar-fill" [style.width.%]="aiScore.feasibilityScore" [style.backgroundColor]="getScoreColor(aiScore.feasibilityScore)"></div></div>
+          <span class="val">{{ aiScore.feasibilityScore }}</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="ai-card" *ngIf="project.plagiarismStatus">
+      <div class="ai-header">
+        <div class="title-wrap">
+          <span class="icon">🔍</span>
+          <h3>Originality Check</h3>
+        </div>
+        <span class="badge" [style.backgroundColor]="getPlagiarismColor(project.plagiarismStatus) + '20'" [style.color]="getPlagiarismColor(project.plagiarismStatus)">
+          {{ project.plagiarismStatus }}
+        </span>
+      </div>
+      <p class="plagiarism-desc">{{ project.plagiarismDetails }}</p>
+      <div class="similarity-bar" *ngIf="project.plagiarismSimilarityScore != null">
+        <label>Similarity Score ({{ (project.plagiarismSimilarityScore * 100) | number:'1.0-0' }}%)</label>
+        <div class="bar-bg"><div class="bar-fill" [style.width.%]="project.plagiarismSimilarityScore * 100" [style.backgroundColor]="getPlagiarismColor(project.plagiarismStatus)"></div></div>
+      </div>
+    </div>
+
+    <!-- AI Validation -->
+    <div class="ai-card validation" [class.success]="project.aiValidationStatus === 'VALID'" [class.error]="project.aiValidationStatus === 'INVALID'">
+      <div class="ai-header">
+        <div class="title-wrap">
+          <span class="icon">{{ project.aiValidationStatus === 'VALID' ? '✅' : '❌' }}</span>
+          <h3>Structural Validation</h3>
+        </div>
+        <span class="text-status">{{ project.aiValidationStatus }}</span>
+      </div>
+    </div>
+  </div>
+</div>

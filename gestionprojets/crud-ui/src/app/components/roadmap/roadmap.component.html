@@ -1,0 +1,96 @@
+<div class="page-header compact">
+  <button class="btn-icon circle" (click)="goBack()"><span class="icon">⬅️</span></button>
+  <div class="header-content">
+    <h2>Project Roadmap</h2>
+    <p *ngIf="project">{{ project.titre }}</p>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-secondary action-btn" (click)="generateAiRoadmap()" [disabled]="generating || loading">
+      <span class="spinner-small" *ngIf="generating"></span>
+      <span class="icon" *ngIf="!generating">✨</span> 
+      {{ generating ? 'AI Generating...' : 'Auto-Generate AI Roadmap' }}
+    </button>
+    <button class="btn btn-primary" (click)="showAddForm = !showAddForm">
+      <span class="icon">+</span> Add Step
+    </button>
+  </div>
+</div>
+
+<div class="loader-container" *ngIf="loading">
+  <div class="spinner"></div>
+</div>
+
+<div class="roadmap-container" *ngIf="!loading && project">
+
+  <div class="progress-banner">
+    <div class="banner-info">
+      <h3>Overall Progress</h3>
+      <p>Calculated dynamically based on completed phases and attached documentation.</p>
+    </div>
+    <div class="circle-progress large" [style.--p]="project.progressPercentage || 0">
+      <div class="inner">
+        <span class="val">{{ project.progressPercentage || 0 }}%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="add-step-form" *ngIf="showAddForm">
+    <h3>New Roadmap Step</h3>
+    <form (ngSubmit)="addStep()">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Step Title</label>
+          <input type="text" [(ngModel)]="newStep.titre" name="titre" required>
+        </div>
+        <div class="form-group">
+          <label>Order / Phase</label>
+          <input type="number" [(ngModel)]="newStep.ordre" name="ordre" required>
+        </div>
+        <div class="form-group full-width">
+          <label>Description</label>
+          <textarea [(ngModel)]="newStep.description" name="desc" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="showAddForm = false">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Step</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="timeline">
+    <div class="timeline-empty" *ngIf="!project.roadmapSteps || project.roadmapSteps.length === 0">
+      <span class="icon">🛤️</span>
+      <p>No roadmap steps defined.</p>
+      <button class="btn btn-secondary" (click)="generateAiRoadmap()">Use AI to Generate</button>
+    </div>
+
+    <div class="timeline-item" *ngFor="let step of project.roadmapSteps; let isLast = last">
+      <div class="connector" *ngIf="!isLast"></div>
+      
+      <div class="node" [class]="step.statut?.toLowerCase()">
+        <span class="icon" *ngIf="step.statut === 'DONE'">✓</span>
+        <span class="order" *ngIf="step.statut !== 'DONE'">{{ step.ordre }}</span>
+      </div>
+      
+      <div class="content-card">
+        <div class="card-header">
+          <div class="title-area">
+            <h4>{{ step.titre }}</h4>
+            <span class="status-badge" [class]="step.statut?.toLowerCase()">{{ step.statut?.replace('_', ' ') }}</span>
+          </div>
+          <div class="actions">
+            <select [ngModel]="step.statut" (ngModelChange)="updateStatus(step, $event)" class="status-select">
+              <option value="PENDING">Pending</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="DONE">Done</option>
+            </select>
+            <button class="btn-icon danger" (click)="deleteStep(step)"><span class="icon">🗑️</span></button>
+          </div>
+        </div>
+        <p class="description">{{ step.description }}</p>
+      </div>
+    </div>
+  </div>
+
+</div>

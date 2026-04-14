@@ -1,0 +1,49 @@
+<div class="welcome-banner">
+  <div class="banner-content">
+    <h2>{{ welcomeMessage }}</h2>
+    <p>Manage your portfolio and daily tasks simply and easily.</p>
+    <a *ngIf="canCreate" routerLink="/projects/new" class="btn btn-primary mt-3">Start a New Project</a>
+  </div>
+</div>
+
+<div class="loader-container" *ngIf="loading">
+  <div class="spinner"></div>
+</div>
+
+<div class="content-view" *ngIf="!loading">
+  
+  <div class="quick-overview" *ngIf="currentRole !== 'MEMBER'">
+    <div class="card stat-card">
+      <h3>{{ projects.length }}</h3>
+      <p>Total Projects in System</p>
+    </div>
+    <div class="card stat-card" *ngIf="currentRole === 'ADMIN' || currentRole === 'INVESTOR'">
+      <h3>Active</h3>
+      <p>System Status</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header-flex">
+      <h3>Your Recent Projects</h3>
+      <a routerLink="/projects" class="link-btn">View all projects &rarr;</a>
+    </div>
+    
+    <div class="project-simple-list">
+      <div class="simple-item" *ngFor="let p of projects.slice(0, 5)" [routerLink]="['/projects', p.id]">
+        <div class="item-title">
+          <h4>{{ p.titre }}</h4>
+          <span class="badge badge-neutral" *ngIf="p.categorie">{{ p.categorie }}</span>
+        </div>
+        <div class="item-meta">
+          <span class="date">{{ p.dateDebut | date }} &rarr; {{ p.dateFin | date }}</span>
+          <span class="status-indicator">{{ (p.progressPercentage || 0) + '% Completed' }}</span>
+        </div>
+      </div>
+      
+      <div class="empty-state" *ngIf="projects.length === 0">
+        <p>No projects available right now.</p>
+      </div>
+    </div>
+  </div>
+</div>

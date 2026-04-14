@@ -1,0 +1,82 @@
+<div class="page-header compact">
+  <button class="btn-icon circle" (click)="goBack()"><span class="icon">⬅️</span></button>
+  <div class="header-content">
+    <h2>Project Documents</h2>
+    <p *ngIf="project">{{ project.titre }}</p>
+  </div>
+</div>
+
+<div class="loader-container" *ngIf="loading">
+  <div class="spinner"></div>
+</div>
+
+<div class="docs-container" *ngIf="!loading && project">
+  
+  <!-- Upload Zone -->
+  <div class="upload-zone">
+    <div class="upload-header">
+      <span class="icon">☁️</span>
+      <div>
+        <h3>Upload Document</h3>
+        <p>Upload files to automatically trigger AI roadmap updates (e.g. uploading a Architecture Spec will adjust your development phases).</p>
+      </div>
+    </div>
+    
+    <div class="alert error" *ngIf="error">{{ error }}</div>
+    
+    <div class="upload-form">
+      <div class="form-group row">
+        <div class="col">
+          <label>Document Category</label>
+          <select [(ngModel)]="docType">
+            <option value="REQUIREMENTS">Requirements / Spec</option>
+            <option value="BUSINESS_PLAN">Business Plan / BMC</option>
+            <option value="ARCHITECTURE">Architecture / Tech Stack</option>
+            <option value="FINANCIAL">Financial / Budget</option>
+            <option value="DESIGN">Design / UI/UX</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+        <div class="col">
+          <label>Document Title</label>
+          <input type="text" [(ngModel)]="docTitle" placeholder="Custom title...">
+        </div>
+      </div>
+      
+      <div class="file-area">
+        <input type="file" #fileInput (change)="onFileSelected($event)">
+      </div>
+      
+      <button class="btn btn-primary upload-btn" (click)="upload()" [disabled]="!selectedFile || uploading">
+        <span class="spinner-small" *ngIf="uploading"></span>
+        {{ uploading ? 'Uploading & Analyzing...' : 'Upload File' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Document List -->
+  <div class="docs-grid">
+    <div class="empty-state" *ngIf="!project.documents || project.documents.length === 0">
+      <span class="icon">📁</span>
+      <p>No documents uploaded yet.</p>
+    </div>
+
+    <div class="doc-card" *ngFor="let doc of project.documents">
+      <div class="icon-wrap">
+        {{ getDocIcon(doc.type) }}
+      </div>
+      <div class="doc-info">
+        <h4>{{ doc.title }}</h4>
+        <div class="meta">
+          <span class="badge">{{ doc.type }}</span>
+          <span class="date">{{ doc.uploadedAt | date:'mediumDate' }}</span>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn-icon" title="Download" (click)="downloadDoc(doc)"><span class="icon">⬇️</span></button>
+        <button class="btn-icon danger" title="Delete" (click)="deleteDoc(doc)"><span class="icon">🗑️</span></button>
+      </div>
+    </div>
+  </div>
+
+</div>

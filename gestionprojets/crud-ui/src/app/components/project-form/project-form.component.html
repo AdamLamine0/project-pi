@@ -1,0 +1,116 @@
+<div class="page-header compact">
+  <button class="btn-icon circle" (click)="goBack()"><span class="icon">⬅️</span></button>
+  <div class="header-content">
+    <h2>{{ isEdit ? 'Edit Project' : 'New Project' }}</h2>
+    <p>{{ isEdit ? 'Update project details and settings' : 'The AI will analyze your inputs upon creation' }}</p>
+  </div>
+</div>
+
+<div class="loader-container" *ngIf="loading">
+  <div class="spinner"></div>
+</div>
+
+<div class="form-container" *ngIf="!loading">
+  <!-- AI Error Displays -->
+  <div class="alert error" *ngIf="error">
+    <span class="icon">⚠️</span>
+    <p>{{ error }}</p>
+  </div>
+  
+  <div class="alert plagiarism-alert" *ngIf="plagiarismError">
+    <div class="alert-header">
+      <span class="icon">🚨</span>
+      <h4>Plagiarism Detected</h4>
+    </div>
+    <p>{{ plagiarismError }}</p>
+  </div>
+
+  <div class="alert validation-alert" *ngIf="validationErrors.length > 0">
+    <div class="alert-header">
+      <span class="icon">🤖</span>
+      <h4>AI Validation Failed</h4>
+      <p>The AI rejected the project for logical inconsistencies:</p>
+    </div>
+    <ul>
+      <li *ngFor="let err of validationErrors">{{ err }}</li>
+    </ul>
+  </div>
+
+  <!-- Form -->
+  <form (ngSubmit)="submit()" class="project-form">
+    
+    <div class="form-section">
+      <h3>1. Core Details</h3>
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label>Project Title *</label>
+          <input type="text" class="form-control" [(ngModel)]="createForm.titre" name="titre" placeholder="e.g. Next-Gen FinTech Trading Platform">
+        </div>
+        
+        <div class="form-group full-width">
+          <label>Description * <small>(Min 20 chars)</small></label>
+          <textarea class="form-control" [(ngModel)]="createForm.description" name="description" rows="4" placeholder="Describe the core problem, target audience, and solution..."></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label>Category *</label>
+          <input type="text" class="form-control" [(ngModel)]="createForm.categorie" name="categorie" placeholder="e.g. FinTech, Healthcare, EduTech">
+        </div>
+        
+        <div class="form-group">
+          <label>Priority</label>
+          <select class="form-control" [(ngModel)]="createForm.priorite" name="priorite">
+            <option value="LOW">Low</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HIGH">High</option>
+            <option value="CRITICAL">Critical</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3>2. Timeline & Resources</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Start Date *</label>
+          <input type="date" class="form-control" [(ngModel)]="createForm.dateDebut" name="dateDebut">
+        </div>
+        
+        <div class="form-group">
+          <label>End Date *</label>
+          <input type="date" class="form-control" [(ngModel)]="createForm.dateFin" name="dateFin">
+        </div>
+        
+        <div class="form-group">
+          <label>Budget (USD) *</label>
+          <input type="number" class="form-control" [(ngModel)]="createForm.budget" name="budget" min="1">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3>3. Team</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Manager ID *</label>
+          <input type="text" [(ngModel)]="createForm.managerId" name="managerId">
+        </div>
+        
+        <div class="form-group">
+          <label>Member IDs <small>(Comma-separated)</small></label>
+          <input type="text" [(ngModel)]="memberIdsInput" name="memberIds" placeholder="user-1, user-2">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="goBack()" [disabled]="submitting">Cancel</button>
+      <button type="submit" class="btn btn-primary" [disabled]="submitting">
+        <span class="spinner-small" *ngIf="submitting"></span>
+        {{ submitting ? 'Analyzing & Saving...' : (isEdit ? 'Update Project' : 'Create & Analyze') }}
+      </button>
+    </div>
+
+  </form>
+</div>

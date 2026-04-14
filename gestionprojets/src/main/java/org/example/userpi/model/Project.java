@@ -58,4 +58,12 @@ public class Project {
     private String priorite; // "LOW", "MEDIUM", "HIGH", "CRITICAL"
     private String categorie; // project category/type
     private Double progressPercentage; // calculated based on roadmap steps
+
+    // AI Fields
+    private Double aiScore;                  // 0-100 maturity score
+    private String aiValidationStatus;       // VALID, INVALID
+    private String plagiarismStatus;         // CLEAR, FLAGGED, REJECTED
+    private Double plagiarismSimilarityScore;
+    @Column(length = 1000)
+    private String plagiarismDetails;
 }

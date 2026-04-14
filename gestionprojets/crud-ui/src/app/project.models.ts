@@ -16,6 +16,12 @@ export interface ProjectItem {
   dateModification?: string;
   roadmapSteps?: RoadmapStepItem[];
   documents?: ProjectDocumentItem[];
+  // AI Fields
+  aiScore?: number;
+  aiValidationStatus?: string;
+  plagiarismStatus?: string;
+  plagiarismSimilarityScore?: number;
+  plagiarismDetails?: string;
 }
 
 export interface ProjectDocumentItem {
@@ -79,4 +85,19 @@ export interface AdminServiceInstance {
   secure: boolean;
   status: string;
   metadata: Record<string, string>;
+}
+
+export interface AiAnalysisResult {
+  validationStatus?: string;
+  validationReasons?: string[];
+  plagiarismStatus?: string;
+  plagiarismSimilarityScore?: number;
+  plagiarismDetails?: string;
+  maturityScore?: number;
+  innovationScore?: number;
+  marketViabilityScore?: number;
+  teamScore?: number;
+  tractionScore?: number;
+  feasibilityScore?: number;
+  roadmapGenerated?: boolean;
 }

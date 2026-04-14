@@ -29,4 +29,10 @@ public class ProjectResponse {
     private String priorite;
     private String categorie;
     private Double progressPercentage;
+    // AI Fields
+    private Double aiScore;
+    private String aiValidationStatus;
+    private String plagiarismStatus;
+    private Double plagiarismSimilarityScore;
+    private String plagiarismDetails;
 }
