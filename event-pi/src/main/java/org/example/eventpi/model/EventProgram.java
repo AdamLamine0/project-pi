@@ -20,6 +20,11 @@ public class EventProgram {
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
 
+    /** Optional speaker assigned to this program slot. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "speaker_id")
+    private Speaker speaker;
+
     @Column(nullable = false, length = 200)
     private String title;
 

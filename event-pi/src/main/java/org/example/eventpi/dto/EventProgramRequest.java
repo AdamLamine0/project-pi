@@ -12,4 +12,6 @@ public class EventProgramRequest {
     private LocalDateTime endTime;
     private Integer orderIndex;
     private ProgramSlotType type;
+    /** ID of an existing Speaker to assign to this slot. Null = no change. */
+    private Long speakerId;
 }

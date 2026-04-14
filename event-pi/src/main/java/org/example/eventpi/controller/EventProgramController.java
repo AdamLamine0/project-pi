@@ -56,6 +56,18 @@ public class EventProgramController {
         return ResponseEntity.noContent().build();
     }
 
+    // ── SPEAKER ASSIGNMENT ────────────────────────────────────────────────
+
+    /** Removes the speaker assignment from a slot without deleting the speaker. */
+    @DeleteMapping("/{slotId}/speaker")
+    public ResponseEntity<EventProgramResponse> unassignSpeaker(
+            @PathVariable Long eventId,
+            @PathVariable Long slotId,
+            @RequestHeader("X-User-Role") String role) {
+        requireRole(role, WRITE_ROLES);
+        return ResponseEntity.ok(programService.unassignSpeaker(slotId));
+    }
+
     // ── AI GENERATE ───────────────────────────────────────────────────────
     @PostMapping("/generate")
     public ResponseEntity<List<EventProgramResponse>> generate(
