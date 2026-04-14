@@ -1,10 +1,12 @@
 package org.example.eventpi.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.example.eventpi.dto.SpeakerCandidateResponse;
 import org.example.eventpi.dto.SpeakerRequest;
 import org.example.eventpi.dto.SpeakerResponse;
 import org.example.eventpi.exception.ForbiddenException;
 import org.example.eventpi.service.ImageStorageService;
+import org.example.eventpi.service.LinkedInImportService;
 import org.example.eventpi.service.SpeakerService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +22,40 @@ import java.util.Set;
 public class SpeakerController {
 
     private final SpeakerService speakerService;
-    private final ImageStorageService imageStorageService; // ← ADD THIS
+    private final LinkedInImportService linkedInImportService;
+    private final ImageStorageService imageStorageService;
 
     private static final Set<String> WRITE_ROLES =
-            Set.of("ADMIN", "MENTOR", "PARTNER");
+            Set.of("ADMIN", "MENTOR", "PARTENAIRE");
+
+    // ── LINKEDIN IMPORT ───────────────────────────────────────────────────
+
+    /**
+     * Searches LinkedIn for speakers matching {@code keywords}.
+     * The RapidAPI key is resolved server-side and never sent to the browser.
+     */
+    @GetMapping("/api/speakers/search")
+    public ResponseEntity<List<SpeakerCandidateResponse>> searchLinkedIn(
+            @RequestParam String keywords,
+            @RequestHeader("X-User-Role") String role) {
+        requireRole(role, WRITE_ROLES);
+        return ResponseEntity.ok(linkedInImportService.searchSpeakers(keywords));
+    }
+
+    /**
+     * Persists a LinkedIn candidate as a Speaker, or returns the existing
+     * Speaker if one with the same LinkedIn URL is already in the database.
+     */
+    @PostMapping("/api/speakers/import-one")
+    public ResponseEntity<SpeakerResponse> importOne(
+            @RequestBody SpeakerCandidateResponse candidate,
+            @RequestHeader("X-User-Role") String role) {
+        requireRole(role, WRITE_ROLES);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(speakerService.importOrReuse(candidate));
+    }
+
+    // ── CRUD ─────────────────────────────────────────────────────────────
 
     @GetMapping("/api/speakers")
     public ResponseEntity<List<SpeakerResponse>> getAll() {

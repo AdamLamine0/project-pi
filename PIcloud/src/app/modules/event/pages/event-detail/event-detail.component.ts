@@ -6,8 +6,8 @@ import { ProgramService } from '../../../../services/program.service';
 import { RegistrationService } from '../../../../services/registration.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { Event } from '../../../../models/event';
-import { Speaker } from '../../../../models/speaker';
-import { EventProgram } from '../../../../models/program';
+import { Speaker, SpeakerCandidate } from '../../../../models/speaker';
+import { EventProgram, EventProgramRequest } from '../../../../models/program';
 import { EventRegistration } from '../../../../models/registration';
 
 @Component({
@@ -46,9 +46,29 @@ export class EventDetailComponent implements OnInit {
   editingSlot: EventProgram | null = null;
 
   programForm = {
-    title: '', description: '', type: 'PRESENTATION',
-    startTime: '', endTime: '', orderIndex: 0
+    title: '', description: '', type: 'PRESENTATION' as any,
+    startTime: '', endTime: '', orderIndex: 0,
+    speakerId: null as number | null
   };
+
+  /** Speaker currently staged in the program form (display only, not yet saved). */
+  programFormSpeaker: { id: number; name: string; title: string | null; photoUrl: string | null } | null = null;
+
+  // ── LinkedIn import modal ─────────────────────────────────────────────
+  showImportModal = false;
+  /**
+   * Tracks where a selected candidate should be assigned:
+   * - 'form'  → update programForm.speakerId (deferred save with the slot)
+   * - 'slot'  → save immediately to an existing slot via the backend
+   */
+  importContext: { mode: 'form' } | { mode: 'slot'; slotId: number } | null = null;
+  importKeywords = '';
+  importCandidates: SpeakerCandidate[] = [];
+  isSearching = false;
+  searchError = '';
+  selectedCandidate: SpeakerCandidate | null = null;
+  isAssigning = false;
+  assignError = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -148,7 +168,11 @@ export class EventDetailComponent implements OnInit {
   // ── PROGRAM ───────────────────────────────────────────────────────────
   openAddSlot(): void {
     this.editingSlot = null;
-    this.programForm = { title: '', description: '', type: 'PRESENTATION', startTime: '', endTime: '', orderIndex: this.program.length };
+    this.programForm = {
+      title: '', description: '', type: 'PRESENTATION', startTime: '', endTime: '',
+      orderIndex: this.program.length, speakerId: null
+    };
+    this.programFormSpeaker = null;
     this.showProgramForm = true;
   }
 
@@ -158,20 +182,36 @@ export class EventDetailComponent implements OnInit {
       title: slot.title, description: slot.description, type: slot.type,
       startTime: slot.startTime ? slot.startTime.substring(0, 16) : '',
       endTime: slot.endTime ? slot.endTime.substring(0, 16) : '',
-      orderIndex: slot.orderIndex
+      orderIndex: slot.orderIndex,
+      speakerId: slot.speakerId || null
     };
+    this.programFormSpeaker = slot.speakerId ? {
+      id: slot.speakerId,
+      name: slot.speakerName || '',
+      title: slot.speakerTitle || null,
+      photoUrl: slot.speakerPhotoUrl || null
+    } : null;
     this.showProgramForm = true;
   }
 
   saveSlot(): void {
     if (!this.event || !this.programForm.title) return;
-    const request = { ...this.programForm, type: this.programForm.type as any };
+    const request: EventProgramRequest = {
+      title:      this.programForm.title,
+      description: this.programForm.description,
+      type:       this.programForm.type,
+      startTime:  this.programForm.startTime || undefined,
+      endTime:    this.programForm.endTime   || undefined,
+      orderIndex: this.programForm.orderIndex,
+      speakerId:  this.programForm.speakerId
+    };
     if (this.editingSlot) {
       this.programService.update(this.event.id, this.editingSlot.id, request).subscribe({
         next: (updated) => {
           const idx = this.program.findIndex(p => p.id === this.editingSlot!.id);
           if (idx !== -1) this.program[idx] = updated;
           this.showProgramForm = false;
+          this.programFormSpeaker = null;
         },
         error: () => { this.errorMessage = 'Échec de la mise à jour du créneau.'; }
       });
@@ -180,6 +220,7 @@ export class EventDetailComponent implements OnInit {
         next: (slot) => {
           this.program = [...this.program, slot].sort((a, b) => a.orderIndex - b.orderIndex);
           this.showProgramForm = false;
+          this.programFormSpeaker = null;
         },
         error: () => { this.errorMessage = 'Échec de la création du créneau.'; }
       });
@@ -228,6 +269,124 @@ export class EventDetailComponent implements OnInit {
       next: () => { this.speakers = this.speakers.filter(s => s.id !== speakerId); },
       error: () => { this.errorMessage = 'Échec de la dissociation.'; }
     });
+  }
+
+  unassignSlotSpeaker(slotId: number): void {
+    if (!this.event) return;
+    this.programService.unassignSpeaker(this.event.id, slotId).subscribe({
+      next: (updated) => {
+        const idx = this.program.findIndex(p => p.id === slotId);
+        if (idx !== -1) this.program[idx] = updated;
+      },
+      error: () => { this.errorMessage = "Échec de la suppression de l'intervenant."; }
+    });
+  }
+
+  // ── LINKEDIN IMPORT MODAL ─────────────────────────────────────────────
+
+  /** Open the modal from a slot card — assignment saved immediately to backend. */
+  openImportModalForSlot(slot: EventProgram): void {
+    this.importContext = { mode: 'slot', slotId: slot.id };
+    this.importKeywords = slot.title;
+    this._resetModal();
+  }
+
+  /** Open the modal from the program form — assignment is deferred until form save. */
+  openImportModalForForm(): void {
+    this.importContext = { mode: 'form' };
+    this.importKeywords = this.programForm.title;
+    this._resetModal();
+  }
+
+  private _resetModal(): void {
+    this.importCandidates = [];
+    this.selectedCandidate = null;
+    this.searchError = '';
+    this.assignError = '';
+    this.isSearching = false;
+    this.isAssigning = false;
+    this.showImportModal = true;
+  }
+
+  closeImportModal(): void {
+    this.showImportModal = false;
+    this.importContext = null;
+    this.importCandidates = [];
+    this.selectedCandidate = null;
+  }
+
+  searchLinkedIn(): void {
+    if (!this.importKeywords.trim()) return;
+    this.isSearching = true;
+    this.searchError = '';
+    this.importCandidates = [];
+    this.selectedCandidate = null;
+    this.speakerService.searchLinkedIn(this.importKeywords).subscribe({
+      next: (candidates) => {
+        this.importCandidates = candidates;
+        this.isSearching = false;
+        if (candidates.length === 0) {
+          this.searchError = 'Aucun profil trouvé. Essayez d\'autres mots-clés.';
+        }
+      },
+      error: (err) => {
+        this.searchError = err.error?.message || 'Échec de la recherche LinkedIn.';
+        this.isSearching = false;
+      }
+    });
+  }
+
+  selectCandidate(candidate: SpeakerCandidate): void {
+    this.selectedCandidate = candidate;
+    this.assignError = '';
+  }
+
+  assignSelectedSpeaker(): void {
+    if (!this.selectedCandidate || !this.importContext) return;
+    this.isAssigning = true;
+    this.assignError = '';
+
+    this.speakerService.importOne(this.selectedCandidate).subscribe({
+      next: (speaker) => {
+        if (this.importContext!.mode === 'form') {
+          // Deferred: store in form state, saved when user clicks "Ajouter/Mettre à jour"
+          this.programForm.speakerId = speaker.id;
+          this.programFormSpeaker = {
+            id: speaker.id,
+            name: speaker.fullName,
+            title: speaker.title || null,
+            photoUrl: speaker.photoUrl
+          };
+          this.isAssigning = false;
+          this.closeImportModal();
+        } else {
+          // Immediate: persist to the existing slot right now
+          const slotId = (this.importContext as { mode: 'slot'; slotId: number }).slotId;
+          this.programService.update(this.event!.id, slotId, { speakerId: speaker.id }).subscribe({
+            next: (updated) => {
+              const idx = this.program.findIndex(p => p.id === slotId);
+              if (idx !== -1) this.program[idx] = updated;
+              this.isAssigning = false;
+              this.successMessage = `Intervenant "${speaker.fullName}" assigné.`;
+              this.closeImportModal();
+            },
+            error: () => {
+              this.assignError = "Échec de l'assignation au créneau.";
+              this.isAssigning = false;
+            }
+          });
+        }
+      },
+      error: (err) => {
+        this.assignError = err.error?.message || "Échec de l'import de l'intervenant.";
+        this.isAssigning = false;
+      }
+    });
+  }
+
+  clearFormSpeaker(): void {
+    this.programForm.speakerId = null;
+    this.programFormSpeaker = null;
   }
 
   // ── EVENT WORKFLOW ────────────────────────────────────────────────────

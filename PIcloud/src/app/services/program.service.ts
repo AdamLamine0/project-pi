@@ -30,4 +30,9 @@ export class ProgramService {
   generate(eventId: number): Observable<EventProgram[]> {
     return this.http.post<EventProgram[]>(`${this.api}/${eventId}/program/generate`, {});
   }
+
+  /** Removes the speaker assignment from a slot without deleting the speaker. */
+  unassignSpeaker(eventId: number, slotId: number): Observable<EventProgram> {
+    return this.http.delete<EventProgram>(`${this.api}/${eventId}/program/${slotId}/speaker`);
+  }
 }
