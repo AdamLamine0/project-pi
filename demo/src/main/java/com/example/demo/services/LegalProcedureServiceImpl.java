@@ -1,11 +1,6 @@
 package com.example.demo.services;
 
-
-
-import com.example.demo.dto.ChangeProcedureStatusRequest;
-import com.example.demo.dto.CreateLegalProcedureRequest;
-import com.example.demo.dto.LegalProcedureResponse;
-import com.example.demo.dto.UpdateLegalProcedureRequest;
+import com.example.demo.dto.*;
 import com.example.demo.entity.LegalProcedure;
 import com.example.demo.enums.DocumentStatus;
 import com.example.demo.enums.ProcedureStatus;
@@ -30,14 +25,18 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
     private final LegalProcedureRepository procedureRepository;
     private final LegalDocumentRepository documentRepository;
     private final LegalMapper mapper;
+    private final ChecklistService checklistService;
+
+    // ─── ENTREPRENEUR ────────────────────────────────────────────────
 
     @Override
-    public LegalProcedureResponse create(CreateLegalProcedureRequest request) {
+    public LegalProcedureResponse create(CreateLegalProcedureRequest request, UUID entrepreneurId) {
         LegalProcedure procedure = LegalProcedure.builder()
-                .entrepreneurId(request.entrepreneurId())
+                .entrepreneurId(entrepreneurId)
                 .expertId(request.expertId())
+                .projectName(request.projectName())
                 .procedureType(request.procedureType())
-                .notes(request.notes())
+                .description(request.description())
                 .status(ProcedureStatus.BROUILLON)
                 .completionRate(0F)
                 .build();
@@ -47,8 +46,8 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<LegalProcedureResponse> findAll() {
-        return procedureRepository.findAll()
+    public List<LegalProcedureResponse> findByEntrepreneur(UUID entrepreneurId) {
+        return procedureRepository.findByEntrepreneurId(entrepreneurId)
                 .stream()
                 .map(mapper::toProcedureResponse)
                 .toList();
@@ -61,81 +60,111 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
     }
 
     @Override
-    public LegalProcedureResponse update(UUID id, UpdateLegalProcedureRequest request) {
+    public LegalProcedureResponse submit(UUID id, UUID entrepreneurId) {
         LegalProcedure procedure = getProcedureEntity(id);
 
-        if (procedure.getStatus() == ProcedureStatus.ARCHIVE) {
-            throw new BusinessException("Impossible de modifier un dossier archivé.");
+        if (!procedure.getEntrepreneurId().equals(entrepreneurId)) {
+            throw new BusinessException("Accès non autorisé à ce dossier.");
+        }
+        if (procedure.getStatus() != ProcedureStatus.BROUILLON) {
+            throw new BusinessException("Seul un dossier en BROUILLON peut être soumis.");
         }
 
-        if (request.expertId() != null) {
-            procedure.setExpertId(request.expertId());
+        boolean allUploaded = checklistService.areAllRequiredDocumentsUploaded(id);
+        if (!allUploaded) {
+            throw new BusinessException("Tous les documents obligatoires doivent être déposés avant la soumission.");
         }
-        if (request.procedureType() != null) {
-            procedure.setProcedureType(request.procedureType());
-        }
-        if (request.notes() != null) {
-            procedure.setNotes(request.notes());
-        }
+
+        procedure.setStatus(ProcedureStatus.EN_COURS);
+        procedure.setSubmittedAt(LocalDateTime.now());
+        recalculateCompletionRate(procedure);
 
         return mapper.toProcedureResponse(procedureRepository.save(procedure));
     }
 
     @Override
-    public LegalProcedureResponse changeStatus(UUID id, ChangeProcedureStatusRequest request) {
+    public void deleteDraft(UUID id, UUID entrepreneurId) {
         LegalProcedure procedure = getProcedureEntity(id);
-        ProcedureStatus newStatus = request.status();
 
-        if (procedure.getStatus() == ProcedureStatus.ARCHIVE) {
-            throw new BusinessException("Impossible de changer le statut d'un dossier archivé.");
+        if (!procedure.getEntrepreneurId().equals(entrepreneurId)) {
+            throw new BusinessException("Accès non autorisé.");
+        }
+        if (procedure.getStatus() != ProcedureStatus.BROUILLON) {
+            throw new BusinessException("Seul un dossier en BROUILLON peut être supprimé.");
         }
 
-        procedure.setStatus(newStatus);
+        procedureRepository.delete(procedure);
+    }
 
-        if (newStatus == ProcedureStatus.EN_ATTENTE_INSTITUTION && procedure.getSubmittedAt() == null) {
-            procedure.setSubmittedAt(LocalDateTime.now());
+    // ─── EXPERT ──────────────────────────────────────────────────────
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<LegalProcedureResponse> findByExpert(UUID expertId) {
+        return procedureRepository
+                .findByExpertIdAndStatus(expertId, ProcedureStatus.EN_ATTENTE_EXPERT)
+                .stream()
+                .map(mapper::toProcedureResponse)
+                .toList();
+    }
+
+    @Override
+    public LegalProcedureResponse applyExpertDecision(UUID id, ExpertDecisionRequest request, UUID expertId) {
+        LegalProcedure procedure = getProcedureEntity(id);
+
+        if (!procedure.getExpertId().equals(expertId)) {
+            throw new BusinessException("Ce dossier ne vous est pas assigné.");
+        }
+        if (procedure.getStatus() != ProcedureStatus.EN_ATTENTE_EXPERT) {
+            throw new BusinessException("Le dossier doit être EN_ATTENTE_EXPERT pour une décision expert.");
         }
 
-        if (newStatus == ProcedureStatus.COMPLETE || newStatus == ProcedureStatus.REFUSE || newStatus == ProcedureStatus.ABANDONNE) {
-            procedure.setCompletedAt(LocalDateTime.now());
+        if (request.approved()) {
+            procedure.setStatus(ProcedureStatus.COMPLETE);
+        } else {
+            procedure.setStatus(ProcedureStatus.REFUSE);
+        }
+
+        procedure.setCompletedAt(LocalDateTime.now());
+
+        if (request.remark() != null) {
+            procedure.setRemark(request.remark());
         }
 
         recalculateCompletionRate(procedure);
         return mapper.toProcedureResponse(procedureRepository.save(procedure));
     }
 
-    @Override
-    public void archive(UUID id) {
-        LegalProcedure procedure = getProcedureEntity(id);
-
-        if (!(procedure.getStatus() == ProcedureStatus.COMPLETE
-                || procedure.getStatus() == ProcedureStatus.REFUSE
-                || procedure.getStatus() == ProcedureStatus.ABANDONNE)) {
-            throw new BusinessException("Un dossier doit être COMPLETE, REFUSE ou ABANDONNE avant archivage.");
-        }
-
-        procedure.setStatus(ProcedureStatus.ARCHIVE);
-        procedureRepository.save(procedure);
-    }
+    // ─── IA ──────────────────────────────────────────────────────────
 
     @Override
-    public void deleteDraft(UUID id) {
+    public LegalProcedureResponse setAiResult(UUID id, boolean approved, String remark) {
         LegalProcedure procedure = getProcedureEntity(id);
 
-        if (procedure.getStatus() != ProcedureStatus.BROUILLON) {
-            throw new BusinessException("Seul un dossier en brouillon peut être supprimé.");
+        if (procedure.getStatus() != ProcedureStatus.EN_COURS) {
+            throw new BusinessException("L'IA ne peut analyser qu'un dossier EN_COURS.");
         }
 
-        if (procedure.getCreatedAt().isBefore(LocalDateTime.now().minusHours(48))) {
-            throw new BusinessException("Suppression autorisée uniquement dans les 48h pour un brouillon.");
+        if (approved) {
+            procedure.setStatus(ProcedureStatus.EN_ATTENTE_EXPERT);
+        } else {
+            procedure.setStatus(ProcedureStatus.REFUSE);
+            procedure.setCompletedAt(LocalDateTime.now());
         }
 
-        procedureRepository.delete(procedure);
+        if (remark != null) {
+            procedure.setRemark(remark);
+        }
+
+        return mapper.toProcedureResponse(procedureRepository.save(procedure));
     }
+
+    // ─── HELPERS ─────────────────────────────────────────────────────
 
     private LegalProcedure getProcedureEntity(UUID id) {
         return procedureRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Dossier juridique introuvable avec l'id : " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Dossier juridique introuvable avec l'id : " + id));
     }
 
     private void recalculateCompletionRate(LegalProcedure procedure) {
@@ -144,10 +173,11 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
             procedure.setCompletionRate(0F);
             return;
         }
-
-        long validated = documentRepository.countByProcedureIdAndStatus(procedure.getId(), DocumentStatus.VALIDE_PAR_EXPERT);
-        float rate = ((float) validated / total) * 100;
+        long deposed = documentRepository.countByProcedureIdAndStatus(
+                procedure.getId(), DocumentStatus.DEPOSE);
+        long validated = documentRepository.countByProcedureIdAndStatus(
+                procedure.getId(), DocumentStatus.VALIDE);
+        float rate = ((float)(deposed + validated) / total) * 100;
         procedure.setCompletionRate(Math.round(rate * 100f) / 100f);
     }
 }
-

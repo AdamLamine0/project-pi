@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-
-import { LegalProcedure, ProcedureStatus } from '../../../../models/legal-procedure.model';
+import { LegalProcedureResponse, ProcedureStatus, STATUS_LABELS } from '../../../../models/legal-procedure.model';
 import { LegalProcedureService } from '../../../../services/legal-procedure.service';
+
+// ⚠️ Remplacez par la vraie récupération depuis votre AuthService
+const CURRENT_USER_ID = 'entrepreneur-uuid-placeholder';
 
 @Component({
   selector: 'app-legal-procedure-list',
@@ -10,46 +12,41 @@ import { LegalProcedureService } from '../../../../services/legal-procedure.serv
   styleUrls: ['./legal-procedure-list.component.css']
 })
 export class LegalProcedureListComponent implements OnInit {
-  procedures: LegalProcedure[] = [];
-  filteredProcedures: LegalProcedure[] = [];
+
+  procedures: LegalProcedureResponse[] = [];
+  filteredProcedures: LegalProcedureResponse[] = [];
   selectedStatus = '';
   loading = false;
   errorMessage = '';
 
   readonly statuses: ProcedureStatus[] = [
-    'BROUILLON',
-    'EN_COURS',
-    'EN_ATTENTE_INSTITUTION',
-    'VALIDE_PARTIELLEMENT',
-    'COMPLETE',
-    'ABANDONNE',
-    'REFUSE',
-    'ARCHIVE'
+    'BROUILLON', 'EN_COURS', 'EN_ATTENTE_EXPERT', 'COMPLETE', 'REFUSE'
   ];
 
+  readonly statusLabels = STATUS_LABELS;
+
   constructor(
-    private readonly procedureService: LegalProcedureService,
+    private readonly service: LegalProcedureService,
     private readonly router: Router
   ) {}
 
   ngOnInit(): void {
     this.loadProcedures();
   }
-  getStatusClass(status: string): string {
-  return `status-${status}`;
-}
+
   loadProcedures(): void {
     this.loading = true;
     this.errorMessage = '';
 
-    this.procedureService.getAll().subscribe({
+    // Charge uniquement les dossiers de l'entrepreneur connecté
+    this.service.getMyProcedures(CURRENT_USER_ID).subscribe({
       next: (data) => {
         this.procedures = data;
         this.applyFilter();
         this.loading = false;
       },
-      error: (error) => {
-        this.errorMessage = error?.error?.message || 'Erreur lors du chargement.';
+      error: (err) => {
+        this.errorMessage = err?.error?.message || 'Erreur lors du chargement.';
         this.loading = false;
       }
     });
@@ -65,17 +62,22 @@ export class LegalProcedureListComponent implements OnInit {
     this.router.navigate(['/legal-procedures/new']);
   }
 
-  archive(id: string): void {
-    this.procedureService.archive(id).subscribe({
+  submit(id: string): void {
+    this.service.submit(id, CURRENT_USER_ID).subscribe({
       next: () => this.loadProcedures(),
-      error: (error) => this.errorMessage = error?.error?.message || 'Erreur lors de l’archivage.'
+      error: (err) => this.errorMessage = err?.error?.message || 'Erreur lors de la soumission.'
     });
   }
 
   deleteDraft(id: string): void {
-    this.procedureService.deleteDraft(id).subscribe({
+    if (!confirm('Supprimer ce dossier en brouillon ?')) return;
+    this.service.deleteDraft(id, CURRENT_USER_ID).subscribe({
       next: () => this.loadProcedures(),
-      error: (error) => this.errorMessage = error?.error?.message || 'Erreur lors de la suppression.'
+      error: (err) => this.errorMessage = err?.error?.message || 'Erreur lors de la suppression.'
     });
+  }
+
+  getStatusClass(status: ProcedureStatus): string {
+    return `status-${status.toLowerCase().replace(/_/g, '-')}`;
   }
 }

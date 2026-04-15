@@ -1,10 +1,7 @@
 package com.example.demo.dto;
 
-
-
 import com.example.demo.enums.ProcedureStatus;
 import com.example.demo.enums.ProcedureType;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -13,13 +10,14 @@ public record LegalProcedureResponse(
         UUID id,
         UUID entrepreneurId,
         UUID expertId,
+        String projectName,
         ProcedureType procedureType,
+        String description,
         ProcedureStatus status,
+        String remark,
         Float completionRate,
         LocalDateTime createdAt,
         LocalDateTime submittedAt,
         LocalDateTime completedAt,
-        String notes,
         List<LegalDocumentResponse> documents
 ) {}
-

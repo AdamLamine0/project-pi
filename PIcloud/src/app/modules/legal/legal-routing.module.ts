@@ -1,16 +1,21 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { LegalProcedureListComponent } from './pages/legal-procedure-list/legal-procedure-list.component';
-import { LegalProcedureFormComponent } from './pages/legal-procedure-form/legal-procedure-form.component';
+
+import { ProcedureHomeComponent }        from './pages/procedure-home/procedure-home.component';
+import { LegalProcedureListComponent }   from './pages/legal-procedure-list/legal-procedure-list.component';
+import { LegalProcedureFormComponent }   from './pages/legal-procedure-form/legal-procedure-form.component';
 import { LegalProcedureDetailComponent } from './pages/legal-procedure-detail/legal-procedure-detail.component';
-import { ProcedureHomeComponent } from './pages/procedure-home/procedure-home.component'; // ✅
+import { ExpertProceduresComponent }     from './pages/expert-procedures/expert-procedures.component';
 
 const routes: Routes = [
-  { path: '', component: ProcedureHomeComponent },       // ✅ home par défaut
-  { path: 'list', component: LegalProcedureListComponent },
-  { path: 'new', component: LegalProcedureFormComponent },
-  { path: ':id', component: LegalProcedureDetailComponent },
-  { path: ':id/edit', component: LegalProcedureFormComponent }
+  // ── Entrepreneur ───────────────────────────────────────────────
+  { path: '',        component: ProcedureHomeComponent },       // /legal-procedures
+  { path: 'list',    component: LegalProcedureListComponent },  // /legal-procedures/list
+  { path: 'new',     component: LegalProcedureFormComponent },  // /legal-procedures/new
+  { path: ':id',     component: LegalProcedureDetailComponent },// /legal-procedures/:id (checklist incluse)
+
+  // ── Expert ─────────────────────────────────────────────────────
+  { path: 'expert/assigned', component: ExpertProceduresComponent }, // /legal-procedures/expert/assigned
 ];
 
 @NgModule({

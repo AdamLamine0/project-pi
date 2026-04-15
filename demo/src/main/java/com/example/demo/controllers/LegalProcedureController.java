@@ -1,9 +1,6 @@
 package com.example.demo.controllers;
 
-import com.example.demo.dto.ChangeProcedureStatusRequest;
-import com.example.demo.dto.CreateLegalProcedureRequest;
-import com.example.demo.dto.LegalProcedureResponse;
-import com.example.demo.dto.UpdateLegalProcedureRequest;
+import com.example.demo.dto.*;
 import com.example.demo.services.ChecklistService;
 import com.example.demo.services.LegalProcedureService;
 import jakarta.validation.Valid;
@@ -22,15 +19,23 @@ public class LegalProcedureController {
 
     private final LegalProcedureService service;
     private final ChecklistService checklistService;
+
+    // ═══════════════════════════════════════════════
+    // INTERFACE ENTREPRENEUR
+    // ═══════════════════════════════════════════════
+
     @PostMapping
-    public ResponseEntity<LegalProcedureResponse> create(@Valid @RequestBody CreateLegalProcedureRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
+    public ResponseEntity<LegalProcedureResponse> create(
+            @Valid @RequestBody CreateLegalProcedureRequest request,
+            @RequestHeader("X-User-Id") UUID entrepreneurId) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(service.create(request, entrepreneurId));
     }
 
-
-    @GetMapping
-    public ResponseEntity<List<LegalProcedureResponse>> findAll() {
-        return ResponseEntity.ok(service.findAll());
+    @GetMapping("/my-procedures")
+    public ResponseEntity<List<LegalProcedureResponse>> myProcedures(
+            @RequestHeader("X-User-Id") UUID entrepreneurId) {
+        return ResponseEntity.ok(service.findByEntrepreneur(entrepreneurId));
     }
 
     @GetMapping("/{id}")
@@ -38,33 +43,41 @@ public class LegalProcedureController {
         return ResponseEntity.ok(service.findById(id));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<LegalProcedureResponse> update(@PathVariable UUID id,
-                                                         @Valid @RequestBody UpdateLegalProcedureRequest request) {
-        return ResponseEntity.ok(service.update(id, request));
+    @GetMapping("/{id}/checklist")
+    public ResponseEntity<ProcedureChecklistResponse> getChecklist(@PathVariable UUID id) {
+        return ResponseEntity.ok(checklistService.getChecklist(id));
     }
 
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<LegalProcedureResponse> changeStatus(@PathVariable UUID id,
-                                                               @Valid @RequestBody ChangeProcedureStatusRequest request) {
-        return ResponseEntity.ok(service.changeStatus(id, request));
-    }
-
-    @PatchMapping("/{id}/archive")
-    public ResponseEntity<Void> archive(@PathVariable UUID id) {
-        service.archive(id);
-        return ResponseEntity.noContent().build();
+    @PostMapping("/{id}/submit")
+    public ResponseEntity<LegalProcedureResponse> submit(
+            @PathVariable UUID id,
+            @RequestHeader("X-User-Id") UUID entrepreneurId) {
+        return ResponseEntity.ok(service.submit(id, entrepreneurId));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteDraft(@PathVariable UUID id) {
-        service.deleteDraft(id);
+    public ResponseEntity<Void> deleteDraft(
+            @PathVariable UUID id,
+            @RequestHeader("X-User-Id") UUID entrepreneurId) {
+        service.deleteDraft(id, entrepreneurId);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{id}/checklist")
-    public Object getChecklist(@PathVariable UUID id) {
-        return checklistService.getChecklist(id);
+    // ═══════════════════════════════════════════════
+    // INTERFACE EXPERT
+    // ═══════════════════════════════════════════════
+
+    @GetMapping("/expert/assigned")
+    public ResponseEntity<List<LegalProcedureResponse>> assignedToExpert(
+            @RequestHeader("X-User-Id") UUID expertId) {
+        return ResponseEntity.ok(service.findByExpert(expertId));
+    }
+
+    @PostMapping("/{id}/expert-decision")
+    public ResponseEntity<LegalProcedureResponse> expertDecision(
+            @PathVariable UUID id,
+            @Valid @RequestBody ExpertDecisionRequest request,
+            @RequestHeader("X-User-Id") UUID expertId) {
+        return ResponseEntity.ok(service.applyExpertDecision(id, request, expertId));
     }
 }
-

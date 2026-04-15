@@ -1,82 +1,50 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { LegalProcedureService } from '../../../../services/legal-procedure.service';
-import { ProcedureTypeOverview } from '../../../../models/procedure-type.model';
+import {
+  ProcedureType,
+  PROCEDURE_TYPE_LABELS,
+  PROCEDURE_TYPE_DESCRIPTIONS,
+} from '../../../../models/legal-procedure.model';
 
 @Component({
-  selector: 'app-procedure-home',              // ✅ corrigé
-  templateUrl: './procedure-home.component.html', // ✅ corrigé
+  selector: 'app-procedure-home',
+  templateUrl: './procedure-home.component.html',
   styleUrls: ['./procedure-home.component.css']
 })
 export class ProcedureHomeComponent implements OnInit {
-  procedureTypes: ProcedureTypeOverview[] = [];
-  loading = false;
-  errorMessage = '';
 
-  constructor(
-    private readonly service: LegalProcedureService,
-    private readonly router: Router
-  ) {}
+  // Données 100% statiques — plus d'appel à /procedure-types/overview
+  readonly procedureTypes: ProcedureType[] = [
+    'SARL',
+    'SUARL',
+    'LABEL_STARTUP',
+    'PI',
+    'FISCALITE',
+    'CONFORMITE',
+    'AUTRE',
+  ];
 
-  ngOnInit(): void {
-    this.loadOverview();
-  }
+  readonly labels = PROCEDURE_TYPE_LABELS;
+  readonly descriptions = PROCEDURE_TYPE_DESCRIPTIONS;
 
-  loadOverview(): void {
-    this.loading = true;
-    this.errorMessage = '';
-    this.service.getProcedureTypesOverview().subscribe({
-      next: (data) => {
-        this.procedureTypes = data;
-        this.loading = false;
-      },
-      error: (error: any) => {
-        this.errorMessage = error?.error?.message || 'Erreur lors du chargement.';
-        this.loading = false;
-      }
-    });
-  }
+  constructor(private readonly router: Router) {}
 
-  createProcedure(type: string): void {
+  ngOnInit(): void {}
+
+  createProcedure(type: ProcedureType): void {
     this.router.navigate(['/legal-procedures/new'], { queryParams: { type } });
   }
 
-  getProcedureIconClass(type: string): string {
-    const map: Record<string, string> = {
-      SARL: 'icon-sarl', SUARL: 'icon-suarl', LABEL_STARTUP: 'icon-startup',
-      PI: 'icon-pi', FISCALITE: 'icon-fiscalite', CONFORMITE: 'icon-conformite'
+  getProcedureIcon(type: ProcedureType): string {
+    const icons: Record<ProcedureType, string> = {
+      SARL:                  '🏢',
+      SUARL:                 '🏢',
+      LABEL_STARTUP:         '🚀',
+      PI: '📋',
+      FISCALITE:    '📝',
+      CONFORMITE:           '✅',
+      AUTRE:           '📁',
     };
-    return map[type] || 'icon-autre';
+    return icons[type] || '📁';
   }
-
-  getProcedureShortLabel(type: string): string {
-    const map: Record<string, string> = {
-      SARL: 'SA', SUARL: 'SU', LABEL_STARTUP: 'ST',
-      PI: 'PI', FISCALITE: 'FI', CONFORMITE: 'CO'
-    };
-    return map[type] || 'AU';
-  }
-
-  get totalProcedures(): number {
-    return this.procedureTypes.reduce((sum, item) => sum + item.procedureCount, 0);
-  }
-
-  getDescription(type: string): string {
-  switch (type) {
-    case 'SARL':
-      return "Constitution d'une société à responsabilité limitée avec gestion des statuts, capital et immatriculation.";
-    case 'SUARL':
-      return "Création d'une société unipersonnelle permettant à un entrepreneur d'exercer avec responsabilité limitée.";
-    case 'LABEL_STARTUP':
-      return "Procédure d'obtention du label startup incluant dossier technique, juridique et financier.";
-    case 'PI':
-      return "Protection des actifs immatériels tels que marque, brevet ou dessin industriel.";
-    case 'FISCALITE':
-      return "Gestion des obligations fiscales et constitution des dossiers déclaratifs et justificatifs.";
-    case 'CONFORMITE':
-      return "Vérification et mise en conformité avec les exigences légales et réglementaires.";
-    default:
-      return "Procédure juridique spécifique nécessitant un traitement personnalisé.";
-  }
-}
 }
