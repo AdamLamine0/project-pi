@@ -12,12 +12,8 @@ public interface LegalProcedureRepository extends JpaRepository<LegalProcedure, 
 
     List<LegalProcedure> findByEntrepreneurId(UUID entrepreneurId);
 
-    List<LegalProcedure> findByStatus(ProcedureStatus status);
+    List<LegalProcedure> findByExpertId(UUID expertId);
 
-    List<LegalProcedure> findByProcedureType(ProcedureType procedureType);
-
-    List<LegalProcedure> findByEntrepreneurIdAndStatus(UUID entrepreneurId, ProcedureStatus status);
-
+    List<LegalProcedure> findByExpertIdAndStatus(UUID expertId, ProcedureStatus status);
     long countByProcedureType(ProcedureType procedureType);
 }
-

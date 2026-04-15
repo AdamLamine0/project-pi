@@ -6,4 +6,6 @@ public enum Role {
     MENTOR,
     INVESTOR,
     PARTNER,
+    ENTREPRENEUR,
+    EXPERT
 }

@@ -52,8 +52,7 @@ public class LegalDocument {
     public void prePersist() {
         this.uploadedAt = LocalDateTime.now();
         if (this.status == null) {
-            this.status = DocumentStatus.EN_ATTENTE;
+            this.status = DocumentStatus.DEPOSE;
         }
     }
 }
-

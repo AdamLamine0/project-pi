@@ -1,101 +1,116 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {
-  ChangeProcedureStatusRequest,
-  LegalDocument,
-  LegalProcedure,
-  UpdateLegalDocumentStatusRequest,
-  UpdateLegalProcedureRequest
+  LegalProcedureResponse,
+  LegalDocumentResponse,
+  CreateLegalProcedureRequest,
+  ExpertDecisionRequest,
+  ChecklistResponse,
 } from '../models/legal-procedure.model';
-import { ProcedureChecklist, ProcedureRequirement, ProcedureTypeOverview } from '../models/procedure-type.model';
-@Injectable({
-  providedIn: 'root'
-})
+
+@Injectable({ providedIn: 'root' })
 export class LegalProcedureService {
-  private readonly apiUrl = 'http://localhost:8090/api/legal-procedures';
 
-  constructor(private http: HttpClient) {}
+  private readonly base = 'http://localhost:8090/api/legal-procedures';
+  private readonly docsBase = 'http://localhost:8090/api/legal-documents';
 
-  getAll(): Observable<LegalProcedure[]> {
-    return this.http.get<LegalProcedure[]>(this.apiUrl);
+  constructor(private readonly http: HttpClient) {}
+
+  // ── Helpers ──────────────────────────────────────────────────────────────────
+
+  private userHeader(userId: string): { headers: HttpHeaders } {
+    return { headers: new HttpHeaders({ 'X-User-Id': userId }) };
   }
 
-  getById(id: string): Observable<LegalProcedure> {
-    return this.http.get<LegalProcedure>(`${this.apiUrl}/${id}`);
-  }
+  // ── ENTREPRENEUR ─────────────────────────────────────────────────────────────
 
-  create(payload: any): Observable<LegalProcedure> {
-    return this.http.post<LegalProcedure>(this.apiUrl, payload);
-  }
-
-  update(id: string, payload: UpdateLegalProcedureRequest): Observable<LegalProcedure> {
-    return this.http.put<LegalProcedure>(`${this.apiUrl}/${id}`, payload);
-  }
-
-  changeStatus(id: string, payload: ChangeProcedureStatusRequest): Observable<LegalProcedure> {
-    return this.http.patch<LegalProcedure>(`${this.apiUrl}/${id}/status`, payload);
-  }
-
-  archive(id: string): Observable<void> {
-    return this.http.patch<void>(`${this.apiUrl}/${id}/archive`, {});
-  }
-
-  deleteDraft(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
-  }
-
-  uploadDocument(procedureId: string, documentType: string, file: File, expiresAt?: string): Observable<LegalDocument> {
-    const formData = new FormData();
-    formData.append('documentType', documentType);
-    formData.append('file', file);
-
-    if (expiresAt) {
-      formData.append('expiresAt', expiresAt);
-    }
-
-    return this.http.post<LegalDocument>(`${this.apiUrl}/${procedureId}/documents`, formData);
-  }
-
-  getDocuments(procedureId: string): Observable<LegalDocument[]> {
-    return this.http.get<LegalDocument[]>(`${this.apiUrl}/${procedureId}/documents`);
-  }
-
-  updateDocumentStatus(
-    procedureId: string,
-    documentId: string,
-    payload: UpdateLegalDocumentStatusRequest
-  ): Observable<LegalDocument> {
-    return this.http.patch<LegalDocument>(
-      `${this.apiUrl}/${procedureId}/documents/${documentId}/status`,
-      payload
+  /** Crée un dossier. entrepreneurId est transmis via header X-User-Id */
+  create(request: CreateLegalProcedureRequest, entrepreneurId: string): Observable<LegalProcedureResponse> {
+    return this.http.post<LegalProcedureResponse>(
+      this.base, request, this.userHeader(entrepreneurId)
     );
   }
 
-  deleteDocument(procedureId: string, documentId: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${procedureId}/documents/${documentId}`);
-  }
-  getProcedureTypesOverview() {
-  return this.http.get<ProcedureTypeOverview[]>('http://localhost:8090/api/procedure-types/overview');
-}
-
-getRequirementsByType(type: string) {
-  return this.http.get<ProcedureRequirement[]>(`http://localhost:8090/api/procedure-types/${type}/requirements`);
-}
-
-getChecklist(procedureId: string) {
-  return this.http.get<ProcedureChecklist>(`${this.apiUrl}/${procedureId}/checklist`);
-}
-
-uploadRequiredDocument(procedureId: string, requirementCode: string, file: File, expiresAt?: string) {
-  const formData = new FormData();
-  formData.append('requirementCode', requirementCode);
-  formData.append('file', file);
-
-  if (expiresAt) {
-    formData.append('expiresAt', expiresAt);
+  /** Récupère uniquement les dossiers de l'entrepreneur connecté */
+  getMyProcedures(entrepreneurId: string): Observable<LegalProcedureResponse[]> {
+    return this.http.get<LegalProcedureResponse[]>(
+      `${this.base}/my-procedures`, this.userHeader(entrepreneurId)
+    );
   }
 
-  return this.http.post(`${this.apiUrl}/${procedureId}/documents`, formData);
-}
+  /** Récupère un dossier par son id */
+  getById(id: string): Observable<LegalProcedureResponse> {
+    return this.http.get<LegalProcedureResponse>(`${this.base}/${id}`);
+  }
+
+  /** Soumet le dossier (BROUILLON → EN_COURS). Vérifie checklist côté backend */
+  submit(id: string, entrepreneurId: string): Observable<LegalProcedureResponse> {
+    return this.http.post<LegalProcedureResponse>(
+      `${this.base}/${id}/submit`, {}, this.userHeader(entrepreneurId)
+    );
+  }
+
+  /** Supprime un dossier en BROUILLON */
+  deleteDraft(id: string, entrepreneurId: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.base}/${id}`, this.userHeader(entrepreneurId)
+    );
+  }
+
+  // ── CHECKLIST & DOCUMENTS ────────────────────────────────────────────────────
+
+  /** Récupère la checklist d'une procédure */
+  getChecklist(procedureId: string): Observable<ChecklistResponse> {
+    return this.http.get<ChecklistResponse>(`${this.base}/${procedureId}/checklist`);
+  }
+
+  /** Dépose un document pour un item de la checklist */
+  uploadDocument(
+    procedureId: string,
+    requirementCode: string,
+    file: File,
+    expiresAt?: string
+  ): Observable<LegalDocumentResponse> {
+    const formData = new FormData();
+    formData.append('requirementCode', requirementCode);
+    formData.append('file', file);
+    if (expiresAt) formData.append('expiresAt', expiresAt);
+
+    return this.http.post<LegalDocumentResponse>(
+      `${this.docsBase}/${procedureId}/upload`, formData
+    );
+  }
+
+  /** Récupère tous les documents d'une procédure */
+  getDocuments(procedureId: string): Observable<LegalDocumentResponse[]> {
+    return this.http.get<LegalDocumentResponse[]>(
+      `${this.docsBase}/procedure/${procedureId}`
+    );
+  }
+
+  /** Supprime un document (seulement si BROUILLON) */
+  deleteDocument(documentId: string): Observable<void> {
+    return this.http.delete<void>(`${this.docsBase}/${documentId}`);
+  }
+
+  // ── EXPERT ───────────────────────────────────────────────────────────────────
+
+  /** Récupère les dossiers EN_ATTENTE_EXPERT assignés à l'expert connecté */
+  getAssignedProcedures(expertId: string): Observable<LegalProcedureResponse[]> {
+    return this.http.get<LegalProcedureResponse[]>(
+      `${this.base}/expert/assigned`, this.userHeader(expertId)
+    );
+  }
+
+  /** L'expert valide ou refuse le dossier */
+  applyExpertDecision(
+    id: string,
+    request: ExpertDecisionRequest,
+    expertId: string
+  ): Observable<LegalProcedureResponse> {
+    return this.http.post<LegalProcedureResponse>(
+      `${this.base}/${id}/expert-decision`, request, this.userHeader(expertId)
+    );
+  }
 }
