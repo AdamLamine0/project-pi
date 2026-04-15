@@ -2,16 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { LegalProcedureService } from '../../../../services/legal-procedure.service';
-import {
-  ProcedureType,
-  PROCEDURE_TYPE_LABELS,
-  STATIC_EXPERTS,
-  ExpertSummary
-} from '../../../../models/legal-procedure.model';
-
-// ⚠️ Remplacez par la vraie récupération depuis votre AuthService
-const CURRENT_USER_ID = 'entrepreneur-uuid-placeholder';
+import { AuthService } from '../../../../core/services/auth.service';
+import { ProcedureType, PROCEDURE_TYPE_LABELS, ExpertSummary } from '../../../../models/legal-procedure.model';
 
 @Component({
   selector: 'app-legal-procedure-form',
@@ -24,46 +18,45 @@ export class LegalProcedureFormComponent implements OnInit {
   loading = false;
   errorMessage = '';
   successMessage = '';
+  experts: ExpertSummary[] = [];
 
-  // Liste statique des types de procédure (aligne avec l'enum backend)
   readonly procedureTypes: ProcedureType[] = [
-    'SARL',
-    'SUARL',
-    'LABEL_STARTUP',
-    'PI',
-    'FISCALITE',
-    'CONFORMITE',
-    'AUTRE',
+    'SARL', 'SUARL', 'LABEL_STARTUP', 'PI', 'FISCALITE', 'CONFORMITE', 'AUTRE'
   ];
-   
-
   readonly procedureTypeLabels = PROCEDURE_TYPE_LABELS;
 
-  // Liste statique des experts
-  readonly experts: ExpertSummary[] = STATIC_EXPERTS;
+  private readonly userId: number;
 
   constructor(
     private readonly fb: FormBuilder,
     private readonly service: LegalProcedureService,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly location: Location
-  ) {}
+    private readonly location: Location,
+    private readonly auth: AuthService,
+    private readonly http: HttpClient
+  ) {
+    this.userId = this.auth.getUserId();
+  }
 
   ngOnInit(): void {
-    // entrepreneurId est retiré du formulaire — injecté via X-User-Id côté backend
     this.form = this.fb.group({
       projectName:   ['', [Validators.required, Validators.maxLength(200)]],
       procedureType: ['', Validators.required],
-      expertId:      ['', Validators.required],
+      expertId:      [null, Validators.required],
       description:   ['', Validators.maxLength(5000)],
     });
 
-    // Pré-sélection du type si venu via la home page
     const typeFromQuery = this.route.snapshot.queryParamMap.get('type');
     if (typeFromQuery) {
       this.form.patchValue({ procedureType: typeFromQuery });
     }
+
+    // Charge la liste des experts depuis l'API users
+    this.http.get<ExpertSummary[]>('http://localhost:8090/api/users/experts').subscribe({
+      next: (data) => this.experts = data,
+      error: () => this.errorMessage = 'Impossible de charger la liste des experts.'
+    });
   }
 
   goBack(): void {
@@ -86,15 +79,14 @@ export class LegalProcedureFormComponent implements OnInit {
       {
         projectName:   raw.projectName,
         procedureType: raw.procedureType,
-        expertId:      raw.expertId,
+        expertId:      Number(raw.expertId),   // Integer côté backend
         description:   raw.description || null,
       },
-      CURRENT_USER_ID   // transmis comme X-User-Id
+      this.userId
     ).subscribe({
       next: (created) => {
         this.successMessage = 'Dossier créé avec succès.';
         this.loading = false;
-        // Redirige vers la checklist du dossier créé
         setTimeout(() => this.router.navigate(['/legal-procedures', created.id]), 800);
       },
       error: (err) => {

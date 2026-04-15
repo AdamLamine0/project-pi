@@ -1,10 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { LegalProcedureService } from '../../../../services/legal-procedure.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { LegalProcedureResponse, STATUS_LABELS, PROCEDURE_TYPE_LABELS } from '../../../../models/legal-procedure.model';
-
-// ⚠️ Remplacez par la vraie récupération depuis votre AuthService
-const CURRENT_EXPERT_ID = 'expert-uuid-placeholder';
 
 @Component({
   selector: 'app-expert-procedures',
@@ -25,10 +23,15 @@ export class ExpertProceduresComponent implements OnInit {
   readonly statusLabels = STATUS_LABELS;
   readonly procedureTypeLabels = PROCEDURE_TYPE_LABELS;
 
+  private readonly expertId: number;
+
   constructor(
     private readonly service: LegalProcedureService,
-    private readonly fb: FormBuilder
-  ) {}
+    private readonly fb: FormBuilder,
+    private readonly auth: AuthService
+  ) {
+    this.expertId = this.auth.getUserId();
+  }
 
   ngOnInit(): void {
     this.decisionForm = this.fb.group({
@@ -40,7 +43,7 @@ export class ExpertProceduresComponent implements OnInit {
 
   loadAssigned(): void {
     this.loading = true;
-    this.service.getAssignedProcedures(CURRENT_EXPERT_ID).subscribe({
+    this.service.getAssignedProcedures(this.expertId).subscribe({
       next: (data) => {
         this.procedures = data;
         this.loading = false;
@@ -61,7 +64,6 @@ export class ExpertProceduresComponent implements OnInit {
 
   submitDecision(): void {
     if (!this.selectedProcedure || this.decisionForm.invalid) return;
-
     this.submitting = true;
     this.errorMessage = '';
     this.successMessage = '';
@@ -71,10 +73,10 @@ export class ExpertProceduresComponent implements OnInit {
     this.service.applyExpertDecision(
       this.selectedProcedure.id,
       { approved: approved === 'true' || approved === true, remark: remark || null },
-      CURRENT_EXPERT_ID
+      this.expertId
     ).subscribe({
       next: () => {
-        this.successMessage = approved ? 'Dossier validé avec succès.' : 'Dossier refusé.';
+        this.successMessage = approved ? 'Dossier validé.' : 'Dossier refusé.';
         this.submitting = false;
         this.selectedProcedure = undefined;
         this.loadAssigned();

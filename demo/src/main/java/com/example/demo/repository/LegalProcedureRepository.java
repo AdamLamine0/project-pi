@@ -10,10 +10,10 @@ import java.util.UUID;
 
 public interface LegalProcedureRepository extends JpaRepository<LegalProcedure, UUID> {
 
-    List<LegalProcedure> findByEntrepreneurId(UUID entrepreneurId);
+    List<LegalProcedure> findByEntrepreneurId(Integer entrepreneurId);
 
-    List<LegalProcedure> findByExpertId(UUID expertId);
+    List<LegalProcedure> findByExpertId(Integer expertId);
 
-    List<LegalProcedure> findByExpertIdAndStatus(UUID expertId, ProcedureStatus status);
+    List<LegalProcedure> findByExpertIdAndStatus(Integer expertId, ProcedureStatus status);
     long countByProcedureType(ProcedureType procedureType);
 }

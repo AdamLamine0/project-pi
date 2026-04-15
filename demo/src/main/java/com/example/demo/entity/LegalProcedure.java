@@ -25,13 +25,11 @@ public class LegalProcedure {
     @UuidGenerator
     private UUID id;
 
-    // Récupéré automatiquement depuis X-User-Id header (jamais saisi)
     @Column(name = "entrepreneur_id", nullable = false)
-    private UUID entrepreneurId;
+    private Integer entrepreneurId;
 
-    // Choisi depuis liste statique (utilisateurs avec role EXPERT)
     @Column(name = "expert_id")
-    private UUID expertId;
+    private Integer expertId;
 
     @Column(name = "project_name", nullable = false)
     private String projectName;

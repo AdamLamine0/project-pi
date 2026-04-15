@@ -13,46 +13,38 @@ import {
 export class LegalProcedureService {
 
   private readonly base = 'http://localhost:8090/api/legal-procedures';
-  private readonly docsBase = 'http://localhost:8090/api/legal-documents';
 
   constructor(private readonly http: HttpClient) {}
 
-  // ── Helpers ──────────────────────────────────────────────────────────────────
-
-  private userHeader(userId: string): { headers: HttpHeaders } {
-    return { headers: new HttpHeaders({ 'X-User-Id': userId }) };
+  private userHeader(userId: number): { headers: HttpHeaders } {
+    return { headers: new HttpHeaders({ 'X-User-Id': String(userId) }) };
   }
 
   // ── ENTREPRENEUR ─────────────────────────────────────────────────────────────
 
-  /** Crée un dossier. entrepreneurId est transmis via header X-User-Id */
-  create(request: CreateLegalProcedureRequest, entrepreneurId: string): Observable<LegalProcedureResponse> {
+  create(request: CreateLegalProcedureRequest, entrepreneurId: number): Observable<LegalProcedureResponse> {
     return this.http.post<LegalProcedureResponse>(
       this.base, request, this.userHeader(entrepreneurId)
     );
   }
 
-  /** Récupère uniquement les dossiers de l'entrepreneur connecté */
-  getMyProcedures(entrepreneurId: string): Observable<LegalProcedureResponse[]> {
+  getMyProcedures(entrepreneurId: number): Observable<LegalProcedureResponse[]> {
     return this.http.get<LegalProcedureResponse[]>(
       `${this.base}/my-procedures`, this.userHeader(entrepreneurId)
     );
   }
 
-  /** Récupère un dossier par son id */
   getById(id: string): Observable<LegalProcedureResponse> {
     return this.http.get<LegalProcedureResponse>(`${this.base}/${id}`);
   }
 
-  /** Soumet le dossier (BROUILLON → EN_COURS). Vérifie checklist côté backend */
-  submit(id: string, entrepreneurId: string): Observable<LegalProcedureResponse> {
+  submit(id: string, entrepreneurId: number): Observable<LegalProcedureResponse> {
     return this.http.post<LegalProcedureResponse>(
       `${this.base}/${id}/submit`, {}, this.userHeader(entrepreneurId)
     );
   }
 
-  /** Supprime un dossier en BROUILLON */
-  deleteDraft(id: string, entrepreneurId: string): Observable<void> {
+  deleteDraft(id: string, entrepreneurId: number): Observable<void> {
     return this.http.delete<void>(
       `${this.base}/${id}`, this.userHeader(entrepreneurId)
     );
@@ -60,12 +52,10 @@ export class LegalProcedureService {
 
   // ── CHECKLIST & DOCUMENTS ────────────────────────────────────────────────────
 
-  /** Récupère la checklist d'une procédure */
   getChecklist(procedureId: string): Observable<ChecklistResponse> {
     return this.http.get<ChecklistResponse>(`${this.base}/${procedureId}/checklist`);
   }
 
-  /** Dépose un document pour un item de la checklist */
   uploadDocument(
     procedureId: string,
     requirementCode: string,
@@ -78,36 +68,32 @@ export class LegalProcedureService {
     if (expiresAt) formData.append('expiresAt', expiresAt);
 
     return this.http.post<LegalDocumentResponse>(
-      `${this.docsBase}/${procedureId}/upload`, formData
+      `${this.base}/${procedureId}/documents`, formData
     );
   }
 
-  /** Récupère tous les documents d'une procédure */
   getDocuments(procedureId: string): Observable<LegalDocumentResponse[]> {
     return this.http.get<LegalDocumentResponse[]>(
-      `${this.docsBase}/procedure/${procedureId}`
+      `${this.base}/${procedureId}/documents`
     );
   }
 
-  /** Supprime un document (seulement si BROUILLON) */
-  deleteDocument(documentId: string): Observable<void> {
-    return this.http.delete<void>(`${this.docsBase}/${documentId}`);
+  deleteDocument(procedureId: string, documentId: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${procedureId}/documents/${documentId}`);
   }
 
   // ── EXPERT ───────────────────────────────────────────────────────────────────
 
-  /** Récupère les dossiers EN_ATTENTE_EXPERT assignés à l'expert connecté */
-  getAssignedProcedures(expertId: string): Observable<LegalProcedureResponse[]> {
+  getAssignedProcedures(expertId: number): Observable<LegalProcedureResponse[]> {
     return this.http.get<LegalProcedureResponse[]>(
       `${this.base}/expert/assigned`, this.userHeader(expertId)
     );
   }
 
-  /** L'expert valide ou refuse le dossier */
   applyExpertDecision(
     id: string,
     request: ExpertDecisionRequest,
-    expertId: string
+    expertId: number
   ): Observable<LegalProcedureResponse> {
     return this.http.post<LegalProcedureResponse>(
       `${this.base}/${id}/expert-decision`, request, this.userHeader(expertId)

@@ -2,9 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { LegalProcedureResponse, ProcedureStatus, STATUS_LABELS } from '../../../../models/legal-procedure.model';
 import { LegalProcedureService } from '../../../../services/legal-procedure.service';
-
-// ⚠️ Remplacez par la vraie récupération depuis votre AuthService
-const CURRENT_USER_ID = 'entrepreneur-uuid-placeholder';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-legal-procedure-list',
@@ -22,13 +20,17 @@ export class LegalProcedureListComponent implements OnInit {
   readonly statuses: ProcedureStatus[] = [
     'BROUILLON', 'EN_COURS', 'EN_ATTENTE_EXPERT', 'COMPLETE', 'REFUSE'
   ];
-
   readonly statusLabels = STATUS_LABELS;
+
+  private readonly userId: number;
 
   constructor(
     private readonly service: LegalProcedureService,
-    private readonly router: Router
-  ) {}
+    private readonly router: Router,
+    private readonly auth: AuthService
+  ) {
+    this.userId = this.auth.getUserId();
+  }
 
   ngOnInit(): void {
     this.loadProcedures();
@@ -37,9 +39,7 @@ export class LegalProcedureListComponent implements OnInit {
   loadProcedures(): void {
     this.loading = true;
     this.errorMessage = '';
-
-    // Charge uniquement les dossiers de l'entrepreneur connecté
-    this.service.getMyProcedures(CURRENT_USER_ID).subscribe({
+    this.service.getMyProcedures(this.userId).subscribe({
       next: (data) => {
         this.procedures = data;
         this.applyFilter();
@@ -63,7 +63,7 @@ export class LegalProcedureListComponent implements OnInit {
   }
 
   submit(id: string): void {
-    this.service.submit(id, CURRENT_USER_ID).subscribe({
+    this.service.submit(id, this.userId).subscribe({
       next: () => this.loadProcedures(),
       error: (err) => this.errorMessage = err?.error?.message || 'Erreur lors de la soumission.'
     });
@@ -71,7 +71,7 @@ export class LegalProcedureListComponent implements OnInit {
 
   deleteDraft(id: string): void {
     if (!confirm('Supprimer ce dossier en brouillon ?')) return;
-    this.service.deleteDraft(id, CURRENT_USER_ID).subscribe({
+    this.service.deleteDraft(id, this.userId).subscribe({
       next: () => this.loadProcedures(),
       error: (err) => this.errorMessage = err?.error?.message || 'Erreur lors de la suppression.'
     });

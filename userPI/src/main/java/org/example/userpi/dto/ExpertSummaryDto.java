@@ -1,6 +1,6 @@
-package com.example.demo.dto;
+package org.example.userpi.dto;
 
-public record ExpertSummaryResponse(
+public record ExpertSummaryDto(
         Integer id,
         String fullName,
         String email

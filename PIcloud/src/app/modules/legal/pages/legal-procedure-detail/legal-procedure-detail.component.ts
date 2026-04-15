@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
+import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { LegalProcedureService } from '../../../../services/legal-procedure.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import {
   LegalProcedureResponse,
   ChecklistResponse,
@@ -10,9 +11,6 @@ import {
   STATUS_LABELS,
   PROCEDURE_TYPE_LABELS,
 } from '../../../../models/legal-procedure.model';
-
-// ⚠️ Remplacez par la vraie récupération depuis votre AuthService
-const CURRENT_USER_ID = 'entrepreneur-uuid-placeholder';
 
 @Component({
   selector: 'app-legal-procedure-detail',
@@ -23,8 +21,6 @@ export class LegalProcedureDetailComponent implements OnInit {
 
   procedure?: LegalProcedureResponse;
   checklist?: ChecklistResponse;
-
-  // Formulaire d'upload par item de checklist
   uploadForms: Record<string, FormGroup> = {};
   selectedFiles: Record<string, File> = {};
 
@@ -36,23 +32,24 @@ export class LegalProcedureDetailComponent implements OnInit {
   readonly statusLabels = STATUS_LABELS;
   readonly procedureTypeLabels = PROCEDURE_TYPE_LABELS;
 
+  private readonly userId: number;
+
   constructor(
     private readonly route: ActivatedRoute,
     private readonly service: LegalProcedureService,
     private readonly fb: FormBuilder,
-    private readonly location: Location
-  ) {}
+    private readonly location: Location,
+    private readonly auth: AuthService
+  ) {
+    this.userId = this.auth.getUserId();
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) this.loadAll(id);
   }
 
-  goBack(): void {
-    this.location.back();
-  }
-
-  // ── Chargement ─────────────────────────────────────────────────────────────
+  goBack(): void { this.location.back(); }
 
   loadAll(id: string): void {
     this.loading = true;
@@ -73,7 +70,6 @@ export class LegalProcedureDetailComponent implements OnInit {
     this.service.getChecklist(id).subscribe({
       next: (data) => {
         this.checklist = data;
-        // Crée un formulaire d'expiration par item non encore déposé
         data.items.forEach(item => {
           if (!item.uploaded) {
             this.uploadForms[item.code] = this.fb.group({ expiresAt: [''] });
@@ -84,21 +80,13 @@ export class LegalProcedureDetailComponent implements OnInit {
     });
   }
 
-  // ── Upload ─────────────────────────────────────────────────────────────────
-
   onFileSelected(event: Event, code: string): void {
     const input = event.target as HTMLInputElement;
-    if (input.files?.length) {
-      this.selectedFiles[code] = input.files[0];
-    }
+    if (input.files?.length) this.selectedFiles[code] = input.files[0];
   }
 
   uploadDocument(item: ChecklistItem): void {
-    if (!this.procedure || !this.selectedFiles[item.code]) {
-      this.errorMessage = 'Veuillez sélectionner un fichier pour ce document.';
-      return;
-    }
-
+    if (!this.procedure || !this.selectedFiles[item.code]) return;
     this.errorMessage = '';
     this.successMessage = '';
     this.uploadingCode = item.code;
@@ -106,10 +94,7 @@ export class LegalProcedureDetailComponent implements OnInit {
     const expiresAt = this.uploadForms[item.code]?.value?.expiresAt || undefined;
 
     this.service.uploadDocument(
-      this.procedure.id,
-      item.code,
-      this.selectedFiles[item.code],
-      expiresAt || undefined
+      this.procedure.id, item.code, this.selectedFiles[item.code], expiresAt
     ).subscribe({
       next: () => {
         this.successMessage = `"${item.label}" déposé avec succès.`;
@@ -124,11 +109,9 @@ export class LegalProcedureDetailComponent implements OnInit {
     });
   }
 
-  // ── Suppression document ────────────────────────────────────────────────────
-
   deleteDocument(documentId: string): void {
-    if (!confirm('Supprimer ce document ?')) return;
-    this.service.deleteDocument(documentId).subscribe({
+    if (!this.procedure || !confirm('Supprimer ce document ?')) return;
+    this.service.deleteDocument(this.procedure.id, documentId).subscribe({
       next: () => {
         this.successMessage = 'Document supprimé.';
         this.loadAll(this.procedure!.id);
@@ -137,11 +120,9 @@ export class LegalProcedureDetailComponent implements OnInit {
     });
   }
 
-  // ── Submit dossier ──────────────────────────────────────────────────────────
-
   submitProcedure(): void {
     if (!this.procedure) return;
-    this.service.submit(this.procedure.id, CURRENT_USER_ID).subscribe({
+    this.service.submit(this.procedure.id, this.userId).subscribe({
       next: (updated) => {
         this.procedure = updated;
         this.successMessage = 'Dossier soumis avec succès. Statut : EN COURS.';
@@ -150,12 +131,10 @@ export class LegalProcedureDetailComponent implements OnInit {
     });
   }
 
-  // ── Helpers ─────────────────────────────────────────────────────────────────
-
   get allRequiredUploaded(): boolean {
     return !!this.checklist &&
-      this.checklist.uploadedCount >= this.checklist.requiredCount &&
-      this.checklist.requiredCount > 0;
+      this.checklist.requiredCount > 0 &&
+      this.checklist.uploadedCount >= this.checklist.requiredCount;
   }
 
   getStatusClass(status: string): string {

@@ -7,17 +7,14 @@ import java.util.UUID;
 
 public interface LegalProcedureService {
 
-    // ENTREPRENEUR
-    LegalProcedureResponse create(CreateLegalProcedureRequest request, UUID entrepreneurId);
-    List<LegalProcedureResponse> findByEntrepreneur(UUID entrepreneurId);
+    LegalProcedureResponse create(CreateLegalProcedureRequest request, Integer entrepreneurId);
+    List<LegalProcedureResponse> findByEntrepreneur(Integer entrepreneurId);
     LegalProcedureResponse findById(UUID id);
-    LegalProcedureResponse submit(UUID id, UUID entrepreneurId);
-    void deleteDraft(UUID id, UUID entrepreneurId);
+    LegalProcedureResponse submit(UUID id, Integer entrepreneurId);
+    void deleteDraft(UUID id, Integer entrepreneurId);
 
-    // EXPERT
-    List<LegalProcedureResponse> findByExpert(UUID expertId);
-    LegalProcedureResponse applyExpertDecision(UUID id, ExpertDecisionRequest request, UUID expertId);
+    List<LegalProcedureResponse> findByExpert(Integer expertId);
+    LegalProcedureResponse applyExpertDecision(UUID id, ExpertDecisionRequest request, Integer expertId);
 
-    // IA
     LegalProcedureResponse setAiResult(UUID id, boolean approved, String remark);
 }

@@ -27,10 +27,8 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
     private final LegalMapper mapper;
     private final ChecklistService checklistService;
 
-    // ─── ENTREPRENEUR ────────────────────────────────────────────────
-
     @Override
-    public LegalProcedureResponse create(CreateLegalProcedureRequest request, UUID entrepreneurId) {
+    public LegalProcedureResponse create(CreateLegalProcedureRequest request, Integer entrepreneurId) {
         LegalProcedure procedure = LegalProcedure.builder()
                 .entrepreneurId(entrepreneurId)
                 .expertId(request.expertId())
@@ -46,7 +44,7 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<LegalProcedureResponse> findByEntrepreneur(UUID entrepreneurId) {
+    public List<LegalProcedureResponse> findByEntrepreneur(Integer entrepreneurId) {
         return procedureRepository.findByEntrepreneurId(entrepreneurId)
                 .stream()
                 .map(mapper::toProcedureResponse)
@@ -60,7 +58,7 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
     }
 
     @Override
-    public LegalProcedureResponse submit(UUID id, UUID entrepreneurId) {
+    public LegalProcedureResponse submit(UUID id, Integer entrepreneurId) {
         LegalProcedure procedure = getProcedureEntity(id);
 
         if (!procedure.getEntrepreneurId().equals(entrepreneurId)) {
@@ -83,7 +81,7 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
     }
 
     @Override
-    public void deleteDraft(UUID id, UUID entrepreneurId) {
+    public void deleteDraft(UUID id, Integer entrepreneurId) {
         LegalProcedure procedure = getProcedureEntity(id);
 
         if (!procedure.getEntrepreneurId().equals(entrepreneurId)) {
@@ -96,11 +94,9 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
         procedureRepository.delete(procedure);
     }
 
-    // ─── EXPERT ──────────────────────────────────────────────────────
-
     @Override
     @Transactional(readOnly = true)
-    public List<LegalProcedureResponse> findByExpert(UUID expertId) {
+    public List<LegalProcedureResponse> findByExpert(Integer expertId) {
         return procedureRepository
                 .findByExpertIdAndStatus(expertId, ProcedureStatus.EN_ATTENTE_EXPERT)
                 .stream()
@@ -109,7 +105,7 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
     }
 
     @Override
-    public LegalProcedureResponse applyExpertDecision(UUID id, ExpertDecisionRequest request, UUID expertId) {
+    public LegalProcedureResponse applyExpertDecision(UUID id, ExpertDecisionRequest request, Integer expertId) {
         LegalProcedure procedure = getProcedureEntity(id);
 
         if (!procedure.getExpertId().equals(expertId)) {
@@ -135,8 +131,6 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
         return mapper.toProcedureResponse(procedureRepository.save(procedure));
     }
 
-    // ─── IA ──────────────────────────────────────────────────────────
-
     @Override
     public LegalProcedureResponse setAiResult(UUID id, boolean approved, String remark) {
         LegalProcedure procedure = getProcedureEntity(id);
@@ -158,8 +152,6 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
 
         return mapper.toProcedureResponse(procedureRepository.save(procedure));
     }
-
-    // ─── HELPERS ─────────────────────────────────────────────────────
 
     private LegalProcedure getProcedureEntity(UUID id) {
         return procedureRepository.findById(id)
