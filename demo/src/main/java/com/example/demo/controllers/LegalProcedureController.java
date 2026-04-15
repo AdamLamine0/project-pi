@@ -27,14 +27,14 @@ public class LegalProcedureController {
     @PostMapping
     public ResponseEntity<LegalProcedureResponse> create(
             @Valid @RequestBody CreateLegalProcedureRequest request,
-            @RequestHeader("X-User-Id") UUID entrepreneurId) {
+            @RequestHeader("X-User-Id") Integer entrepreneurId) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(service.create(request, entrepreneurId));
     }
 
     @GetMapping("/my-procedures")
     public ResponseEntity<List<LegalProcedureResponse>> myProcedures(
-            @RequestHeader("X-User-Id") UUID entrepreneurId) {
+            @RequestHeader("X-User-Id") Integer entrepreneurId) {
         return ResponseEntity.ok(service.findByEntrepreneur(entrepreneurId));
     }
 
@@ -51,14 +51,14 @@ public class LegalProcedureController {
     @PostMapping("/{id}/submit")
     public ResponseEntity<LegalProcedureResponse> submit(
             @PathVariable UUID id,
-            @RequestHeader("X-User-Id") UUID entrepreneurId) {
+            @RequestHeader("X-User-Id") Integer entrepreneurId) {
         return ResponseEntity.ok(service.submit(id, entrepreneurId));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteDraft(
             @PathVariable UUID id,
-            @RequestHeader("X-User-Id") UUID entrepreneurId) {
+            @RequestHeader("X-User-Id") Integer entrepreneurId) {
         service.deleteDraft(id, entrepreneurId);
         return ResponseEntity.noContent().build();
     }
@@ -69,7 +69,7 @@ public class LegalProcedureController {
 
     @GetMapping("/expert/assigned")
     public ResponseEntity<List<LegalProcedureResponse>> assignedToExpert(
-            @RequestHeader("X-User-Id") UUID expertId) {
+            @RequestHeader("X-User-Id") Integer expertId) {
         return ResponseEntity.ok(service.findByExpert(expertId));
     }
 
@@ -77,7 +77,7 @@ public class LegalProcedureController {
     public ResponseEntity<LegalProcedureResponse> expertDecision(
             @PathVariable UUID id,
             @Valid @RequestBody ExpertDecisionRequest request,
-            @RequestHeader("X-User-Id") UUID expertId) {
+            @RequestHeader("X-User-Id") Integer expertId) {
         return ResponseEntity.ok(service.applyExpertDecision(id, request, expertId));
     }
 }

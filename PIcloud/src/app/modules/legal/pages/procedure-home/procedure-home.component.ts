@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthService } from '../../../../core/services/auth.service';
+
 import {
   ProcedureType,
   PROCEDURE_TYPE_LABELS,
@@ -13,7 +15,6 @@ import {
 })
 export class ProcedureHomeComponent implements OnInit {
 
-  // Données 100% statiques — plus d'appel à /procedure-types/overview
   readonly procedureTypes: ProcedureType[] = [
     'SARL',
     'SUARL',
@@ -27,23 +28,44 @@ export class ProcedureHomeComponent implements OnInit {
   readonly labels = PROCEDURE_TYPE_LABELS;
   readonly descriptions = PROCEDURE_TYPE_DESCRIPTIONS;
 
-  constructor(private readonly router: Router) {}
+  constructor(
+    private readonly router: Router,
+    private readonly auth: AuthService
+  ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    const role = this.auth.getRole();
+
+    // expert → redirect to assigned procedures
+    if (role === 'EXPERT') {
+      this.router.navigate(['/legal-procedures/expert']);
+    }
+  }
 
   createProcedure(type: ProcedureType): void {
-    this.router.navigate(['/legal-procedures/new'], { queryParams: { type } });
+    const role = this.auth.getRole();
+
+    // only entrepreneur can create
+    if (role !== 'ENTREPRENEUR') {
+      this.router.navigate(['/legal-procedures/expert']);
+      return;
+    }
+
+    this.router.navigate(
+      ['/legal-procedures/new'],
+      { queryParams: { type } }
+    );
   }
 
   getProcedureIcon(type: ProcedureType): string {
     const icons: Record<ProcedureType, string> = {
-      SARL:                  '🏢',
-      SUARL:                 '🏢',
-      LABEL_STARTUP:         '🚀',
+      SARL: '🏢',
+      SUARL: '🏢',
+      LABEL_STARTUP: '🚀',
       PI: '📋',
-      FISCALITE:    '📝',
-      CONFORMITE:           '✅',
-      AUTRE:           '📁',
+      FISCALITE: '📝',
+      CONFORMITE: '✅',
+      AUTRE: '📁',
     };
     return icons[type] || '📁';
   }
