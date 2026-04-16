@@ -391,7 +391,7 @@
           <span>Check-in</span><span *ngIf="isAdmin">Actions</span>
         </div>
         <div class="reg-row" *ngFor="let reg of registrations">
-          <span class="reg-user">#{{ reg.userId }}</span>
+          <span class="reg-user">{{ reg.userName || ('#' + reg.userId) }}</span>
           <span class="reg-status-badge" [ngClass]="getRegistrationStatusClass(reg.status)">{{ reg.status }}</span>
           <span class="reg-date">{{ formatDate(reg.registeredAt) }}</span>
           <span class="reg-checkin">{{ reg.attended ? formatTime(reg.checkInTime!) : '—' }}</span>

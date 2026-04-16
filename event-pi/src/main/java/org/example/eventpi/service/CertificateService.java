@@ -11,6 +11,7 @@ import org.example.eventpi.model.Event;
 import org.example.eventpi.repository.CertificateRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.imageio.ImageIO;
@@ -44,7 +45,7 @@ public class CertificateService {
             DateTimeFormatter.ofPattern("dd MMMM yyyy");
 
     // ── GENERATE & PERSIST ────────────────────────────────────────────────
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Certificate generateCertificate(Integer userId, String recipientName,
                                            Event event, Long badgeId,
                                            String badgeLabel) {

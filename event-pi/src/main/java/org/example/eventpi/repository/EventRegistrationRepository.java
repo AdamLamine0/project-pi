@@ -38,4 +38,7 @@ public interface EventRegistrationRepository
                                    @Param("statuses") List<RegistrationStatus> statuses);
 
     Optional<EventRegistration> findByTicketNumber(String ticketNumber);
+
+    @Query("SELECT r FROM EventRegistration r WHERE UPPER(SUBSTRING(r.ticketNumber, 1, 8)) = UPPER(:code)")
+    Optional<EventRegistration> findByShortTicketCode(@Param("code") String code);
 }

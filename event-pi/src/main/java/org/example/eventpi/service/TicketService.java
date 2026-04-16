@@ -50,7 +50,7 @@ public class TicketService {
 
     // ── VERIFY TICKET (public — for organizer QR scan) ────────────────────
     public TicketResponse verifyTicket(String ticketNumber) {
-        return registrationRepository.findByTicketNumber(ticketNumber)
+        return findByCode(ticketNumber)
                 .map(this::toTicketResponse)
                 .orElseThrow(() -> new ForbiddenException("Ticket invalide ou introuvable."));
     }
@@ -58,8 +58,7 @@ public class TicketService {
     // ── CHECK-IN BY TICKET NUMBER ─────────────────────────────────────────
     @Transactional
     public TicketResponse checkInByTicket(String ticketNumber) {
-        EventRegistration reg = registrationRepository
-                .findByTicketNumber(ticketNumber)
+        EventRegistration reg = findByCode(ticketNumber)
                 .orElseThrow(() -> new ForbiddenException("Ticket invalide ou introuvable."));
 
         if (reg.getStatus() == RegistrationStatus.PRESENT) {
@@ -265,6 +264,20 @@ public class TicketService {
     }
 
     // ── HELPERS ───────────────────────────────────────────────────────────
+
+    /**
+     * Resolves a registration by ticket code.
+     * Accepts either the full 36-char UUID or the 8-char short code shown on the ticket.
+     */
+    private java.util.Optional<EventRegistration> findByCode(String code) {
+        if (code == null) return java.util.Optional.empty();
+        String trimmed = code.trim();
+        if (trimmed.length() == 36) {
+            return registrationRepository.findByTicketNumber(trimmed.toLowerCase());
+        }
+        return registrationRepository.findByShortTicketCode(trimmed);
+    }
+
     private String resolveAttendeeName(Integer userId) {
         try {
             UserResponse user = userClient.getUserById(userId);

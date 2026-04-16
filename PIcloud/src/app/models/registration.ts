@@ -6,6 +6,7 @@ export interface EventRegistration {
   eventId: number;
   eventTitle: string;
   userId: number;
+  userName?: string;
   status: RegistrationStatus;
   attended: boolean;
   checkInTime: string | null;
