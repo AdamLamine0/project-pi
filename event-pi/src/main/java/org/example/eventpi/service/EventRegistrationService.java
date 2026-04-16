@@ -201,8 +201,28 @@ public class EventRegistrationService {
 
     // ── READ ──────────────────────────────────────────────────────────────
     public List<EventRegistrationResponse> getByEvent(Long eventId) {
-        return registrationRepository.findByEventId(eventId)
-                .stream().map(this::toResponse).toList();
+        List<EventRegistration> regs = registrationRepository.findByEventId(eventId);
+
+        // Resolve user names in bulk (one call per unique userId)
+        java.util.Map<Integer, String> nameCache = new java.util.HashMap<>();
+        for (EventRegistration r : regs) {
+            nameCache.computeIfAbsent(r.getUserId(), uid -> {
+                try {
+                    UserResponse u = userClient.getUserById(uid);
+                    if (u != null) {
+                        String full = (u.getName() + " " + u.getPrenom()).trim();
+                        return full.isEmpty() ? null : full;
+                    }
+                } catch (Exception e) {
+                    log.warn("Could not resolve name for userId {}: {}", uid, e.getMessage());
+                }
+                return null;
+            });
+        }
+
+        return regs.stream()
+                .map(r -> toResponse(r, nameCache.get(r.getUserId())))
+                .toList();
     }
 
     public List<EventRegistrationResponse> getByUser(Integer userId) {
@@ -252,11 +272,16 @@ public class EventRegistrationService {
 
     // ── MAPPER ────────────────────────────────────────────────────────────
     private EventRegistrationResponse toResponse(EventRegistration r) {
+        return toResponse(r, null);
+    }
+
+    private EventRegistrationResponse toResponse(EventRegistration r, String userName) {
         return EventRegistrationResponse.builder()
                 .id(r.getId())
                 .eventId(r.getEvent().getId())
                 .eventTitle(r.getEvent().getTitle())
                 .userId(r.getUserId())
+                .userName(userName)
                 .status(r.getStatus())
                 .attended(r.getAttended())
                 .checkInTime(r.getCheckInTime())

@@ -119,6 +119,14 @@ public class GatewayRoutes {
     }
 
     @Bean
+    public RouterFunction<ServerResponse> ticketServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/tickets/**"), HandlerFunctions.http())
+                .filter(lb("event-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
     public RouterFunction<ServerResponse> verifyRoute() {
         return RouterFunctions
                 .route(path("/api/verify/**"), HandlerFunctions.http())

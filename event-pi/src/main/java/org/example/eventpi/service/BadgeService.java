@@ -11,6 +11,7 @@ import org.example.eventpi.repository.CertificateRepository;
 import org.example.eventpi.repository.EventRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -34,7 +35,9 @@ public class BadgeService {
     private String baseUrl;
 
     // ── MAIN TRIGGER — called after checkIn ──────────────────────────────
-    @Transactional
+    // REQUIRES_NEW: badge/cert generation runs in its own independent transaction.
+    // If it fails and rolls back, the caller's check-in transaction is NOT affected.
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onAttendanceConfirmed(Integer userId, Long eventId) {
         Event event = eventRepository.findById(eventId).orElse(null);
         if (event == null) {

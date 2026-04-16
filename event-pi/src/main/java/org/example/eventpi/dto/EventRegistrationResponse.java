@@ -13,6 +13,7 @@ public class EventRegistrationResponse {
     private Long eventId;
     private String eventTitle;
     private Integer userId;
+    private String userName;
     private RegistrationStatus status;
     private Boolean attended;
     private LocalDateTime checkInTime;
