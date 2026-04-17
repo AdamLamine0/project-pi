@@ -3,7 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { AuthResponse, LoginRequest, RegisterRequest, Role } from '../models/user.model';
+import { AuthResponse, LoginRequest, RegisterRequest } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -29,7 +29,9 @@ export class AuthService {
     const response = await firstValueFrom(
       this.http.post<AuthResponse>(`${this.apiUrl}/register`, request)
     );
-    this.saveToken(response.token);
+     console.log('Register response:', response);
+    this.saveSession(response);
+    console.log('Stored role:', localStorage.getItem('role')); // ← vérifie le stockage
     return response;
   }
 
@@ -37,7 +39,7 @@ export class AuthService {
     const response = await firstValueFrom(
       this.http.post<AuthResponse>(`${this.apiUrl}/login`, request)
     );
-    this.saveToken(response.token);
+    this.saveSession(response);
     return response;
   }
 
@@ -49,28 +51,57 @@ export class AuthService {
   }
 
   // ===============================
-  // TOKEN
+  // SESSION STORAGE
   // ===============================
+private saveSession(response: AuthResponse): void {
+  if (!this.isBrowser) return;
 
+  localStorage.setItem('token', response.token);
+
+  // ✅ Utilise != null au lieu de if (response.id) car 0 est falsy
+  if (response.id != null) localStorage.setItem('userId', String(response.id));
+  if (response.email)      localStorage.setItem('email', response.email);
+
+  // ✅ Normalise le rôle (sécurité si backend envoie ROLE_ENTREPRENEUR)
+  if (response.role) {
+    const raw = String(response.role);
+    const normalized = raw.startsWith('ROLE_') ? raw.substring(5) : raw;
+    localStorage.setItem('role', normalized);
+  }
+
+  // Fallback JWT uniquement si vraiment rien reçu
+  if (response.id == null || !response.role) {
+    const payload = this.decodeToken(response.token);
+    if (payload) {
+      if (response.id == null) {
+        localStorage.setItem('userId', String(payload.userId || 0));
+      }
+      if (!response.role) {
+        const rawRole: string = payload.role || '';
+        const normalized = rawRole.startsWith('ROLE_') ? rawRole.substring(5) : rawRole;
+        localStorage.setItem('role', normalized);
+      }
+      if (!response.email) {
+        localStorage.setItem('email', payload.sub || '');
+      }
+    }
+  }
+}
+  
+  // Garde pour compatibilité avec le code existant
   public saveToken(token: string): void {
     if (!this.isBrowser) return;
-
     localStorage.setItem('token', token);
 
     const payload = this.decodeToken(token);
     if (!payload) return;
 
-    // userId (number)
-    localStorage.setItem('userId', String(payload.userId));
+    localStorage.setItem('userId', String(payload.userId || 0));
 
-    // normalize ROLE_USER -> USER
     const rawRole: string = payload.role || '';
-    const normalizedRole = rawRole.startsWith('ROLE_')
-      ? rawRole.substring(5)
-      : rawRole;
-
-    localStorage.setItem('role', normalizedRole);
-    localStorage.setItem('email', payload.sub);
+    const normalized = rawRole.startsWith('ROLE_') ? rawRole.substring(5) : rawRole;
+    localStorage.setItem('role', normalized);
+    localStorage.setItem('email', payload.sub || '');
   }
 
   getToken(): string | null {
@@ -81,10 +112,8 @@ export class AuthService {
   isLoggedIn(): boolean {
     const token = this.getToken();
     if (!token) return false;
-
     const payload = this.decodeToken(token);
     if (!payload) return false;
-
     return Date.now() < payload.exp * 1000;
   }
 
@@ -108,29 +137,41 @@ export class AuthService {
   }
 
   // ===============================
-  // ROLE HELPERS
+  // ROLE HELPERS — alignés sur Role enum backend
   // ===============================
 
   isAdmin(): boolean {
     return this.getRole() === 'ADMIN';
   }
 
-  isMentor(): boolean {
-    return this.getRole() === 'MENTOR';
-  }
-
   isUser(): boolean {
     return this.getRole() === 'USER';
   }
 
-  // entrepreneur
-  isEntrepreneur(): boolean {
-    return this.isUser();
+  isMentor(): boolean {
+    return this.getRole() === 'MENTOR';
   }
 
-  // expert
+  isInvestor(): boolean {
+    return this.getRole() === 'INVESTOR';
+  }
+
+  isPartner(): boolean {
+    return this.getRole() === 'PARTNER';
+  }
+
+  // Rôles du module legal
+  isEntrepreneur(): boolean {
+    return this.getRole() === 'ENTREPRENEUR';
+  }
+
   isExpert(): boolean {
-    return this.isMentor() || this.isAdmin();
+    return this.getRole() === 'EXPERT';
+  }
+
+  // Peut accéder au module legal (entrepreneur ou expert)
+  hasLegalAccess(): boolean {
+    return this.isEntrepreneur() || this.isExpert() || this.isAdmin();
   }
 
   // ===============================

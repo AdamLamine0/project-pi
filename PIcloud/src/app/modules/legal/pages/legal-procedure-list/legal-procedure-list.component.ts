@@ -1,6 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { LegalProcedureResponse, ProcedureStatus, STATUS_LABELS } from '../../../../models/legal-procedure.model';
+import {
+  LegalProcedureResponse,
+  ProcedureStatus,
+  STATUS_LABELS
+} from '../../../../models/legal-procedure.model';
 import { LegalProcedureService } from '../../../../services/legal-procedure.service';
 import { AuthService } from '../../../../core/services/auth.service';
 
@@ -39,13 +43,14 @@ export class LegalProcedureListComponent implements OnInit {
   loadProcedures(): void {
     this.loading = true;
     this.errorMessage = '';
+
     this.service.getMyProcedures(this.userId).subscribe({
       next: (data) => {
         this.procedures = data;
         this.applyFilter();
         this.loading = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         this.errorMessage = err?.error?.message || 'Erreur lors du chargement.';
         this.loading = false;
       }
@@ -65,7 +70,9 @@ export class LegalProcedureListComponent implements OnInit {
   submit(id: string): void {
     this.service.submit(id, this.userId).subscribe({
       next: () => this.loadProcedures(),
-      error: (err) => this.errorMessage = err?.error?.message || 'Erreur lors de la soumission.'
+      error: (err: any) => {
+        this.errorMessage = err?.error?.message || 'Erreur lors de la soumission.';
+      }
     });
   }
 
@@ -73,7 +80,9 @@ export class LegalProcedureListComponent implements OnInit {
     if (!confirm('Supprimer ce dossier en brouillon ?')) return;
     this.service.deleteDraft(id, this.userId).subscribe({
       next: () => this.loadProcedures(),
-      error: (err) => this.errorMessage = err?.error?.message || 'Erreur lors de la suppression.'
+      error: (err: any) => {
+        this.errorMessage = err?.error?.message || 'Erreur lors de la suppression.';
+      }
     });
   }
 

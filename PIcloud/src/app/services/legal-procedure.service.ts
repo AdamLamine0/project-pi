@@ -7,12 +7,14 @@ import {
   CreateLegalProcedureRequest,
   ExpertDecisionRequest,
   ChecklistResponse,
+  ExpertSummary,
 } from '../models/legal-procedure.model';
 
 @Injectable({ providedIn: 'root' })
 export class LegalProcedureService {
 
-  private readonly base = 'http://localhost:8090/api/legal-procedures';
+  private readonly base    = 'http://localhost:8090/api/legal-procedures';
+  private readonly usersBase = 'http://localhost:8090/api/users';
 
   constructor(private readonly http: HttpClient) {}
 
@@ -67,6 +69,7 @@ export class LegalProcedureService {
     formData.append('file', file);
     if (expiresAt) formData.append('expiresAt', expiresAt);
 
+    // ✅ URL correcte : /api/legal-procedures/{id}/documents
     return this.http.post<LegalDocumentResponse>(
       `${this.base}/${procedureId}/documents`, formData
     );
@@ -79,7 +82,10 @@ export class LegalProcedureService {
   }
 
   deleteDocument(procedureId: string, documentId: string): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${procedureId}/documents/${documentId}`);
+    // ✅ URL correcte : /api/legal-procedures/{procedureId}/documents/{documentId}
+    return this.http.delete<void>(
+      `${this.base}/${procedureId}/documents/${documentId}`
+    );
   }
 
   // ── EXPERT ───────────────────────────────────────────────────────────────────
@@ -98,5 +104,12 @@ export class LegalProcedureService {
     return this.http.post<LegalProcedureResponse>(
       `${this.base}/${id}/expert-decision`, request, this.userHeader(expertId)
     );
+  }
+
+  // ── EXPERTS LIST ─────────────────────────────────────────────────────────────
+
+  // Appelé dans le formulaire de création pour afficher la liste statique des experts
+  getExperts(): Observable<ExpertSummary[]> {
+    return this.http.get<ExpertSummary[]>(`${this.usersBase}/experts`);
   }
 }

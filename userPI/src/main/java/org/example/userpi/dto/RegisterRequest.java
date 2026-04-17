@@ -1,5 +1,7 @@
 package org.example.userpi.dto;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -23,6 +25,7 @@ public class RegisterRequest {
     @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
 
-    // Optional — defaults to USER if not provided
+    // ✅ "" (string vide) → null automatiquement, évite le 500
+    @JsonSetter(nulls = Nulls.AS_EMPTY)
     private Role role;
 }
