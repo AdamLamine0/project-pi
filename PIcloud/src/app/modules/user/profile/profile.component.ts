@@ -25,7 +25,7 @@ export class ProfileComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService,
+    public authService: AuthService,
     private userService: UserService,
     private router: Router             // ← inject Router
   ) {
@@ -125,6 +125,18 @@ export class ProfileComponent implements OnInit {
       this.isLoading = false;
     }
   }
+  getRoleLabel(role: string | undefined | null): string {
+  const labels: Record<string, string> = {
+    USER:         '👤 Utilisateur',
+    ADMIN:        '🛡️ Administrateur',
+    MENTOR:       '🎓 Mentor',
+    INVESTOR:     '💰 Investisseur',
+    PARTNER:      '🤝 Partenaire',
+    ENTREPRENEUR: '🚀 Entrepreneur',
+    EXPERT:       '⚖️ Expert juridique',
+  };
+  return labels[role ?? ''] ?? role ?? '—';
+}
 
   async onChangePassword(): Promise<void> {
     if (this.passwordForm.invalid) return;

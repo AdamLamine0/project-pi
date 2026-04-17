@@ -108,7 +108,9 @@ export class UserListComponent implements OnInit {
       USER: 'badge-user',
       MENTOR: 'badge-mentor',
       INVESTOR: 'badge-investor',
-      PARTNER: 'badge-partner'
+      PARTNER: 'badge-partner',
+       ENTREPRENEUR: 'badge-entrepreneur',  // NOUVEAU
+    EXPERT:       'badge-expert',        // NOUVEAU
     };
     return map[String(role ?? '')] ?? 'badge-user';
   }

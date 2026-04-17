@@ -1,6 +1,5 @@
 package com.example.demo.entity;
 
-
 import com.example.demo.enums.ProcedureStatus;
 import com.example.demo.enums.ProcedureType;
 import jakarta.persistence.*;
@@ -27,18 +26,28 @@ public class LegalProcedure {
     private UUID id;
 
     @Column(name = "entrepreneur_id", nullable = false)
-    private UUID entrepreneurId;
+    private Integer entrepreneurId;
 
     @Column(name = "expert_id")
-    private UUID expertId;
+    private Integer expertId;
+
+    @Column(name = "project_name", nullable = false)
+    private String projectName;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "procedure_type", nullable = false, length = 50)
     private ProcedureType procedureType;
 
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
     private ProcedureStatus status;
+
+    // Remarque ajoutée par l'IA ou l'expert (optionnelle)
+    @Column(columnDefinition = "TEXT")
+    private String remark;
 
     @Column(name = "completion_rate", nullable = false)
     private Float completionRate;
@@ -51,9 +60,6 @@ public class LegalProcedure {
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
-
-    @Column(columnDefinition = "TEXT")
-    private String notes;
 
     @OneToMany(mappedBy = "procedure", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

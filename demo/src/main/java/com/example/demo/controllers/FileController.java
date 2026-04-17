@@ -15,7 +15,6 @@ import java.nio.file.Paths;
 
 @RestController
 @RequestMapping("/api/files")
-@CrossOrigin(origins = "http://localhost:4200")
 public class FileController {
 
     private final Path uploadPath;
@@ -29,6 +28,7 @@ public class FileController {
 
         this.uploadPath = Paths.get(dir).toAbsolutePath().normalize();
     }
+    // In any controller method:
 
     @GetMapping("/{filename:.+}")
     public ResponseEntity<Resource> getFile(@PathVariable String filename) {

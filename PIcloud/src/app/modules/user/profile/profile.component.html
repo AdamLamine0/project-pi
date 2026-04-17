@@ -14,7 +14,9 @@
       [class.role-user]="user?.role === 'USER'"
       [class.role-mentor]="user?.role === 'MENTOR'"
       [class.role-investor]="user?.role === 'INVESTOR'"
-      [class.role-partner]="user?.role === 'PARTNER'">
+      [class.role-partner]="user?.role === 'PARTNER'"
+      [class.role-entrepreneur]="user?.role === 'ENTREPRENEUR'"
+      [class.role-expert]="user?.role === 'EXPERT'">>
       {{ user?.role }}
     </span>
     <nav class="side-nav">
@@ -54,7 +56,33 @@
   </svg>
   Mes Certificats
 </button>
+<!-- Lien legal selon le rôle -->
+<button class="side-link"
+  *ngIf="authService.isEntrepreneur()"
+  routerLink="/legal-procedures/list"
+  [class.active]="currentUrl.startsWith('/legal-procedures')">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+    <polyline points="14 2 14 8 20 8"/>
+    <line x1="16" y1="13" x2="8" y2="13"/>
+    <line x1="16" y1="17" x2="8" y2="17"/>
+  </svg>
+  Mes dossiers juridiques
+</button>
 
+<button class="side-link"
+  *ngIf="authService.isExpert()"
+  routerLink="/legal-procedures/expert/assigned"
+  [class.active]="currentUrl.startsWith('/legal-procedures')">
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+    <polyline points="14 2 14 8 20 8"/>
+    <line x1="16" y1="13" x2="8" y2="13"/>
+  </svg>
+  Dossiers à traiter
+</button>
     </nav>
   </aside>
 

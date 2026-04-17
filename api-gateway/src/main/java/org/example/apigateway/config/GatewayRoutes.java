@@ -4,10 +4,15 @@ import org.example.apigateway.filter.AuthFilter;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
+
+import java.util.List;
 
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
 import static org.springframework.web.servlet.function.RequestPredicates.path;
@@ -125,8 +130,33 @@ public class GatewayRoutes {
                 .filter(lb("event-pi"));
         // no authFilter — public endpoint for QR code scanning
     }
+    @Bean
+    public RouterFunction<ServerResponse> legalProcedureTypeRoute() {
+        return RouterFunctions
+                .route(path("/api/procedure-types/**"), HandlerFunctions.http())  // fix typo
+                .filter(lb("legal-pi"))
+                .filter(authFilter.jwtFilter());
+    }
 
+    @Bean
+    public RouterFunction<ServerResponse> legalProceduresRoute() {
+        return RouterFunctions
+                .route(path("/api/legal-procedures/**"), HandlerFunctions.http())  // add this
+                .filter(lb("legal-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
 
+        config.setAllowedOrigins(List.of("http://localhost:4200"));
+        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
 
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
 
+        return source;
+    }
 }

@@ -4,7 +4,6 @@ import { authGuard } from './core/services/auth.guard';
 import { HomeComponent } from './modules/home/home.component';
 import { VerifyCertificateComponent } from './pages/verify-certificate/verify-certificate.component';
 
-
 const routes: Routes = [
   { path: '', component: HomeComponent, pathMatch: 'full' },
   {
@@ -25,6 +24,22 @@ const routes: Routes = [
       import('./modules/event/event.module').then(m => m.EventModule)
   },
   {
+    path: 'legal-procedures',
+    canActivate: [authGuard],   // ← protégé comme les autres modules
+    loadChildren: () =>
+      import('./modules/legal/legal.module').then(m => m.LegalModule)
+  },
+  {
+    path: 'partenariat',
+    canActivate: [authGuard],
+    loadChildren: () =>
+      import('./modules/partenaire/partenaire.module').then(m => m.PartenaireModule)
+  },
+  {
+    path: 'verify/:token',
+    component: VerifyCertificateComponent
+  },
+  {
     path: 'partenariat',
     canActivate: [authGuard],
     loadChildren: () =>
@@ -38,7 +53,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)], 
+  imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule]
 })
 export class AppRoutingModule {}

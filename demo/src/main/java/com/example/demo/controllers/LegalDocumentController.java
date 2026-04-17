@@ -1,27 +1,21 @@
 package com.example.demo.controllers;
 
-
-
-
 import com.example.demo.dto.LegalDocumentResponse;
 import com.example.demo.dto.UpdateLegalDocumentStatusRequest;
 import com.example.demo.services.LegalDocumentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/legal-procedures/{procedureId}/documents")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200")
 public class LegalDocumentController {
 
     private final LegalDocumentService service;
@@ -30,12 +24,10 @@ public class LegalDocumentController {
     public ResponseEntity<LegalDocumentResponse> upload(
             @PathVariable UUID procedureId,
             @RequestParam("requirementCode") String requirementCode,
-            @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "expiresAt", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime expiresAt
+            @RequestParam("file") MultipartFile file
     ) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(service.upload(procedureId, requirementCode, file, expiresAt));
+                .body(service.upload(procedureId, requirementCode, file));
     }
 
     @GetMapping

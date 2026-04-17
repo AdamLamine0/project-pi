@@ -9,7 +9,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/procedure-types")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200")
 public class ProcedureTypeController {
 
     private final ProcedureTypeService service;
