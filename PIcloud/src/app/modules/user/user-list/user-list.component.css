@@ -213,6 +213,8 @@ td {
 .badge-mentor   { background: #fffbeb; color: #d97706; }
 .badge-investor { background: #fef3e2; color: #f97316; }
 .badge-partner  { background: #f5f3ff; color: #7c3aed; }
+.badge-entrepreneur { background: #fff7ed; color: #c2410c; }
+.badge-expert       { background: #f0fdf4; color: #15803d; }
 
 /* status dot */
 .dot {

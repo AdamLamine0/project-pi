@@ -34,7 +34,6 @@ export class LegalProcedureFormComponent implements OnInit {
     private readonly router: Router,
     private readonly location: Location,
     private readonly auth: AuthService,
-    private readonly http: HttpClient
   ) {
     this.userId = this.auth.getUserId();
   }
@@ -53,10 +52,11 @@ export class LegalProcedureFormComponent implements OnInit {
     }
 
     // Charge la liste des experts depuis l'API users
-    this.http.get<ExpertSummary[]>('http://localhost:8090/api/users/experts').subscribe({
-      next: (data) => this.experts = data,
-      error: () => this.errorMessage = 'Impossible de charger la liste des experts.'
-    });
+   this.service.getExperts().subscribe({
+  next: (data) => this.experts = data,
+  error: () => this.errorMessage = 'Impossible de charger la liste des experts.'
+});
+
   }
 
   goBack(): void {

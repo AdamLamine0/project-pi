@@ -9,18 +9,39 @@
         Créez vos dossiers, déposez vos documents et suivez l'avancement
         de votre procédure jusqu'à l'obtention du document final.
       </p>
+
+      <!-- Actions selon le rôle -->
       <div class="hero-actions">
-        <a class="btn btn-primary-pro" routerLink="/legal-procedures/list">
-          Voir mes dossiers
-        </a>
-        <a class="btn btn-soft" routerLink="/legal-procedures/new">
-          Créer un dossier
-        </a>
+
+        <!-- ENTREPRENEUR -->
+        <ng-container *ngIf="auth.isEntrepreneur()">
+          <a class="btn btn-primary-pro" routerLink="/legal-procedures/list">
+            Voir mes dossiers
+          </a>
+          <a class="btn btn-soft" routerLink="/legal-procedures/new">
+            Créer un dossier
+          </a>
+        </ng-container>
+
+        <!-- EXPERT -->
+        <ng-container *ngIf="auth.isExpert()">
+          <a class="btn btn-primary-pro" routerLink="/legal-procedures/expert/assigned">
+            Dossiers à traiter
+          </a>
+        </ng-container>
+
+        <!-- Autres rôles (USER, MENTOR, etc.) -->
+        <ng-container *ngIf="!auth.isEntrepreneur() && !auth.isExpert()">
+          <p class="text-muted">
+            Connectez-vous en tant qu'entrepreneur pour créer un dossier.
+          </p>
+        </ng-container>
+
       </div>
     </div>
   </div>
 
-  <!-- Section types de procédures -->
+  <!-- Section types de procédures — visible par tous (vitrine) -->
   <div class="section-header mb-3">
     <h2 class="section-title">Procédures disponibles</h2>
     <p class="section-subtitle">Choisissez la procédure adaptée à votre projet.</p>
@@ -39,12 +60,34 @@
       <p class="card-description">{{ descriptions[type] }}</p>
 
       <div class="card-actions d-flex gap-2 mt-3">
-        <button class="btn btn-primary-pro" (click)="createProcedure(type)">
+
+        <!-- Bouton créer : ENTREPRENEUR uniquement -->
+        <button class="btn btn-primary-pro"
+                *ngIf="auth.isEntrepreneur()"
+                (click)="createProcedure(type)">
           Créer un dossier
         </button>
-        <a class="btn btn-soft" routerLink="/legal-procedures/list">
+
+        <!-- Mes dossiers : ENTREPRENEUR uniquement -->
+        <a class="btn btn-soft"
+           *ngIf="auth.isEntrepreneur()"
+           routerLink="/legal-procedures/list">
           Mes dossiers
         </a>
+
+        <!-- Expert : lien vers ses dossiers assignés -->
+        <a class="btn btn-primary-pro"
+           *ngIf="auth.isExpert()"
+           routerLink="/legal-procedures/expert/assigned">
+          Voir les dossiers assignés
+        </a>
+
+        <!-- Autres rôles : message informatif -->
+        <span class="text-muted small"
+              *ngIf="!auth.isEntrepreneur() && !auth.isExpert()">
+          Disponible pour les entrepreneurs
+        </span>
+
       </div>
     </div>
   </div>
