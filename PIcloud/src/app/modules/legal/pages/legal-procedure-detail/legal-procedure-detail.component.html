@@ -47,10 +47,6 @@
         <div class="info-item-value text-warning">{{ p.remark }}</div>
       </div>
     </div>
-    <div *ngIf="p.description" class="mt-3">
-      <div class="info-item-label">Description</div>
-      <p class="info-item-value">{{ p.description }}</p>
-    </div>
   </div>
 
   <!-- Checklist documentaire -->
@@ -111,14 +107,6 @@
                  class="form-control form-control-sm"
                  style="width:220px"
                  (change)="onFileSelected($event, item.code)" />
-
-          <input type="datetime-local"
-                 class="form-control form-control-sm"
-                 style="width:190px"
-                 *ngIf="uploadForms[item.code]"
-                 [formGroup]="uploadForms[item.code]"
-                 formControlName="expiresAt"
-                 placeholder="Expiration (optionnel)" />
 
           <button class="btn btn-sm btn-primary"
                   [disabled]="!selectedFiles[item.code] || uploadingCode === item.code"

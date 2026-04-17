@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,14 +30,13 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
     private final FileStorageService fileStorageService;
 
     @Override
-    public LegalDocumentResponse upload(UUID procedureId, String requirementCode,
-                                        MultipartFile file, LocalDateTime expiresAt) {
+    public LegalDocumentResponse upload(UUID procedureId, String requirementCode, MultipartFile file) {
 
         LegalProcedure procedure = procedureRepository.findById(procedureId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Dossier introuvable avec l'id : " + procedureId));
 
-        // Upload autorisé uniquement en BROUILLON
+        // Dépôt autorisé uniquement en BROUILLON (avant soumission)
         if (procedure.getStatus() != ProcedureStatus.BROUILLON) {
             throw new BusinessException(
                     "Les documents ne peuvent être déposés que sur un dossier en BROUILLON.");
@@ -57,7 +55,6 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
                 .requirementCode(requirementCode)
                 .documentType(requirementCode)
                 .fileUrl(fileUrl)
-                .expiresAt(expiresAt)
                 .status(DocumentStatus.DEPOSE)
                 .build();
 
@@ -71,7 +68,6 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
             throw new ResourceNotFoundException(
                     "Dossier introuvable avec l'id : " + procedureId);
         }
-
         return documentRepository.findByProcedureId(procedureId)
                 .stream()
                 .map(mapper::toDocumentResponse)
@@ -81,7 +77,6 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
     @Override
     public LegalDocumentResponse updateStatus(UUID documentId,
                                               UpdateLegalDocumentStatusRequest request) {
-
         LegalDocument document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Document introuvable avec l'id : " + documentId));
@@ -101,7 +96,6 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Document introuvable avec l'id : " + documentId));
 
-        // Suppression autorisée uniquement en BROUILLON
         if (document.getProcedure().getStatus() != ProcedureStatus.BROUILLON) {
             throw new BusinessException(
                     "Impossible de supprimer un document d'un dossier déjà soumis.");
@@ -109,8 +103,6 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
 
         documentRepository.delete(document);
     }
-
-    // ─── HELPER ──────────────────────────────────────────────────────
 
     private boolean isLocked(ProcedureStatus status) {
         return status == ProcedureStatus.COMPLETE || status == ProcedureStatus.REFUSE;

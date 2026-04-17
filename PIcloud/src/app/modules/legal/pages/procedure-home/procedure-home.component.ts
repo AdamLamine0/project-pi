@@ -30,9 +30,8 @@ export class ProcedureHomeComponent implements OnInit {
     // Redirection automatique selon le rôle dès l'entrée dans le module
     if (this.auth.isExpert()) {
       this.router.navigate(['/legal-procedures/expert/assigned']); // ✅ corrigé
-    } else if (this.auth.isEntrepreneur()) {
-      this.router.navigate(['/legal-procedures/list']);
-    }
+    } 
+    
     // USER, MENTOR, INVESTOR etc. → reste sur la home (page vitrine)
   }
 

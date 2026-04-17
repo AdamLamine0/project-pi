@@ -8,6 +8,5 @@ import jakarta.validation.constraints.Size;
 public record CreateLegalProcedureRequest(
         @NotBlank String projectName,
         @NotNull ProcedureType procedureType,
-        @NotNull Integer expertId,
-        @Size(max = 5000) String description
+        @NotNull Integer expertId
 ) {}

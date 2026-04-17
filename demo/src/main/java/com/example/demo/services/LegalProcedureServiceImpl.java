@@ -34,7 +34,7 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
                 .expertId(request.expertId())
                 .projectName(request.projectName())
                 .procedureType(request.procedureType())
-                .description(request.description())
+                // description retirée
                 .status(ProcedureStatus.BROUILLON)
                 .completionRate(0F)
                 .build();
@@ -169,7 +169,7 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
                 procedure.getId(), DocumentStatus.DEPOSE);
         long validated = documentRepository.countByProcedureIdAndStatus(
                 procedure.getId(), DocumentStatus.VALIDE);
-        float rate = ((float)(deposed + validated) / total) * 100;
+        float rate = ((float) (deposed + validated) / total) * 100;
         procedure.setCompletionRate(Math.round(rate * 100f) / 100f);
     }
 }

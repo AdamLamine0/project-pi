@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
 import { LegalProcedureService } from '../../../../services/legal-procedure.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ProcedureType, PROCEDURE_TYPE_LABELS, ExpertSummary } from '../../../../models/legal-procedure.model';
@@ -39,11 +38,11 @@ export class LegalProcedureFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // description retiré du formulaire
     this.form = this.fb.group({
       projectName:   ['', [Validators.required, Validators.maxLength(200)]],
       procedureType: ['', Validators.required],
       expertId:      [null, Validators.required],
-      description:   ['', Validators.maxLength(5000)],
     });
 
     const typeFromQuery = this.route.snapshot.queryParamMap.get('type');
@@ -51,12 +50,10 @@ export class LegalProcedureFormComponent implements OnInit {
       this.form.patchValue({ procedureType: typeFromQuery });
     }
 
-    // Charge la liste des experts depuis l'API users
-   this.service.getExperts().subscribe({
-  next: (data) => this.experts = data,
-  error: () => this.errorMessage = 'Impossible de charger la liste des experts.'
-});
-
+    this.service.getExperts().subscribe({
+      next: (data) => this.experts = data,
+      error: () => this.errorMessage = 'Impossible de charger la liste des experts.'
+    });
   }
 
   goBack(): void {
@@ -79,8 +76,7 @@ export class LegalProcedureFormComponent implements OnInit {
       {
         projectName:   raw.projectName,
         procedureType: raw.procedureType,
-        expertId:      Number(raw.expertId),   // Integer côté backend
-        description:   raw.description || null,
+        expertId:      Number(raw.expertId),
       },
       this.userId
     ).subscribe({
