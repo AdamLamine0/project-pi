@@ -14,7 +14,7 @@ export interface LegalDocumentResponse {
   fileUrl: string;
   status: DocumentStatus;
   uploadedAt: string;
-  expiresAt?: string;
+  // expiresAt supprimé
 }
 
 export interface LegalProcedureResponse {
@@ -23,7 +23,7 @@ export interface LegalProcedureResponse {
   expertId: number;
   projectName: string;
   procedureType: ProcedureType;
-  description?: string;
+  // description supprimé
   status: ProcedureStatus;
   remark?: string;
   completionRate: number;
@@ -36,8 +36,8 @@ export interface LegalProcedureResponse {
 export interface CreateLegalProcedureRequest {
   projectName: string;
   procedureType: ProcedureType;
-  expertId: number;       // Integer côté backend
-  description?: string | null;
+  expertId: number;
+  // description supprimé
 }
 
 export interface ExpertDecisionRequest {

@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
-import { FormBuilder, FormGroup } from '@angular/forms';
 import { LegalProcedureService } from '../../../../services/legal-procedure.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import {
@@ -21,7 +20,6 @@ export class LegalProcedureDetailComponent implements OnInit {
 
   procedure?: LegalProcedureResponse;
   checklist?: ChecklistResponse;
-  uploadForms: Record<string, FormGroup> = {};
   selectedFiles: Record<string, File> = {};
 
   loading = false;
@@ -37,7 +35,6 @@ export class LegalProcedureDetailComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly service: LegalProcedureService,
-    private readonly fb: FormBuilder,
     private readonly location: Location,
     private readonly auth: AuthService
   ) {
@@ -68,14 +65,7 @@ export class LegalProcedureDetailComponent implements OnInit {
 
   loadChecklist(id: string): void {
     this.service.getChecklist(id).subscribe({
-      next: (data) => {
-        this.checklist = data;
-        data.items.forEach(item => {
-          if (!item.uploaded) {
-            this.uploadForms[item.code] = this.fb.group({ expiresAt: [''] });
-          }
-        });
-      },
+      next: (data) => { this.checklist = data; },
       error: (err) => console.error('Erreur checklist', err)
     });
   }
@@ -91,10 +81,8 @@ export class LegalProcedureDetailComponent implements OnInit {
     this.successMessage = '';
     this.uploadingCode = item.code;
 
-    const expiresAt = this.uploadForms[item.code]?.value?.expiresAt || undefined;
-
     this.service.uploadDocument(
-      this.procedure.id, item.code, this.selectedFiles[item.code], expiresAt
+      this.procedure.id, item.code, this.selectedFiles[item.code]
     ).subscribe({
       next: () => {
         this.successMessage = `"${item.label}" déposé avec succès.`;
@@ -124,8 +112,9 @@ export class LegalProcedureDetailComponent implements OnInit {
     if (!this.procedure) return;
     this.service.submit(this.procedure.id, this.userId).subscribe({
       next: (updated) => {
-        this.procedure = updated;
         this.successMessage = 'Dossier soumis avec succès. Statut : EN COURS.';
+        // Recharge tout (procédure + checklist) pour refléter le nouveau statut
+        this.loadAll(updated.id);
       },
       error: (err) => this.errorMessage = err?.error?.message || 'Erreur lors de la soumission.'
     });

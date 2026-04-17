@@ -13,7 +13,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class LegalProcedureService {
 
-  private readonly base    = 'http://localhost:8090/api/legal-procedures';
+  private readonly base      = 'http://localhost:8090/api/legal-procedures';
   private readonly usersBase = 'http://localhost:8090/api/users';
 
   constructor(private readonly http: HttpClient) {}
@@ -58,18 +58,18 @@ export class LegalProcedureService {
     return this.http.get<ChecklistResponse>(`${this.base}/${procedureId}/checklist`);
   }
 
+  /**
+   * Dépose un fichier pour un item de la checklist.
+   * expiresAt a été supprimé — ni le back ni le front ne l'utilisent plus.
+   */
   uploadDocument(
     procedureId: string,
     requirementCode: string,
-    file: File,
-    expiresAt?: string
+    file: File
   ): Observable<LegalDocumentResponse> {
     const formData = new FormData();
     formData.append('requirementCode', requirementCode);
     formData.append('file', file);
-    if (expiresAt) formData.append('expiresAt', expiresAt);
-
-    // ✅ URL correcte : /api/legal-procedures/{id}/documents
     return this.http.post<LegalDocumentResponse>(
       `${this.base}/${procedureId}/documents`, formData
     );
@@ -82,7 +82,6 @@ export class LegalProcedureService {
   }
 
   deleteDocument(procedureId: string, documentId: string): Observable<void> {
-    // ✅ URL correcte : /api/legal-procedures/{procedureId}/documents/{documentId}
     return this.http.delete<void>(
       `${this.base}/${procedureId}/documents/${documentId}`
     );
@@ -108,7 +107,6 @@ export class LegalProcedureService {
 
   // ── EXPERTS LIST ─────────────────────────────────────────────────────────────
 
-  // Appelé dans le formulaire de création pour afficher la liste statique des experts
   getExperts(): Observable<ExpertSummary[]> {
     return this.http.get<ExpertSummary[]>(`${this.usersBase}/experts`);
   }
