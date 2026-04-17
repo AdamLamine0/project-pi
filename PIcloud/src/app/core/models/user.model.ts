@@ -5,19 +5,19 @@ export interface User {
   email: string;
   dateInscription: string;
   statut: string;
-  role: 'USER' | 'ADMIN' | 'MENTOR' | 'INVESTOR' | 'PARTNER';
+  role: Role;  // utilise l'enum au lieu d'un union type partiel
 }
 
-// Matches exactly what the DB stores (no ROLE_ prefix)
 export enum Role {
-  USER     = 'USER',
-  ADMIN    = 'ADMIN',
-  MENTOR   = 'MENTOR',
-  INVESTOR = 'INVESTOR',
-  PARTNER  = 'PARTNER'
+  USER         = 'USER',
+  ADMIN        = 'ADMIN',
+  MENTOR       = 'MENTOR',
+  INVESTOR     = 'INVESTOR',
+  PARTNER      = 'PARTNER',
+  ENTREPRENEUR = 'ENTREPRENEUR',
+  EXPERT       = 'EXPERT'
 }
 
-// Sent to POST /api/users/admin/create
 export interface AdminCreateUserRequest {
   name: string;
   prenom: string;
@@ -26,8 +26,12 @@ export interface AdminCreateUserRequest {
   role: Role;
 }
 
+// ✅ Ajout de id, email, role
 export interface AuthResponse {
   token: string;
+  id: number;
+  email: string;
+  role: Role;
 }
 
 export interface LoginRequest {
@@ -40,4 +44,5 @@ export interface RegisterRequest {
   prenom: string;
   email: string;
   password: string;
+  role?: Role | null;
 }

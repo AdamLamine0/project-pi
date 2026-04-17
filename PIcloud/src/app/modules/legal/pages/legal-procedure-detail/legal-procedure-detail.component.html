@@ -1,0 +1,155 @@
+<div class="page-container" *ngIf="procedure as p; else loadingTpl">
+
+  <!-- En-tête -->
+  <div class="section-header mb-4">
+    <div>
+      <h1 class="section-title">{{ p.projectName }}</h1>
+      <p class="section-subtitle">
+        {{ procedureTypeLabels[p.procedureType] }} —
+        <span class="badge" [ngClass]="getStatusClass(p.status)">
+          {{ statusLabels[p.status] }}
+        </span>
+      </p>
+    </div>
+    <button class="btn btn-soft" type="button" (click)="goBack()">← Retour</button>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+
+  <!-- Infos dossier -->
+  <div class="info-card mb-4">
+    <h2 class="section-title" style="font-size:18px;">Informations du dossier</h2>
+    <div class="info-grid mt-3">
+      <div class="info-item">
+        <div class="info-item-label">ID dossier</div>
+        <div class="info-item-value">{{ p.id }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-item-label">Expert assigné</div>
+        <div class="info-item-value">{{ p.expertId || 'Non assigné' }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-item-label">Progression</div>
+        <div class="info-item-value">{{ p.completionRate }} %</div>
+      </div>
+      <div class="info-item">
+        <div class="info-item-label">Créé le</div>
+        <div class="info-item-value">{{ p.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+      </div>
+      <div class="info-item" *ngIf="p.submittedAt">
+        <div class="info-item-label">Soumis le</div>
+        <div class="info-item-value">{{ p.submittedAt | date:'dd/MM/yyyy HH:mm' }}</div>
+      </div>
+      <div class="info-item" *ngIf="p.remark">
+        <div class="info-item-label">Remarque</div>
+        <div class="info-item-value text-warning">{{ p.remark }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checklist documentaire -->
+  <div class="card-premium p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h2 class="section-title" style="font-size:18px;">Checklist documentaire</h2>
+        <p class="section-subtitle" *ngIf="checklist">
+          {{ checklist.uploadedCount }} / {{ checklist.requiredCount }} documents obligatoires déposés
+          ({{ checklist.completionPercentage }}%)
+        </p>
+      </div>
+
+      <!-- Barre de progression -->
+      <div class="progress" style="width:200px; height:10px;" *ngIf="checklist">
+        <div class="progress-bar bg-success"
+             [style.width.%]="checklist.completionPercentage">
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="checklist?.items?.length; else noChecklist">
+      <div class="checklist-item mb-3"
+           *ngFor="let item of checklist!.items"
+           [class.checklist-ok]="item.uploaded"
+           [class.checklist-miss]="!item.uploaded">
+
+        <!-- Info du document -->
+        <div class="flex-grow-1">
+          <div class="d-flex align-items-center gap-2">
+            <span class="checklist-dot"
+                  [class.dot-ok]="item.uploaded"
+                  [class.dot-miss]="!item.uploaded">
+            </span>
+            <strong>{{ item.label }}</strong>
+            <span *ngIf="item.required" class="badge bg-danger" style="font-size:10px;">Obligatoire</span>
+          </div>
+          <small class="text-muted">{{ item.description }}</small>
+
+          <!-- Lien si déjà déposé -->
+          <div *ngIf="item.uploaded && item.fileUrl" class="mt-1">
+            <a [href]="item.fileUrl" target="_blank" class="btn btn-sm btn-outline-secondary">
+              📎 Voir le document
+            </a>
+            <!-- Supprimer uniquement en BROUILLON -->
+            <button *ngIf="p.status === 'BROUILLON' && item.documentId"
+                    class="btn btn-sm btn-outline-danger ms-2"
+                    (click)="deleteDocument(item.documentId!)">
+              Supprimer
+            </button>
+          </div>
+        </div>
+
+        <!-- Bouton déposer à côté (BROUILLON uniquement) -->
+        <div *ngIf="!item.uploaded && p.status === 'BROUILLON'"
+             class="upload-zone d-flex gap-2 align-items-center">
+          <input type="file"
+                 class="form-control form-control-sm"
+                 style="width:220px"
+                 (change)="onFileSelected($event, item.code)" />
+
+          <button class="btn btn-sm btn-primary"
+                  [disabled]="!selectedFiles[item.code] || uploadingCode === item.code"
+                  (click)="uploadDocument(item)">
+            {{ uploadingCode === item.code ? '...' : 'Déposer' }}
+          </button>
+        </div>
+
+        <!-- Tag statut -->
+        <span [ngClass]="item.uploaded ? 'check-tag-ok' : 'check-tag-miss'">
+          {{ item.uploaded ? '✓ Déposé' : '✗ Manquant' }}
+        </span>
+      </div>
+    </div>
+
+    <ng-template #noChecklist>
+      <div class="empty-state">
+        <p>Aucune exigence trouvée pour ce type de procédure.</p>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- Bouton Submit (visible seulement si BROUILLON et tous les docs obligatoires déposés) -->
+  <div class="d-flex justify-content-end" *ngIf="p.status === 'BROUILLON'">
+    <button class="btn btn-success btn-lg"
+            [disabled]="!allRequiredUploaded"
+            (click)="submitProcedure()">
+      {{ allRequiredUploaded ? 'Soumettre le dossier' : 'Déposez tous les documents obligatoires' }}
+    </button>
+  </div>
+
+  <!-- Téléchargement document final si COMPLETE -->
+  <div class="card-premium p-4 mt-4" *ngIf="p.status === 'COMPLETE'">
+    <h3 class="section-title" style="font-size:18px;">🎉 Dossier validé</h3>
+    <p>Votre dossier a été validé par l'expert juridique. Le document final est disponible.</p>
+    <a class="btn btn-primary" href="#" target="_blank">Télécharger le document final</a>
+  </div>
+
+</div>
+
+<ng-template #loadingTpl>
+  <div class="p-5 text-center">
+    <div *ngIf="loading">Chargement en cours...</div>
+    <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+  </div>
+</ng-template>

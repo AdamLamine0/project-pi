@@ -71,6 +71,8 @@
 .role-user    { background: #eff6ff; color: #1d4ed8; }
 .role-mentor  { background: #ecfdf5; color: #047857; }
 .role-partner { background: #f5f3ff; color: #6d28d9; }
+.role-entrepreneur { background: #fff7ed; color: #c2410c; }
+.role-expert       { background: #f0fdf4; color: #15803d; }
 
 .side-nav {
   display: flex;

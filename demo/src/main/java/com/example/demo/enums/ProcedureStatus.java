@@ -1,13 +1,10 @@
 package com.example.demo.enums;
 
 public enum ProcedureStatus {
-    BROUILLON,
-    EN_COURS,
-    EN_ATTENTE_INSTITUTION,
-    VALIDE_PARTIELLEMENT,
-    COMPLETE,
-    ABANDONNE,
-    REFUSE,
-    ARCHIVE
+    BROUILLON,        // À la création
+    EN_COURS,         // Après Submit (automatique)
+    EN_ATTENTE_EXPERT, // Après validation IA (automatique)
+    COMPLETE,         // Après validation expert (automatique)
+    REFUSE            // Refus IA ou expert (automatique)
 }
 

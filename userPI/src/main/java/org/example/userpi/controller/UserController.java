@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.userpi.dto.AdminCreateUserRequest;
 import org.example.userpi.dto.ChangePasswordRequest;
+import org.example.userpi.dto.ExpertSummaryDto;
 import org.example.userpi.dto.SetPasswordRequest;
 import org.example.userpi.model.User;
 import org.example.userpi.service.UserService;
@@ -78,5 +79,9 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable int id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
+    }
+    @GetMapping("/experts")
+    public ResponseEntity<List<ExpertSummaryDto>> getExperts() {
+        return ResponseEntity.ok(userService.getExperts());
     }
 }

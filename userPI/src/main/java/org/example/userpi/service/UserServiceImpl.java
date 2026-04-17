@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.userpi.Enum.Role;
 import org.example.userpi.dto.AdminCreateUserRequest;
 import org.example.userpi.dto.ChangePasswordRequest;
+import org.example.userpi.dto.ExpertSummaryDto;
 import org.example.userpi.model.User;
 import org.example.userpi.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -127,4 +128,15 @@ public class UserServiceImpl implements UserService {
         existing.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(existing);
     }
+    @Override
+    public List<ExpertSummaryDto> getExperts() {
+        return userRepository.findByRole(Role.EXPERT)
+                .stream()
+                .map(u -> new ExpertSummaryDto(
+                        u.getId(),
+                        u.getName() + " " + u.getPrenom(),
+                        u.getEmail()
+                ))
+                .toList();
+    } //zaineb
 }
