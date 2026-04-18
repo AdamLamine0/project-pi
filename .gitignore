@@ -1,0 +1,24 @@
+# Local config with secrets
+application-local.properties
+application-local.yml
+.env
+
+# Build
+target/
+*/target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.vscode/settings.json
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db

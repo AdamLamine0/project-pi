@@ -1,0 +1,32 @@
+.success-message {
+  max-width: 1200px;
+  margin: 0 auto 1rem;
+  background: #e8f5e9;
+  color: #27ae60;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  border-left: 4px solid #27ae60;
+}
+
+.error-message {
+  max-width: 1200px;
+  margin: 0 auto 1rem;
+  background: #fde8e8;
+  color: #e74c3c;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  border-left: 4px solid #e74c3c;
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: #7f8c8d;
+  font-size: 1.1rem;
+}
+
+.no-data {
+  text-align: center;
+  padding: 2rem;
+  color: #7f8c8d;
+}

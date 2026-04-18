@@ -1,0 +1,40 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: community-service
+
+  mongodb:
+    uri: ${MONGODB_URI}
+
+groq:
+  api:
+    key: ${GROQ_API_KEY}
+
+user:
+  service:
+    url: http://localhost:8081/api/users
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+  instance:
+    prefer-ip-address: true
+    ip-address: 127.0.0.1
+    instance-id: ${spring.application.name}:${server.port}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+logging:
+  level:
+    org.apache.pdfbox: ERROR
+    org.apache.pdfbox.pdmodel.font.PDSimpleFont: ERROR
+    com.projectmentor.communityservice.marketplace.service.CandidateMLService: DEBUG
