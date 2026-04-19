@@ -50,6 +50,15 @@ public class Event {
     @Column(name = "location", length = 300)
     private String location;
 
+    @Column(name = "address", length = 500)
+    private String address;
+
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
     @Column(name = "ticket_price")
     private Double ticketPrice;
 
@@ -126,11 +135,15 @@ public class Event {
 
     /** Decrement one seat. Marks event full when the last seat is taken. */
     public void decrementAvailablePlaces() {
-        if (capacityMax == null) return; // unlimited
-        if (availablePlaces != null && availablePlaces > 0) {
-            availablePlaces--;
-        }
-        if (availablePlaces != null && availablePlaces <= 0) {
+        decrementAvailablePlaces(1);
+    }
+
+    /** Decrement n seats. Marks event full when no seats remain. */
+    public void decrementAvailablePlaces(int n) {
+        if (capacityMax == null) return;
+        int current = availablePlaces != null ? availablePlaces : 0;
+        availablePlaces = Math.max(0, current - n);
+        if (availablePlaces <= 0) {
             availablePlaces = 0;
             isFull = true;
         }
@@ -138,11 +151,15 @@ public class Event {
 
     /** Restore one seat (on cancellation). Clears the full flag if needed. */
     public void incrementAvailablePlaces() {
+        incrementAvailablePlaces(1);
+    }
+
+    /** Restore n seats (on cancellation). Clears the full flag if needed. */
+    public void incrementAvailablePlaces(int n) {
         if (capacityMax == null) return;
-        if (availablePlaces != null && availablePlaces < capacityMax) {
-            availablePlaces++;
-        }
-        if (Boolean.TRUE.equals(isFull) && availablePlaces != null && availablePlaces > 0) {
+        int current = availablePlaces != null ? availablePlaces : 0;
+        availablePlaces = Math.min(capacityMax, current + n);
+        if (Boolean.TRUE.equals(isFull) && availablePlaces > 0) {
             isFull = false;
         }
     }
