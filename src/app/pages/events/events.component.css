@@ -1,0 +1,6 @@
+/* Component-scoped styles for EventsComponent.
+   Global styles (page-shell, cards, badges, etc.) live in styles.css. */
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
