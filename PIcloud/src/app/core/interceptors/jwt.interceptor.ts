@@ -7,10 +7,10 @@ import { catchError, throwError } from 'rxjs';
 export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
-  const token =authService.getToken();
+  const token = authService.getToken();
 
-  // hedhi 3malnah bch taddi toekn automatiquement
-   const authReq = token
+  // hedhi 3malnah bch taddi token automatiquement
+  const authReq = token
     ? req.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`

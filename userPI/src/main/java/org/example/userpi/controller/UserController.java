@@ -1,9 +1,11 @@
 package org.example.userpi.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.example.userpi.dto.AdminCreateUserRequest;
 import org.example.userpi.dto.ChangePasswordRequest;
+import org.example.userpi.dto.ExpertSummaryDto;
 import org.example.userpi.dto.SetPasswordRequest;
-import org.example.userpi.dto.UserDirectoryDto;
 import org.example.userpi.model.User;
 import org.example.userpi.service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -18,30 +20,29 @@ public class UserController {
 
     private final UserService userService;
 
-    // ADMIN only
+    // ADMIN only — get all users
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    /**
-     * Public directory for networking (name, prenom, role). Used by community-service and the SPA.
-     * Does not expose passwords.
-     */
-    @GetMapping("/directory")
-    public ResponseEntity<List<UserDirectoryDto>> getDirectory() {
-        return ResponseEntity.ok(userService.getDirectoryUsers());
-    }
-
-    // any logged in user
+    // Any logged-in user — get by id
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<User> getUserById(@PathVariable int id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
-    // Google user sets password
+    // ADMIN only — create a user with a chosen role
+    // POST /api/users/admin/create
+    @PostMapping("/admin/create")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<User> createUser(
+            @Valid @RequestBody AdminCreateUserRequest request) {
+        return ResponseEntity.ok(userService.createUser(request));
+    }
+
+    // Google user sets their password for the first time
     @PostMapping("/{id}/set-password")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> setPassword(
@@ -52,18 +53,16 @@ public class UserController {
         return ResponseEntity.ok("Password set successfully");
     }
 
-    // own data only
+    // Own data only — update profile
     @PutMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<User> updateUser(
             @RequestBody User user,
             @RequestHeader("X-User-Id") int requestingUserId) {
-        return ResponseEntity.ok(
-                userService.updateUser(user, requestingUserId)
-        );
+        return ResponseEntity.ok(userService.updateUser(user, requestingUserId));
     }
 
-    // own data only
+    // Own data only — change password
     @PutMapping("/{id}/change-password")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> changePassword(
@@ -74,11 +73,15 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    // ADMIN only
+    // ADMIN only — delete user
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable int id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
+    }
+    @GetMapping("/experts")
+    public ResponseEntity<List<ExpertSummaryDto>> getExperts() {
+        return ResponseEntity.ok(userService.getExperts());
     }
 }

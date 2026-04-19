@@ -6,8 +6,10 @@
     <ul class="nav-links">
       <ng-container *ngIf="authService.isLoggedIn(); else loggedOut">
         <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" class="nl">Accueil</a></li>
+
         <li><a routerLink="/events" routerLinkActive="active" class="nl">Événements</a></li>
-<!-- Menu déroulant Communauté -->
+
+        <!-- Menu déroulant Communauté -->
         <li class="dropdown">
           <a class="nl dropdown-toggle">Communauté ▾</a>
           <ul class="dropdown-menu">
@@ -19,8 +21,30 @@
             <li><a routerLink="/community/messaging" routerLinkActive="active">Messages</a></li>
           </ul>
         </li>
-            <li><a routerLink="/user/profile" routerLinkActive="active" class="nl">Profil</a></li>
-        <li *ngIf="authService.isAdmin()"><a routerLink="/user/list" routerLinkActive="active" class="nl">Utilisateurs</a></li>
+
+        <li><a routerLink="/legal-procedures" routerLinkActive="active" class="nl">Procédures</a></li>
+
+        <li><a routerLink="/partenariat/list" routerLinkActive="active" class="nl">Partenaires</a></li>
+
+        <!-- PARTNER: their org + their conventions -->
+        <ng-container *ngIf="authService.getRole() === 'PARTNER'">
+          <li><a routerLink="/partenariat/mon-organisation" routerLinkActive="active" class="nl">Mon organisation</a></li>
+          <li><a routerLink="/partenariat/conventions" routerLinkActive="active" class="nl">Conventions</a></li>
+        </ng-container>
+
+        <!-- USER: their own conventions -->
+        <li *ngIf="authService.getRole() === 'USER'">
+          <a routerLink="/partenariat/conventions" routerLinkActive="active" class="nl">Mes conventions</a>
+        </li>
+
+        <!-- ADMIN: all conventions + user list + validation -->
+        <ng-container *ngIf="authService.isAdmin()">
+          <li><a routerLink="/partenariat/conventions" routerLinkActive="active" class="nl">Conventions</a></li>
+          <li><a routerLink="/user/list" routerLinkActive="active" class="nl">Utilisateurs</a></li>
+          <li><a routerLink="/events/pending" routerLinkActive="active" class="nl">Validation</a></li>
+        </ng-container>
+
+        <li><a routerLink="/user/profile" routerLinkActive="active" class="nl">Profil</a></li>
         <li><button class="nav-btn-logout" (click)="logout()">Déconnexion</button></li>
       </ng-container>
       <ng-template #loggedOut>

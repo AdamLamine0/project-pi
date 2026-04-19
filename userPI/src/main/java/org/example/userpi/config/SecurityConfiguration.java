@@ -23,11 +23,10 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
         http
-                .cors(cors -> cors.configure(http))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/users/directory").permitAll()
+                        .requestMatchers("/api/users/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
@@ -38,6 +37,15 @@ public class SecurityConfiguration {
                         UsernamePasswordAuthenticationFilter.class)
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(oAuth2LoginSuccessHandler)
+                )
+                // ← ADD THIS: disable redirect to login for unauthenticated API calls
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) ->
+                                response.sendError(
+                                        jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED,
+                                        "Unauthorized"
+                                )
+                        )
                 );
 
         return http.build();

@@ -32,31 +32,33 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setDateInscription(LocalDate.now());
         user.setStatut("active");
-        user.setRole(Role.USER);
-        userRepository.save(user);
-        return new AuthResponse(jwtService.generateToken(user));
+        user.setRole(request.getRole() != null ? request.getRole() : Role.USER);
+
+        // ✅ Récupère l'objet sauvegardé avec l'id généré
+        System.out.println("Register role reçu: " + request.getRole());
+        User saved = userRepository.save(user);
+        System.out.println("Role sauvegardé: " + saved.getRole());
+        return new AuthResponse(
+                jwtService.generateToken(saved),  // ✅ utilise saved, pas user
+                saved.getId(),
+                saved.getEmail(),
+                saved.getRole()
+        );
     }
 
-    public AuthResponse login(AuthRequest request) {
-        // check email exists
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() ->
-                        new RuntimeException("No account found with this email"));
 
-        // check if Google user with no password
+    public AuthResponse login(AuthRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("No account found with this email"));
+
         if (user.getPassword() == null) {
-            throw new RuntimeException(
-                    "This account uses Google login. Please login with Google."
-            );
+            throw new RuntimeException("This account uses Google login. Please login with Google.");
         }
 
-        // check password not empty or null
-        if (request.getPassword() == null
-                || request.getPassword().trim().isEmpty()) {
+        if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
             throw new RuntimeException("Password cannot be empty");
         }
 
-        // authenticate
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -67,6 +69,12 @@ public class AuthService {
             throw new RuntimeException("Incorrect password");
         }
 
-        return new AuthResponse(jwtService.generateToken(user));
+        return new AuthResponse(
+                jwtService.generateToken(user),
+                user.getId(),
+                user.getEmail(),
+                user.getRole()
+        );
     }
+
 }

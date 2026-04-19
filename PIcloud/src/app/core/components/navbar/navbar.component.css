@@ -101,6 +101,8 @@
   text-decoration: none;
   transform: translateY(-1px);
 }
+
+/* Dropdown menu (community) */
 .dropdown {
   position: relative;
 }

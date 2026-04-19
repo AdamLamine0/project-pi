@@ -34,9 +34,29 @@ export class EventService {
     return this.http.delete<void>(`${this.api}/${id}`);
   }
 
+  // Workflow actions (friend's additions)
+  submit(id: number): Observable<Event>  { return this.http.patch<Event>(`${this.api}/${id}/submit`, {}); }
+  publish(id: number): Observable<Event> { return this.http.patch<Event>(`${this.api}/${id}/publish`, {}); }
+  getPending(): Observable<Event[]>      { return this.http.get<Event[]>(`${this.api}/pending`); }
+  approve(id: number): Observable<Event> { return this.http.patch<Event>(`${this.api}/${id}/approve`, {}); }
+  reject(id: number, reason: string): Observable<Event> {
+    return this.http.patch<Event>(`${this.api}/${id}/reject`, { reason });
+  }
+
   uploadImage(file: File): Observable<{ url: string }> {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post<{ url: string }>(`${this.api}/upload-image`, formData);
+  }
+
+  generateDescription(
+    title: string,
+    date: string,
+    eventType?: string
+  ): Observable<{ description: string }> {
+    return this.http.post<{ description: string }>(
+      `${this.api}/generate-description`,
+      { title, date, eventType }
+    );
   }
 }

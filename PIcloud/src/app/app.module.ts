@@ -1,31 +1,34 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { NavbarComponent } from './core/components/navbar/navbar.component';
-import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
-import { RouterModule } from '@angular/router';
 import { HomeComponent } from './modules/home/home.component';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { PartenaireModule } from './modules/partenaire/partenaire.module';
+import { VerifyCertificateComponent } from './pages/verify-certificate/verify-certificate.component';
+
+import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
 
 @NgModule({
   declarations: [
     AppComponent,
     NavbarComponent,
-    HomeComponent
+    HomeComponent,
+    VerifyCertificateComponent
   ],
   imports: [
     BrowserModule,       // ← includes CommonModule (*ngIf, *ngFor)
     AppRoutingModule,
     RouterModule,
-    FormsModule
+    FormsModule,
+    PartenaireModule
   ],
   providers: [
-    provideHttpClient(withInterceptors([jwtInterceptor])),
-    provideAnimationsAsync('noop')
+    provideHttpClient(withInterceptors([jwtInterceptor]))
   ],
   bootstrap: [AppComponent]
 })
