@@ -96,7 +96,7 @@ public class LinkedInImportService {
                     },
                     new String[]{
                             "%s is a core contributor to the Angular framework and author of the popular 'ng-essentials' library. Regular speaker at NgConf and AngularConnect.",
-                            "%s specialises in web performance and Core Web Vitals optimisation, helping companies cut load times by 60 %. Maintainer of several Webpack plugins.",
+                            "%s specialises in web performance and Core Web Vitals optimisation, helping companies cut load times by 60 %%. Maintainer of several Webpack plugins.",
                             "%s is a Spring Boot expert who has designed microservice architectures for banks and insurance companies across Europe.",
                             "%s advocates for progressive web apps and web accessibility, with a focus on inclusive design for 100 M+ user products.",
                             "%s leads front-end engineering at a major e-commerce platform, overseeing the migration from monolith to micro-frontend architecture.",
@@ -156,7 +156,7 @@ public class LinkedInImportService {
                             "%s is an AWS Solutions Architect who has migrated 200+ enterprise workloads to the cloud. Holder of 8 AWS and CNCF certifications.",
                             "%s designed the Kubernetes-based internal developer platform adopted by 3 000 engineers across a major European bank.",
                             "%s champions GitOps and infrastructure-as-code practices, contributing to Flux CD and Terraform provider development.",
-                            "%s is a site reliability engineer who reduced incident MTTR by 70 % through chaos engineering and automated runbooks.",
+                            "%s is a site reliability engineer who reduced incident MTTR by 70 %% through chaos engineering and automated runbooks.",
                             "%s focuses on FinOps — optimising cloud costs without sacrificing reliability, saving €2 M annually for her team.",
                             "%s is a cloud-native security expert specialising in zero-trust architecture and supply-chain security for containerised workloads."
                     }

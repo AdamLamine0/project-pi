@@ -1,8 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { forkJoin, Observable, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { EventService } from '../../../../services/event.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { SpeakerService } from '../../../../services/speaker.service';
+import { ProgramService } from '../../../../services/program.service';
+import { SpeakerCandidate } from '../../../../models/speaker';
 import { EventType, LocationType, EventStatus } from '../../../../models/event';
 
 @Component({
@@ -32,12 +37,25 @@ export class EventFormComponent implements OnInit {
   sectorInput = '';
   stageInput = '';
 
+  // Speaker staging
+  stagedSpeakers: SpeakerCandidate[] = [];
+  speakerSearchQuery = '';
+  speakerCandidates: SpeakerCandidate[] = [];
+  isSearchingSpeakers = false;
+  speakerSearchError = '';
+  showSpeakerSearch = false;
+
+  // Program generation
+  shouldGenerateProgram = false;
+
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
     private eventService: EventService,
-    public authService: AuthService
+    public authService: AuthService,
+    private speakerService: SpeakerService,
+    private programService: ProgramService
   ) {
     this.form = this.fb.group({
       title:         ['', [Validators.required, Validators.maxLength(200)]],
@@ -167,18 +185,77 @@ export class EventFormComponent implements OnInit {
 
     request$.subscribe({
       next: (saved) => {
-        this.isLoading = false;
-        this.successMessage = this.isEdit
-          ? 'Événement mis à jour !'
-          : 'Événement créé ! Vous pouvez maintenant ajouter un programme depuis la page de détail.';
         const targetId = this.isEdit ? this.eventId! : saved.id;
-        setTimeout(() => this.router.navigate(['/events', targetId]), 1500);
+        const hasPostOps = !this.isEdit && (this.stagedSpeakers.length > 0 || this.shouldGenerateProgram);
+
+        if (hasPostOps) {
+          this.postCreateOperations(saved.id).subscribe({
+            next: () => {
+              this.isLoading = false;
+              this.successMessage = 'Événement créé avec intervenants et programme !';
+              setTimeout(() => this.router.navigate(['/events', targetId]), 1500);
+            },
+            error: () => {
+              this.isLoading = false;
+              this.successMessage = 'Événement créé. Certaines opérations post-création ont échoué.';
+              setTimeout(() => this.router.navigate(['/events', targetId]), 2000);
+            }
+          });
+        } else {
+          this.isLoading = false;
+          this.successMessage = this.isEdit ? 'Événement mis à jour !' : 'Événement créé !';
+          setTimeout(() => this.router.navigate(['/events', targetId]), 1500);
+        }
       },
       error: (err) => {
         this.errorMessage = err.error?.message || 'Une erreur est survenue.';
         this.isLoading = false;
       }
     });
+  }
+
+  private postCreateOperations(eventId: number): Observable<any> {
+    const speakerOps$: Observable<any> = this.stagedSpeakers.length > 0
+      ? forkJoin(this.stagedSpeakers.map(c =>
+          this.speakerService.importOne(c).pipe(
+            switchMap(speaker => this.speakerService.linkToEvent(eventId, speaker.id))
+          )
+        ))
+      : of(null);
+
+    if (this.shouldGenerateProgram) {
+      return speakerOps$.pipe(switchMap(() => this.programService.generate(eventId)));
+    }
+    return speakerOps$;
+  }
+
+  searchLinkedInForSpeakers(): void {
+    const q = this.speakerSearchQuery.trim();
+    if (!q) return;
+    this.isSearchingSpeakers = true;
+    this.speakerSearchError = '';
+    this.speakerCandidates = [];
+    this.speakerService.searchLinkedIn(q).subscribe({
+      next: (results) => { this.speakerCandidates = results; this.isSearchingSpeakers = false; },
+      error: () => { this.speakerSearchError = 'La recherche a échoué.'; this.isSearchingSpeakers = false; }
+    });
+  }
+
+  stageSpeaker(candidate: SpeakerCandidate): void {
+    const alreadyStaged = this.stagedSpeakers.some(
+      s => s.linkedinUrl && s.linkedinUrl === candidate.linkedinUrl
+    );
+    if (!alreadyStaged) this.stagedSpeakers.push(candidate);
+  }
+
+  removeStagedSpeaker(candidate: SpeakerCandidate): void {
+    this.stagedSpeakers = this.stagedSpeakers.filter(s => s !== candidate);
+  }
+
+  isSpeakerStaged(candidate: SpeakerCandidate): boolean {
+    return this.stagedSpeakers.some(
+      s => s.linkedinUrl && s.linkedinUrl === candidate.linkedinUrl
+    );
   }
 
   generateDescription(): void {

@@ -245,12 +245,87 @@
           </div>
         </div>
 
-        <!-- Programme hint (creation only) -->
-        <div class="alert alert-info" *ngIf="!isEdit" style="margin-bottom: 0.5rem; font-size: 0.85rem;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
-          </svg>
-          Après la création, vous serez redirigé vers la page de détail où vous pourrez ajouter et générer le programme de l'événement.
+        <!-- Speakers (creation only) -->
+        <div class="card" *ngIf="!isEdit">
+          <div class="card-label">Intervenants</div>
+
+          <!-- Staged speakers chips -->
+          <div class="staged-speakers" *ngIf="stagedSpeakers.length > 0">
+            <div class="staged-chip" *ngFor="let s of stagedSpeakers">
+              <div class="staged-avatar">{{ s.fullName?.charAt(0) }}</div>
+              <div class="staged-info">
+                <span class="staged-name">{{ s.fullName }}</span>
+                <span class="staged-title" *ngIf="s.title">{{ s.title }}</span>
+              </div>
+              <a *ngIf="s.linkedinUrl" [href]="s.linkedinUrl" target="_blank" class="staged-li-link" title="LinkedIn">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+              </a>
+              <button type="button" class="staged-remove" (click)="removeStagedSpeaker(s)" title="Retirer">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Toggle search -->
+          <button type="button" class="btn-toggle-search" (click)="showSpeakerSearch = !showSpeakerSearch; speakerCandidates = []; speakerSearchError = ''">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/>
+            </svg>
+            {{ showSpeakerSearch ? 'Masquer la recherche' : 'Rechercher sur LinkedIn' }}
+          </button>
+
+          <!-- LinkedIn search panel -->
+          <div class="speaker-search-panel" *ngIf="showSpeakerSearch">
+            <div class="speaker-search-row">
+              <input type="text" class="field-input" [(ngModel)]="speakerSearchQuery"
+                [ngModelOptions]="{standalone: true}"
+                placeholder="Ex: Intelligence Artificielle, DevOps..."
+                (keydown.enter)="searchLinkedInForSpeakers()"/>
+              <button type="button" class="btn-li-search" (click)="searchLinkedInForSpeakers()"
+                [disabled]="isSearchingSpeakers || !speakerSearchQuery.trim()">
+                <span class="spinner-sm spinner-li" *ngIf="isSearchingSpeakers"></span>
+                <svg *ngIf="!isSearchingSpeakers" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                {{ isSearchingSpeakers ? 'Recherche...' : 'Rechercher' }}
+              </button>
+            </div>
+            <p class="speaker-search-error" *ngIf="speakerSearchError">{{ speakerSearchError }}</p>
+
+            <div class="speaker-candidates" *ngIf="speakerCandidates.length > 0">
+              <div class="speaker-candidate" *ngFor="let c of speakerCandidates"
+                [class.candidate-staged]="isSpeakerStaged(c)">
+                <div class="cand-avatar">
+                  <img *ngIf="c.photoUrl" [src]="c.photoUrl" [alt]="c.fullName" (error)="$any($event.target).style.display='none'"/>
+                  <span *ngIf="!c.photoUrl">{{ c.fullName.charAt(0) }}</span>
+                </div>
+                <div class="cand-info">
+                  <div class="cand-name">{{ c.fullName }}</div>
+                  <div class="cand-title" *ngIf="c.title">{{ c.title }}</div>
+                  <div class="cand-company" *ngIf="c.company">{{ c.company }}</div>
+                  <a *ngIf="c.linkedinUrl" [href]="c.linkedinUrl" target="_blank" class="cand-li" (click)="$event.stopPropagation()">LinkedIn</a>
+                </div>
+                <button type="button" class="btn-stage"
+                  (click)="stageSpeaker(c)"
+                  [disabled]="isSpeakerStaged(c)">
+                  {{ isSpeakerStaged(c) ? 'Ajouté' : '+ Ajouter' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Programme (creation only) -->
+        <div class="card" *ngIf="!isEdit">
+          <div class="card-label">Programme</div>
+          <label class="toggle-row">
+            <div class="toggle-switch" [class.toggle-on]="shouldGenerateProgram"
+              (click)="shouldGenerateProgram = !shouldGenerateProgram">
+              <div class="toggle-thumb"></div>
+            </div>
+            <div class="toggle-label">
+              <span class="toggle-title">Générer le programme avec l'IA</span>
+              <span class="toggle-desc">Un programme sera généré automatiquement après la création de l'événement.</span>
+            </div>
+          </label>
         </div>
 
         <!-- Actions -->
