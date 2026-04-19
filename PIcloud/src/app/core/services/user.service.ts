@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { User } from '../models/user.model';
+import { AdminCreateUserRequest, User } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -20,21 +20,31 @@ export class UserService {
     return firstValueFrom(this.http.get<User>(`${this.apiUrl}/${id}`));
   }
 
-  async updateUser(user: User): Promise<User> {
-    return firstValueFrom(this.http.put<User>(this.apiUrl, user));
+  // requestingUserId added, X-User-Id header now sent
+  async updateUser(user: User, requestingUserId?: number): Promise<User> {
+    const options = requestingUserId
+      ? { headers: { 'X-User-Id': String(requestingUserId) } }
+      : {};
+    return firstValueFrom(this.http.put<User>(this.apiUrl, user, options));
   }
 
   async deleteUser(id: number): Promise<void> {
     return firstValueFrom(this.http.delete<void>(`${this.apiUrl}/${id}`));
   }
-  
+
+  async createUser(request: AdminCreateUserRequest): Promise<User> {
+    return firstValueFrom(
+      this.http.post<User>(`${this.apiUrl}/admin/create`, request)
+    );
+  }
+
   async setPassword(id: number, password: string): Promise<void> {
-  return firstValueFrom(
-    this.http.post<void>(`${this.apiUrl}/${id}/set-password`, { password }, {
-      responseType: 'text' as 'json'
-    })
-  );
-}
+    return firstValueFrom(
+      this.http.post<void>(`${this.apiUrl}/${id}/set-password`, { password }, {
+        responseType: 'text' as 'json'
+      })
+    );
+  }
 
   async changePassword(id: number, oldPassword: string, newPassword: string): Promise<void> {
     return firstValueFrom(

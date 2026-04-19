@@ -1,0 +1,78 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Mes dossiers juridiques</h2>
+    <button class="btn btn-primary" (click)="openCreate()">+ Nouveau dossier</button>
+  </div>
+
+  <!-- Filtre par statut -->
+  <div class="row mb-3">
+    <div class="col-md-4">
+      <label class="form-label">Filtrer par statut</label>
+      <select class="form-select" [(ngModel)]="selectedStatus" (change)="applyFilter()">
+        <option value="">Tous</option>
+        <option *ngFor="let s of statuses" [value]="s">{{ statusLabels[s] }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+  <div *ngIf="loading" class="alert alert-info">Chargement...</div>
+
+  <table class="table table-striped table-bordered" *ngIf="!loading">
+    <thead>
+      <tr>
+        <th>Projet</th>
+        <th>Type</th>
+        <th>Statut</th>
+        <th>Progression</th>
+        <th>Créé le</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let p of filteredProcedures">
+        <td>{{ p.projectName }}</td>
+        <td>{{ p.procedureType }}</td>
+        <td>
+          <span class="badge" [ngClass]="getStatusClass(p.status)">
+            {{ statusLabels[p.status] }}
+          </span>
+        </td>
+        <td>{{ p.completionRate }} %</td>
+        <td>{{ p.createdAt | date:'dd/MM/yyyy' }}</td>
+        <td class="d-flex gap-2 flex-wrap">
+          <!-- Voir le détail / checklist -->
+          <a class="btn btn-sm btn-outline-primary"
+             [routerLink]="['/legal-procedures', p.id]">
+            Détail
+          </a>
+
+          <!-- Soumettre uniquement si BROUILLON -->
+          <button class="btn btn-sm btn-success"
+                  *ngIf="p.status === 'BROUILLON'"
+                  (click)="submit(p.id)">
+            Soumettre
+          </button>
+
+          <!-- Supprimer uniquement si BROUILLON -->
+          <button class="btn btn-sm btn-outline-danger"
+                  *ngIf="p.status === 'BROUILLON'"
+                  (click)="deleteDraft(p.id)">
+            Supprimer
+          </button>
+
+          <!-- Remarque visible si refusé -->
+          <span *ngIf="p.status === 'REFUSE' && p.remark"
+                class="badge bg-warning text-dark"
+                [title]="p.remark">
+            Voir remarque
+          </span>
+        </td>
+      </tr>
+
+      <tr *ngIf="filteredProcedures.length === 0">
+        <td colspan="6" class="text-center text-muted">Aucun dossier trouvé.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

@@ -5,23 +5,37 @@ export interface User {
   email: string;
   dateInscription: string;
   statut: string;
-  role: 'USER' | 'ADMIN' | 'MENTOR' | 'PARTENAIRE' | 'ENTREPRENEUR' | 'INVESTISSEUR' | 'ETUDIANT';
+  role: Role;
 }
 
 export enum Role {
-  USER = 'ROLE_USER',
-  ADMIN = 'ROLE_ADMIN',
-  MENTOR = 'ROLE_MENTOR',
-  PARTENAIRE = 'ROLE_PARTENAIRE',
-  ENTREPRENEUR = 'ROLE_ENTREPRENEUR',  // ← ajoute
-  INVESTISSEUR = 'ROLE_INVESTISSEUR',  // ← ajoute
-  ETUDIANT = 'ROLE_ETUDIANT'           // ← ajoute
+  USER         = 'USER',
+  ADMIN        = 'ADMIN',
+  MENTOR       = 'MENTOR',
+  INVESTOR     = 'INVESTOR',
+  PARTNER      = 'PARTNER',
+  ENTREPRENEUR = 'ENTREPRENEUR',
+  EXPERT       = 'EXPERT',
+  // Legacy aliases (kept for compatibility with existing code)
+  PARTENAIRE   = 'PARTNER',
+  INVESTISSEUR = 'INVESTOR',
+  ETUDIANT     = 'USER'
+}
+
+export interface AdminCreateUserRequest {
+  name: string;
+  prenom: string;
+  email: string;
+  password: string;
+  role: Role;
 }
 
 export interface AuthResponse {
   token: string;
+  id: number;
   email: string;
   name: string;
+  role: Role;
 }
 
 export interface LoginRequest {
@@ -34,4 +48,5 @@ export interface RegisterRequest {
   prenom: string;
   email: string;
   password: string;
+  role?: Role | null;
 }

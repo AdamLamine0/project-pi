@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { authGuard } from './core/services/auth.guard';
 import { HomeComponent } from './modules/home/home.component';
+import { VerifyCertificateComponent } from './pages/verify-certificate/verify-certificate.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent, pathMatch: 'full' },
@@ -27,6 +28,22 @@ const routes: Routes = [
     canActivate: [authGuard],
     loadChildren: () =>
       import('./modules/community/community.module').then(m => m.CommunityModule)
+  },
+  {
+    path: 'legal-procedures',
+    canActivate: [authGuard],
+    loadChildren: () =>
+      import('./modules/legal/legal.module').then(m => m.LegalModule)
+  },
+  {
+    path: 'partenariat',
+    canActivate: [authGuard],
+    loadChildren: () =>
+      import('./modules/partenaire/partenaire.module').then(m => m.PartenaireModule)
+  },
+  {
+    path: 'verify/:token',
+    component: VerifyCertificateComponent
   },
   { path: '**', redirectTo: '' }
 ];

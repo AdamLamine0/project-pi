@@ -1,0 +1,84 @@
+<div class="page-container">
+  <div class="section-header mb-4">
+    <div>
+      <h1 class="section-title">Dossiers à traiter</h1>
+      <p class="section-subtitle">Dossiers validés par l'IA et en attente de votre décision.</p>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+  <div *ngIf="loading" class="alert alert-info">Chargement...</div>
+
+  <div class="row">
+    <!-- Liste des dossiers -->
+    <div class="col-md-6">
+      <div *ngIf="!loading && procedures.length === 0" class="empty-state card-premium p-4">
+        <p>Aucun dossier en attente de décision.</p>
+      </div>
+
+      <div class="card-premium p-3 mb-3"
+           *ngFor="let p of procedures"
+           [class.border-primary]="selectedProcedure?.id === p.id"
+           style="cursor:pointer"
+           (click)="selectProcedure(p)">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h4 class="mb-1">{{ p.projectName }}</h4>
+            <div class="text-muted small">{{ procedureTypeLabels[p.procedureType] }}</div>
+            <div class="text-muted small">Entrepreneur : {{ p.entrepreneurId }}</div>
+          </div>
+          <span class="badge" [ngClass]="getStatusClass(p.status)">
+            {{ statusLabels[p.status] }}
+          </span>
+        </div>
+        <div class="mt-2">
+          <small>Progression : {{ p.completionRate }}%</small>
+        </div>
+        <div *ngIf="p.remark" class="mt-1">
+          <small class="text-warning">Remarque IA : {{ p.remark }}</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulaire de décision -->
+    <div class="col-md-6" *ngIf="selectedProcedure">
+      <div class="card-premium p-4">
+        <h3 class="section-title mb-3" style="font-size:18px;">
+          Décision pour : {{ selectedProcedure.projectName }}
+        </h3>
+
+        <form [formGroup]="decisionForm" (ngSubmit)="submitDecision()">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Décision *</label>
+            <select class="form-select" formControlName="approved">
+              <option value="">Choisir</option>
+              <option value="true">✅ Valider définitivement</option>
+              <option value="false">❌ Refuser</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Remarque (optionnel)</label>
+            <textarea class="form-control"
+                      rows="3"
+                      formControlName="remark"
+                      placeholder="Motif de refus, commentaire...">
+            </textarea>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button class="btn btn-primary" type="submit"
+                    [disabled]="decisionForm.invalid || submitting">
+              {{ submitting ? 'Envoi...' : 'Confirmer la décision' }}
+            </button>
+            <button class="btn btn-outline-secondary" type="button"
+                    (click)="selectedProcedure = undefined">
+              Annuler
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
