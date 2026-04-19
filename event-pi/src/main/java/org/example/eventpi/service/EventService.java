@@ -2,6 +2,7 @@ package org.example.eventpi.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.eventpi.dto.EventMapDTO;
 import org.example.eventpi.dto.EventRequest;
 import org.example.eventpi.dto.EventResponse;
 import org.example.eventpi.dto.UpdateEventRequest;
@@ -13,6 +14,7 @@ import org.example.eventpi.feign.UserClient;
 import org.example.eventpi.model.Event;
 import org.example.eventpi.model.EventStatus;
 import org.example.eventpi.model.EventType;
+import org.example.eventpi.model.LocationType;
 import org.example.eventpi.model.RegistrationStatus;
 import org.example.eventpi.repository.EventRegistrationRepository;
 import org.example.eventpi.repository.EventRepository;
@@ -56,6 +58,9 @@ public class EventService {
                 .coverImageUrl(request.getCoverImageUrl())
                 .targetSector(request.getTargetSector())
                 .targetStage(request.getTargetStage())
+                .address(request.getAddress())
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
                 .organizerId(organizerId)
                 .organizerRole(organizerRole)
                 .build();
@@ -289,6 +294,9 @@ public class EventService {
             imageStorageService.delete(event.getCoverImageUrl());
             event.setCoverImageUrl(request.getCoverImageUrl());
         }
+        if (request.getAddress() != null) event.setAddress(request.getAddress());
+        if (request.getLatitude() != null) event.setLatitude(request.getLatitude());
+        if (request.getLongitude() != null) event.setLongitude(request.getLongitude());
 
         return toResponse(eventRepository.save(event));
     }
@@ -365,8 +373,8 @@ public class EventService {
                 .location(event.getLocation())
                 .ticketPrice(event.getTicketPrice())
                 .capacityMax(event.getCapacityMax())
-                .availablePlaces(event.getAvailablePlaces())
-                .isFull(event.getIsFull())
+                .availablePlaces(event.getCapacityMax() != null ? Math.max(0, event.getCapacityMax() - registeredCount) : null)
+                .isFull(event.getCapacityMax() != null && registeredCount >= event.getCapacityMax())
                 .registeredCount(registeredCount)           // ← ADD THIS
                 .coverImageUrl(event.getCoverImageUrl())
                 .targetSector(event.getTargetSector())
@@ -380,6 +388,30 @@ public class EventService {
                 .validatedBy(event.getValidatedBy())
                 .validatedAt(event.getValidatedAt())
                 .submittedAt(event.getSubmittedAt())
+                .address(event.getAddress())
+                .latitude(event.getLatitude())
+                .longitude(event.getLongitude())
                 .build();
+    }
+
+    // ── MAP ───────────────────────────────────────────────────────────────
+    public List<EventMapDTO> getEventsForMap() {
+        return eventRepository.findAll().stream()
+                .filter(e -> e.getLocationType() == LocationType.PRESENTIEL
+                        && e.getStatus() != EventStatus.BROUILLON
+                        && e.getLatitude() != null
+                        && e.getLongitude() != null)
+                .map(e -> EventMapDTO.builder()
+                        .id(e.getId())
+                        .title(e.getTitle())
+                        .type(e.getType())
+                        .status(e.getStatus())
+                        .startDate(e.getStartDate())
+                        .address(e.getAddress())
+                        .latitude(e.getLatitude())
+                        .longitude(e.getLongitude())
+                        .coverImage(e.getCoverImageUrl())
+                        .build())
+                .toList();
     }
 }

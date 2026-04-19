@@ -44,4 +44,11 @@ public class EventRequest {
     private List<String> targetSector;
 
     private List<String> targetStage;
+
+    @Size(max = 500, message = "L'adresse ne peut pas dépasser 500 caractères")
+    private String address;
+
+    private Double latitude;
+
+    private Double longitude;
 }

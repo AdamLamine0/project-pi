@@ -152,6 +152,17 @@ public class EventController {
         return ResponseEntity.noContent().build();
     }
 
+    // ── MAP ───────────────────────────────────────────────────────────────
+    @GetMapping("/map")
+    public ResponseEntity<List<EventMapDTO>> getEventsForMap(
+            @RequestHeader(value = "X-User-Role", required = false) String role) {
+        // Accessible to any authenticated user; the API Gateway already validated the JWT
+        if (role == null || role.isBlank()) {
+            throw new ForbiddenException("Authentication required.");
+        }
+        return ResponseEntity.ok(eventService.getEventsForMap());
+    }
+
     // ── GENERATE DESCRIPTION (AI) ─────────────────────────────────────────
     @PostMapping("/generate-description")
     public ResponseEntity<DescriptionResponse> generateDescription(

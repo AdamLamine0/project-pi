@@ -32,7 +32,7 @@ public class EventRegistrationService {
 
     // ── REGISTER ──────────────────────────────────────────────────────────
     @Transactional
-    public EventRegistrationResponse register(Long eventId, Integer userId) {
+    public EventRegistrationResponse register(Long eventId, Integer userId, int numberOfPlaces) {
 
         // Only block if an active (non-cancelled) registration already exists
         if (registrationRepository.existsByEventIdAndUserIdAndStatusNot(
@@ -50,10 +50,15 @@ public class EventRegistrationService {
 
         RegistrationStatus regStatus;
         if (event.getCapacityMax() != null) {
-            if (Boolean.TRUE.equals(event.getIsFull())) {
+            int available = event.getAvailablePlaces() != null ? event.getAvailablePlaces() : 0;
+            if (Boolean.TRUE.equals(event.getIsFull()) || available < numberOfPlaces) {
+                if (numberOfPlaces > 1) {
+                    throw new ForbiddenException(
+                            "Pas assez de places disponibles. Places restantes : " + available);
+                }
                 regStatus = RegistrationStatus.LISTE_ATTENTE;
             } else {
-                event.decrementAvailablePlaces();
+                event.decrementAvailablePlaces(numberOfPlaces);
                 eventRepository.save(event);
                 regStatus = RegistrationStatus.INSCRIT;
             }
@@ -73,6 +78,7 @@ public class EventRegistrationService {
         reg.setStatus(regStatus);
         reg.setAttended(false);
         reg.setCheckInTime(null);
+        reg.setNumberOfPlaces(numberOfPlaces);
 
         // Generate ticket number if not already set (new registration or re-registration)
         if (reg.getTicketNumber() == null) {
@@ -121,7 +127,8 @@ public class EventRegistrationService {
         if (wasConfirmed) {
             Event event = eventRepository.findByIdForUpdate(eventId)
                     .orElseThrow(() -> new EventNotFoundException(eventId));
-            event.incrementAvailablePlaces();
+            int places = reg.getNumberOfPlaces() != null ? reg.getNumberOfPlaces() : 1;
+            event.incrementAvailablePlaces(places);
             eventRepository.save(event);
         }
 
@@ -288,6 +295,7 @@ public class EventRegistrationService {
                 .registeredAt(r.getRegisteredAt())
                 .ticketNumber(r.getTicketNumber())
                 .paymentStatus(r.getPaymentStatus())
+                .numberOfPlaces(r.getNumberOfPlaces() != null ? r.getNumberOfPlaces() : 1)
                 .build();
     }
 }
