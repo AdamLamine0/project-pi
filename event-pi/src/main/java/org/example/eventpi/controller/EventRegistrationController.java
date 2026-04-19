@@ -1,6 +1,7 @@
 package org.example.eventpi.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.example.eventpi.dto.EventRegistrationRequest;
 import org.example.eventpi.dto.EventRegistrationResponse;
 import org.example.eventpi.dto.EventStatsResponse;
 import org.example.eventpi.service.EventRegistrationService;
@@ -29,10 +30,12 @@ public class EventRegistrationController {
     @PostMapping("/{eventId}/register")
     public ResponseEntity<EventRegistrationResponse> register(
             @PathVariable Long eventId,
-            @RequestHeader("X-User-Id") String userId) {
+            @RequestHeader("X-User-Id") String userId,
+            @RequestBody(required = false) EventRegistrationRequest request) {
+        int places = (request != null && request.getNumberOfPlaces() != null)
+                ? request.getNumberOfPlaces() : 1;
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(registrationService.register(
-                        eventId, Integer.parseInt(userId)));
+                .body(registrationService.register(eventId, Integer.parseInt(userId), places));
     }
 
     // ── CANCEL ────────────────────────────────────────────────────────────

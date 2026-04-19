@@ -20,4 +20,5 @@ public class EventRegistrationResponse {
     private LocalDateTime registeredAt;
     private String ticketNumber;
     private PaymentStatus paymentStatus;
+    private Integer numberOfPlaces;
 }

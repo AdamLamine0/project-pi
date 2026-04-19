@@ -50,6 +50,10 @@ public class EventRegistration {
     @Column(name = "payment_status", length = 20)
     private PaymentStatus paymentStatus;
 
+    @Column(name = "number_of_places")
+    @Builder.Default
+    private Integer numberOfPlaces = 1;
+
     @PrePersist
     protected void onCreate() {
         registeredAt = LocalDateTime.now();

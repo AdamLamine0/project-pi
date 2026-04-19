@@ -39,4 +39,7 @@ public class EventResponse {
     private LocalDateTime validatedAt;
     private LocalDateTime submittedAt;
     private Integer registeredCount;
+    private String address;
+    private Double latitude;
+    private Double longitude;
 }
