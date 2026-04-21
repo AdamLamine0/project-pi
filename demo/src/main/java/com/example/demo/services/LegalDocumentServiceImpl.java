@@ -36,10 +36,9 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Dossier introuvable avec l'id : " + procedureId));
 
-        // Dépôt autorisé uniquement en BROUILLON (avant soumission)
-        if (procedure.getStatus() != ProcedureStatus.BROUILLON) {
+        if (!canEditDocuments(procedure.getStatus())) {
             throw new BusinessException(
-                    "Les documents ne peuvent être déposés que sur un dossier en BROUILLON.");
+                    "Les documents ne peuvent etre modifies que sur un dossier en BROUILLON ou REFUSE.");
         }
 
         // Si un document existe déjà pour ce requirement → on le remplace
@@ -96,15 +95,19 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Document introuvable avec l'id : " + documentId));
 
-        if (document.getProcedure().getStatus() != ProcedureStatus.BROUILLON) {
+        if (!canEditDocuments(document.getProcedure().getStatus())) {
             throw new BusinessException(
-                    "Impossible de supprimer un document d'un dossier déjà soumis.");
+                    "Impossible de supprimer un document d'un dossier deja soumis, sauf apres refus IA.");
         }
 
         documentRepository.delete(document);
     }
 
     private boolean isLocked(ProcedureStatus status) {
-        return status == ProcedureStatus.COMPLETE || status == ProcedureStatus.REFUSE;
+        return status == ProcedureStatus.COMPLETE;
+    }
+
+    private boolean canEditDocuments(ProcedureStatus status) {
+        return status == ProcedureStatus.BROUILLON || status == ProcedureStatus.REFUSE;
     }
 }

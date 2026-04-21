@@ -61,6 +61,15 @@ public class LegalProcedure {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
+    @Column(name = "final_document_url")
+    private String finalDocumentUrl;
+
+    @Column(name = "final_document_generated_at")
+    private LocalDateTime finalDocumentGeneratedAt;
+
+    @Column(name = "final_document_template_version")
+    private String finalDocumentTemplateVersion;
+
     @OneToMany(mappedBy = "procedure", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<LegalDocument> documents = new ArrayList<>();

@@ -20,5 +20,7 @@ public record LegalProcedureResponse(
         LocalDateTime createdAt,
         LocalDateTime submittedAt,
         LocalDateTime completedAt,
+        String finalDocumentUrl,
+        LocalDateTime finalDocumentGeneratedAt,
         List<LegalDocumentResponse> documents
 ) {}

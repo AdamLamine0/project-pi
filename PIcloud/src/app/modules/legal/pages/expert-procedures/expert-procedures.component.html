@@ -1,8 +1,8 @@
 <div class="page-container">
   <div class="section-header mb-4">
     <div>
-      <h1 class="section-title">Dossiers à traiter</h1>
-      <p class="section-subtitle">Dossiers validés par l'IA et en attente de votre décision.</p>
+      <h1 class="section-title">Dossiers a traiter</h1>
+      <p class="section-subtitle">Dossiers valides par l'IA et en attente de decision expert.</p>
     </div>
   </div>
 
@@ -10,75 +10,174 @@
   <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
   <div *ngIf="loading" class="alert alert-info">Chargement...</div>
 
-  <div class="row">
-    <!-- Liste des dossiers -->
-    <div class="col-md-6">
+  <div class="expert-layout">
+    <section class="expert-list">
       <div *ngIf="!loading && procedures.length === 0" class="empty-state card-premium p-4">
-        <p>Aucun dossier en attente de décision.</p>
+        <p>Aucun dossier en attente de decision.</p>
       </div>
 
-      <div class="card-premium p-3 mb-3"
-           *ngFor="let p of procedures"
-           [class.border-primary]="selectedProcedure?.id === p.id"
-           style="cursor:pointer"
-           (click)="selectProcedure(p)">
-        <div class="d-flex justify-content-between align-items-start">
+      <button class="expert-card"
+              type="button"
+              *ngFor="let p of procedures"
+              [class.selected]="selectedProcedure?.id === p.id"
+              (click)="selectProcedure(p)">
+        <div class="expert-card-main">
           <div>
-            <h4 class="mb-1">{{ p.projectName }}</h4>
-            <div class="text-muted small">{{ procedureTypeLabels[p.procedureType] }}</div>
-            <div class="text-muted small">Entrepreneur : {{ p.entrepreneurId }}</div>
+            <h3>{{ p.projectName }}</h3>
+            <p>{{ procedureTypeLabels[p.procedureType] }}</p>
           </div>
           <span class="badge" [ngClass]="getStatusClass(p.status)">
             {{ statusLabels[p.status] }}
           </span>
         </div>
-        <div class="mt-2">
-          <small>Progression : {{ p.completionRate }}%</small>
+
+        <div class="expert-meta">
+          <span>{{ entrepreneurName(p.entrepreneurId) }}</span>
+          <span>{{ p.completionRate }}%</span>
         </div>
-        <div *ngIf="p.remark" class="mt-1">
-          <small class="text-warning">Remarque IA : {{ p.remark }}</small>
+        <div class="expert-progress">
+          <div [style.width.%]="p.completionRate || 0"></div>
         </div>
+      </button>
+    </section>
+
+    <section class="expert-detail">
+      <div *ngIf="!selectedProcedure" class="empty-state card-premium p-4">
+        <p>Selectionnez un dossier pour consulter les documents et prendre une decision.</p>
       </div>
-    </div>
 
-    <!-- Formulaire de décision -->
-    <div class="col-md-6" *ngIf="selectedProcedure">
-      <div class="card-premium p-4">
-        <h3 class="section-title mb-3" style="font-size:18px;">
-          Décision pour : {{ selectedProcedure.projectName }}
-        </h3>
+      <div *ngIf="selectedProcedure as p" class="card-premium p-4">
+        <div class="detail-header">
+          <div>
+            <h2 class="section-title">{{ p.projectName }}</h2>
+            <p class="section-subtitle">{{ procedureTypeLabels[p.procedureType] }}</p>
+          </div>
+          <span class="badge" [ngClass]="getStatusClass(p.status)">
+            {{ statusLabels[p.status] }}
+          </span>
+        </div>
 
-        <form [formGroup]="decisionForm" (ngSubmit)="submitDecision()">
+        <div *ngIf="detailLoading" class="alert alert-info mt-3">Chargement du detail...</div>
+
+        <div class="detail-grid mt-3">
+          <div class="detail-item">
+            <span>Entrepreneur</span>
+            <strong>{{ entrepreneurName(p.entrepreneurId) }}</strong>
+          </div>
+          <div class="detail-item">
+            <span>ID entrepreneur</span>
+            <strong>{{ p.entrepreneurId }}</strong>
+          </div>
+          <div class="detail-item">
+            <span>Procedure</span>
+            <strong>{{ procedureTypeLabels[p.procedureType] }}</strong>
+          </div>
+          <div class="detail-item">
+            <span>Progression</span>
+            <strong>{{ p.completionRate }}%</strong>
+          </div>
+          <div class="detail-item" *ngIf="p.submittedAt">
+            <span>Soumis le</span>
+            <strong>{{ p.submittedAt | date:'dd/MM/yyyy HH:mm' }}</strong>
+          </div>
+          <div class="detail-item">
+            <span>ID dossier</span>
+            <strong>{{ p.id }}</strong>
+          </div>
+        </div>
+
+        <div *ngIf="p.remark" class="ai-remark mt-3">
+          <span>Remarque IA</span>
+          <p>{{ p.remark }}</p>
+        </div>
+
+        <div class="documents-section mt-4">
+          <h3>Documents du dossier</h3>
+
+          <div *ngIf="!p.documents?.length" class="empty-state p-3">
+            Aucun document trouve.
+          </div>
+
+          <div class="document-row" *ngFor="let doc of p.documents">
+            <div>
+              <h4>{{ documentLabel(doc) }}</h4>
+              <p *ngIf="documentDescription(doc)">{{ documentDescription(doc) }}</p>
+              <small>{{ doc.requirementCode }} - {{ doc.uploadedAt | date:'dd/MM/yyyy HH:mm' }}</small>
+            </div>
+            <div class="document-actions">
+              <span class="doc-status">{{ doc.status }}</span>
+              <button class="btn btn-sm btn-outline-secondary"
+                      type="button"
+                      (click)="selectDocument(doc)">
+                Visualiser
+              </button>
+            </div>
+          </div>
+
+          <div class="document-preview" *ngIf="selectedDocument as doc">
+            <div class="preview-header">
+              <div>
+                <span>Apercu document</span>
+                <strong>{{ documentLabel(doc) }}</strong>
+              </div>
+              <a class="btn btn-sm btn-outline-secondary"
+                 [href]="doc.fileUrl"
+                 target="_blank"
+                 rel="noopener">
+                Ouvrir dans un onglet
+              </a>
+            </div>
+
+            <iframe *ngIf="isPdf(doc)"
+                    class="preview-frame"
+                    [src]="doc.fileUrl"
+                    title="Apercu PDF">
+            </iframe>
+
+            <img *ngIf="isImage(doc)"
+                 class="preview-image"
+                 [src]="doc.fileUrl"
+                 [alt]="documentLabel(doc)" />
+
+            <div *ngIf="!isPdf(doc) && !isImage(doc)" class="preview-unsupported">
+              Ce format ne peut pas etre visualise directement ici.
+            </div>
+          </div>
+        </div>
+
+        <form class="decision-panel mt-4" [formGroup]="decisionForm" (ngSubmit)="submitDecision()">
+          <h3>Decision expert</h3>
+
           <div class="mb-3">
-            <label class="form-label fw-semibold">Décision *</label>
+            <label class="form-label fw-semibold">Decision *</label>
             <select class="form-select" formControlName="approved">
               <option value="">Choisir</option>
-              <option value="true">✅ Valider définitivement</option>
-              <option value="false">❌ Refuser</option>
+              <option value="true">Valider definitivement</option>
+              <option value="false">Refuser</option>
             </select>
           </div>
 
           <div class="mb-3">
-            <label class="form-label fw-semibold">Remarque (optionnel)</label>
+            <label class="form-label fw-semibold">Remarque</label>
             <textarea class="form-control"
                       rows="3"
                       formControlName="remark"
-                      placeholder="Motif de refus, commentaire...">
+                      placeholder="Motif de refus, commentaire pour l'entrepreneur...">
             </textarea>
           </div>
 
           <div class="d-flex gap-2">
             <button class="btn btn-primary" type="submit"
                     [disabled]="decisionForm.invalid || submitting">
-              {{ submitting ? 'Envoi...' : 'Confirmer la décision' }}
+              {{ submitting ? 'Envoi...' : 'Confirmer la decision' }}
             </button>
             <button class="btn btn-outline-secondary" type="button"
-                    (click)="selectedProcedure = undefined">
-              Annuler
+                    (click)="selectedProcedure = undefined; selectedChecklist = undefined; selectedDocument = undefined">
+              Fermer
             </button>
           </div>
         </form>
       </div>
-    </div>
+    </section>
   </div>
 </div>

@@ -8,6 +8,9 @@ import {
   ExpertDecisionRequest,
   ChecklistResponse,
   ExpertSummary,
+  LegalAiAnalysisResponse,
+  LegalChatRequest,
+  LegalChatResponse,
 } from '../models/legal-procedure.model';
 
 @Injectable({ providedIn: 'root' })
@@ -84,6 +87,18 @@ export class LegalProcedureService {
   deleteDocument(procedureId: string, documentId: string): Observable<void> {
     return this.http.delete<void>(
       `${this.base}/${procedureId}/documents/${documentId}`
+    );
+  }
+
+  analyzeWithAi(procedureId: string): Observable<LegalAiAnalysisResponse> {
+    return this.http.post<LegalAiAnalysisResponse>(
+      `${this.base}/${procedureId}/ai-analysis`, {}
+    );
+  }
+
+  askLegalChat(request: LegalChatRequest): Observable<LegalChatResponse> {
+    return this.http.post<LegalChatResponse>(
+      `${this.base}/ai-chat`, request
     );
   }
 
