@@ -1,6 +1,8 @@
 package com.example.demo.services;
 
-import com.example.demo.dto.*;
+import com.example.demo.dto.CreateLegalProcedureRequest;
+import com.example.demo.dto.ExpertDecisionRequest;
+import com.example.demo.dto.LegalProcedureResponse;
 import com.example.demo.entity.LegalProcedure;
 import com.example.demo.enums.DocumentStatus;
 import com.example.demo.enums.ProcedureStatus;
@@ -10,13 +12,18 @@ import com.example.demo.mapper.LegalMapper;
 import com.example.demo.repository.LegalDocumentRepository;
 import com.example.demo.repository.LegalProcedureRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -26,6 +33,8 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
     private final LegalDocumentRepository documentRepository;
     private final LegalMapper mapper;
     private final ChecklistService checklistService;
+    private final LegalAiAnalysisService legalAiAnalysisService;
+    private final FinalLegalDocumentService finalLegalDocumentService;
 
     @Override
     public LegalProcedureResponse create(CreateLegalProcedureRequest request, Integer entrepreneurId) {
@@ -34,7 +43,6 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
                 .expertId(request.expertId())
                 .projectName(request.projectName())
                 .procedureType(request.procedureType())
-                // description retirée
                 .status(ProcedureStatus.BROUILLON)
                 .completionRate(0F)
                 .build();
@@ -52,9 +60,10 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public LegalProcedureResponse findById(UUID id) {
-        return mapper.toProcedureResponse(getProcedureEntity(id));
+        LegalProcedure procedure = getProcedureEntity(id);
+        ensureFinalDocumentGenerated(procedure);
+        return mapper.toProcedureResponse(procedure);
     }
 
     @Override
@@ -62,22 +71,27 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
         LegalProcedure procedure = getProcedureEntity(id);
 
         if (!procedure.getEntrepreneurId().equals(entrepreneurId)) {
-            throw new BusinessException("Accès non autorisé à ce dossier.");
+            throw new BusinessException("Acces non autorise a ce dossier.");
         }
-        if (procedure.getStatus() != ProcedureStatus.BROUILLON) {
-            throw new BusinessException("Seul un dossier en BROUILLON peut être soumis.");
+        if (procedure.getStatus() != ProcedureStatus.BROUILLON
+                && procedure.getStatus() != ProcedureStatus.REFUSE) {
+            throw new BusinessException("Seul un dossier en BROUILLON ou REFUSE peut etre soumis.");
         }
 
         boolean allUploaded = checklistService.areAllRequiredDocumentsUploaded(id);
         if (!allUploaded) {
-            throw new BusinessException("Tous les documents obligatoires doivent être déposés avant la soumission.");
+            throw new BusinessException("Tous les documents obligatoires doivent etre deposes avant la soumission.");
         }
 
         procedure.setStatus(ProcedureStatus.EN_COURS);
         procedure.setSubmittedAt(LocalDateTime.now());
+        procedure.setCompletedAt(null);
+        procedure.setRemark(null);
         recalculateCompletionRate(procedure);
+        procedureRepository.save(procedure);
+        scheduleAiAnalysisAfterCommit(id);
 
-        return mapper.toProcedureResponse(procedureRepository.save(procedure));
+        return mapper.toProcedureResponse(procedure);
     }
 
     @Override
@@ -85,10 +99,10 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
         LegalProcedure procedure = getProcedureEntity(id);
 
         if (!procedure.getEntrepreneurId().equals(entrepreneurId)) {
-            throw new BusinessException("Accès non autorisé.");
+            throw new BusinessException("Acces non autorise.");
         }
         if (procedure.getStatus() != ProcedureStatus.BROUILLON) {
-            throw new BusinessException("Seul un dossier en BROUILLON peut être supprimé.");
+            throw new BusinessException("Seul un dossier en BROUILLON peut etre supprime.");
         }
 
         procedureRepository.delete(procedure);
@@ -109,22 +123,28 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
         LegalProcedure procedure = getProcedureEntity(id);
 
         if (!procedure.getExpertId().equals(expertId)) {
-            throw new BusinessException("Ce dossier ne vous est pas assigné.");
+            throw new BusinessException("Ce dossier ne vous est pas assigne.");
         }
         if (procedure.getStatus() != ProcedureStatus.EN_ATTENTE_EXPERT) {
-            throw new BusinessException("Le dossier doit être EN_ATTENTE_EXPERT pour une décision expert.");
+            throw new BusinessException("Le dossier doit etre EN_ATTENTE_EXPERT pour une decision expert.");
         }
 
-        if (request.approved()) {
-            procedure.setStatus(ProcedureStatus.COMPLETE);
-        } else {
-            procedure.setStatus(ProcedureStatus.REFUSE);
-        }
-
+        procedure.setStatus(request.approved() ? ProcedureStatus.COMPLETE : ProcedureStatus.REFUSE);
         procedure.setCompletedAt(LocalDateTime.now());
 
         if (request.remark() != null) {
             procedure.setRemark(request.remark());
+        }
+
+        if (request.approved()) {
+            String finalDocumentUrl = finalLegalDocumentService.generate(procedure);
+            procedure.setFinalDocumentUrl(finalDocumentUrl);
+            procedure.setFinalDocumentGeneratedAt(LocalDateTime.now());
+            procedure.setFinalDocumentTemplateVersion(FinalLegalDocumentService.TEMPLATE_VERSION);
+        } else {
+            procedure.setFinalDocumentUrl(null);
+            procedure.setFinalDocumentGeneratedAt(null);
+            procedure.setFinalDocumentTemplateVersion(null);
         }
 
         recalculateCompletionRate(procedure);
@@ -141,9 +161,10 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
 
         if (approved) {
             procedure.setStatus(ProcedureStatus.EN_ATTENTE_EXPERT);
+            procedure.setCompletedAt(null);
         } else {
             procedure.setStatus(ProcedureStatus.REFUSE);
-            procedure.setCompletedAt(LocalDateTime.now());
+            procedure.setCompletedAt(null);
         }
 
         if (remark != null) {
@@ -159,6 +180,24 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
                         "Dossier juridique introuvable avec l'id : " + id));
     }
 
+    private void ensureFinalDocumentGenerated(LegalProcedure procedure) {
+        if (procedure.getStatus() != ProcedureStatus.COMPLETE) {
+            return;
+        }
+        boolean hasCurrentDocument = procedure.getFinalDocumentUrl() != null
+                && !procedure.getFinalDocumentUrl().isBlank()
+                && FinalLegalDocumentService.TEMPLATE_VERSION.equals(procedure.getFinalDocumentTemplateVersion());
+        if (hasCurrentDocument) {
+            return;
+        }
+
+        String finalDocumentUrl = finalLegalDocumentService.generate(procedure);
+        procedure.setFinalDocumentUrl(finalDocumentUrl);
+        procedure.setFinalDocumentGeneratedAt(LocalDateTime.now());
+        procedure.setFinalDocumentTemplateVersion(FinalLegalDocumentService.TEMPLATE_VERSION);
+        procedureRepository.save(procedure);
+    }
+
     private void recalculateCompletionRate(LegalProcedure procedure) {
         long total = documentRepository.countByProcedureId(procedure.getId());
         if (total == 0) {
@@ -171,5 +210,21 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
                 procedure.getId(), DocumentStatus.VALIDE);
         float rate = ((float) (deposed + validated) / total) * 100;
         procedure.setCompletionRate(Math.round(rate * 100f) / 100f);
+    }
+
+    private void scheduleAiAnalysisAfterCommit(UUID procedureId) {
+        Runnable task = () -> legalAiAnalysisService.analyzeProcedureSafely(procedureId);
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    CompletableFuture.runAsync(task);
+                }
+            });
+            return;
+        }
+
+        CompletableFuture.runAsync(task);
     }
 }

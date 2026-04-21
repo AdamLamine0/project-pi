@@ -6,6 +6,7 @@ export type ProcedureStatus =
   | 'BROUILLON' | 'EN_COURS' | 'EN_ATTENTE_EXPERT' | 'COMPLETE' | 'REFUSE';
 
 export type DocumentStatus = 'NON_DEPOSE' | 'DEPOSE' | 'VALIDE' | 'REFUSE';
+export type AiDecision = 'VALID' | 'REJECTED' | 'REVIEW';
 
 export interface LegalDocumentResponse {
   id: string;
@@ -14,7 +15,7 @@ export interface LegalDocumentResponse {
   fileUrl: string;
   status: DocumentStatus;
   uploadedAt: string;
-  // expiresAt supprimé
+  expiresAt?: string | null;
 }
 
 export interface LegalProcedureResponse {
@@ -23,13 +24,15 @@ export interface LegalProcedureResponse {
   expertId: number;
   projectName: string;
   procedureType: ProcedureType;
-  // description supprimé
+  description?: string | null;
   status: ProcedureStatus;
   remark?: string;
   completionRate: number;
   createdAt: string;
   submittedAt?: string;
   completedAt?: string;
+  finalDocumentUrl?: string | null;
+  finalDocumentGeneratedAt?: string | null;
   documents: LegalDocumentResponse[];
 }
 
@@ -37,7 +40,6 @@ export interface CreateLegalProcedureRequest {
   projectName: string;
   procedureType: ProcedureType;
   expertId: number;
-  // description supprimé
 }
 
 export interface ExpertDecisionRequest {
@@ -70,30 +72,74 @@ export interface ChecklistResponse {
   completionPercentage: number;
 }
 
+export interface DocumentAiAnalysisResponse {
+  documentId: string;
+  requirementCode: string;
+  fileUrl: string;
+  ocrAvailable: boolean;
+  extractedTextLength: number;
+  extractedTextPreview: string;
+  visionAvailable: boolean;
+  blurScore?: number | null;
+  blurred: boolean;
+  detectedExpirationDate?: string | null;
+  expired: boolean;
+  findings: string[];
+}
+
+export interface LegalAiAnalysisResponse {
+  procedureId: string;
+  decision: AiDecision;
+  appliedStatus: ProcedureStatus;
+  llmAvailable: boolean;
+  remark: string;
+  technicalFindings: string[];
+  llmFindings: string[];
+  documents: DocumentAiAnalysisResponse[];
+}
+
+export interface LegalChatRequest {
+  procedureId?: string;
+  procedureType?: ProcedureType;
+  procedureStatus?: ProcedureStatus;
+  projectName?: string;
+  question: string;
+  requiredDocuments: string[];
+  uploadedDocuments: string[];
+  missingDocuments: string[];
+  history: Array<{ role: 'user' | 'assistant'; text: string }>;
+}
+
+export interface LegalChatResponse {
+  answer: string;
+  llmAvailable: boolean;
+  disclaimer: string;
+}
+
 export const PROCEDURE_TYPE_LABELS: Record<ProcedureType, string> = {
-  SARL: 'Création SARL',
-  SUARL: 'Création SUARL',
+  SARL: 'Creation SARL',
+  SUARL: 'Creation SUARL',
   LABEL_STARTUP: 'Label Startup',
-  PI: 'Propriété Intellectuelle',
-  FISCALITE: 'Fiscalité',
-  CONFORMITE: 'Conformité',
-  AUTRE: 'Autre procédure',
+  PI: 'Propriete Intellectuelle',
+  FISCALITE: 'Fiscalite',
+  CONFORMITE: 'Conformite',
+  AUTRE: 'Autre procedure',
 };
 
 export const PROCEDURE_TYPE_DESCRIPTIONS: Record<ProcedureType, string> = {
-  SARL: "Création d'une Société à Responsabilité Limitée.",
-  SUARL: "Création d'une Société Unipersonnelle à Responsabilité Limitée.",
-  LABEL_STARTUP: "Obtention du label startup.",
-  PI: "Protection de la propriété intellectuelle.",
-  FISCALITE: "Assistance fiscale et démarches administratives.",
-  CONFORMITE: "Vérification de conformité juridique.",
-  AUTRE: "Autre procédure juridique.",
+  SARL: "Creation d'une Societe a Responsabilite Limitee.",
+  SUARL: "Creation d'une Societe Unipersonnelle a Responsabilite Limitee.",
+  LABEL_STARTUP: 'Obtention du label startup.',
+  PI: 'Protection de la propriete intellectuelle.',
+  FISCALITE: 'Assistance fiscale et demarches administratives.',
+  CONFORMITE: 'Verification de conformite juridique.',
+  AUTRE: 'Autre procedure juridique.',
 };
 
 export const STATUS_LABELS: Record<ProcedureStatus, string> = {
   BROUILLON: 'Brouillon',
   EN_COURS: 'En cours',
   EN_ATTENTE_EXPERT: 'En attente expert',
-  COMPLETE: 'Complété',
-  REFUSE: 'Refusé',
+  COMPLETE: 'Complete',
+  REFUSE: 'Refuse',
 };

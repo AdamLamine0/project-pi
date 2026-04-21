@@ -1,0 +1,11 @@
+package com.example.demo.dto;
+
+import java.util.List;
+import java.util.UUID;
+
+public record LegalAiAnalysisRequest(
+        UUID procedureId,
+        String procedureType,
+        String projectName,
+        List<LegalAiDocumentRequest> documents
+) {}

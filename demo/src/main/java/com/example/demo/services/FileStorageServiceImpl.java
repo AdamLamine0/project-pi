@@ -60,4 +60,33 @@ public class FileStorageServiceImpl implements FileStorageService {
             throw new RuntimeException("Erreur lors du stockage du fichier.", e);
         }
     }
+
+    @Override
+    public String storeGenerated(String filenamePrefix, String extension, byte[] content) {
+        try {
+            if (content == null || content.length == 0) {
+                throw new IllegalArgumentException("Le document genere est vide.");
+            }
+
+            String safePrefix = StringUtils.cleanPath(filenamePrefix == null ? "document-final" : filenamePrefix)
+                    .replaceAll("[^a-zA-Z0-9._-]", "-");
+            String safeExtension = extension == null || extension.isBlank() ? ".html" : extension;
+            if (!safeExtension.startsWith(".")) {
+                safeExtension = "." + safeExtension;
+            }
+
+            String generatedName = safePrefix + "-" + UUID.randomUUID() + safeExtension;
+            Path targetLocation = this.uploadPath.resolve(generatedName);
+            Files.write(targetLocation, content, StandardOpenOption.CREATE_NEW);
+
+            String baseUrl = uploadProperties.getBaseUrl();
+            if (baseUrl == null || baseUrl.isBlank()) {
+                baseUrl = "http://localhost:8087";
+            }
+
+            return baseUrl + "/api/files/" + generatedName;
+        } catch (IOException e) {
+            throw new RuntimeException("Erreur lors du stockage du document genere.", e);
+        }
+    }
 }

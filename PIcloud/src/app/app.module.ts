@@ -10,7 +10,7 @@ import { NavbarComponent } from './core/components/navbar/navbar.component';
 import { HomeComponent } from './modules/home/home.component';
 import { PartenaireModule } from './modules/partenaire/partenaire.module';
 import { VerifyCertificateComponent } from './pages/verify-certificate/verify-certificate.component';
-import { VerifyCertificateComponent } from './pages/verify-certificate/verify-certificate.component';
+
 
 import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
 
@@ -19,8 +19,7 @@ import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
     AppComponent,
     NavbarComponent,
     HomeComponent,
-    VerifyCertificateComponent
-
+    VerifyCertificateComponent,
     HomeComponent,
     VerifyCertificateComponent
   ],
