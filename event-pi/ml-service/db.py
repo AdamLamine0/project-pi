@@ -1,7 +1,11 @@
+import logging
 import os
+
 import pymysql
 import pandas as pd
 from dotenv import load_dotenv
+
+logger = logging.getLogger("ml-service")
 
 load_dotenv()
 
@@ -82,10 +86,25 @@ def load_real_events() -> pd.DataFrame:
     df["ticket_price"] = df["ticket_price"].fillna(0).astype(float)
 
     df["fill_rate"] = (df["registration_count"] / df["capacity_max"]).clip(upper=1.0)
-    df["attendance_rate"] = df.apply(
-        lambda r: (r["attended_count"] / r["registration_count"]) if r["registration_count"] > 0 else 0.0,
-        axis=1,
-    )
+
+    # When attended_count is 0 it usually means attendance was never tracked, not
+    # that literally nobody showed up. Use a conservative 65 % estimate in that
+    # case so training targets aren't artificially pulled to zero.
+    def _attendance_rate(r):
+        if r["registration_count"] == 0:
+            return 0.0
+        if r["attended_count"] == 0:
+            return 0.65  # attendance not tracked — use conservative default
+        return min(r["attended_count"] / r["registration_count"], 1.0)
+
+    df["attendance_rate"] = df.apply(_attendance_rate, axis=1)
     df["success_score"] = df["fill_rate"] * 50 + df["attendance_rate"] * 50
 
+    logger.info(
+        "Real events — fill_rate: mean=%.2f  score: mean=%.1f  min=%.1f  max=%.1f",
+        df["fill_rate"].mean(),
+        df["success_score"].mean(),
+        df["success_score"].min(),
+        df["success_score"].max(),
+    )
     return df

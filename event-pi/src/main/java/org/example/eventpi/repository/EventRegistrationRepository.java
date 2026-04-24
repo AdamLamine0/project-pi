@@ -24,6 +24,9 @@ public interface EventRegistrationRepository
 
     boolean existsByEventIdAndUserId(Long eventId, Integer userId);
 
+    boolean existsByEventIdAndUserIdAndStatus(
+            Long eventId, Integer userId, RegistrationStatus status);
+
     boolean existsByEventIdAndUserIdAndStatusNot(
             Long eventId, Integer userId, RegistrationStatus status);
 

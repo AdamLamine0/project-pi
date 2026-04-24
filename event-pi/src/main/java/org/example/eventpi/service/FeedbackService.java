@@ -42,10 +42,11 @@ public class FeedbackService {
             throw new ForbiddenException("Feedback can only be submitted for published or terminated events.");
         }
 
-        boolean hasRegistration = registrationRepository
-                .existsByEventIdAndUserIdAndStatusNot(eventId, userId, RegistrationStatus.ANNULE);
-        if (!hasRegistration) {
-            throw new ForbiddenException("You must be registered for this event to leave feedback.");
+        // Only attendees (registration marked PRESENT at check-in) may leave feedback.
+        boolean attended = registrationRepository
+                .existsByEventIdAndUserIdAndStatus(eventId, userId, RegistrationStatus.PRESENT);
+        if (!attended) {
+            throw new ForbiddenException("Only attendees who were checked in can leave feedback.");
         }
 
         if (feedbackRepository.existsByEventIdAndUserId(eventId, userId)) {
@@ -102,8 +103,8 @@ public class FeedbackService {
         if (event == null) return false;
         if (event.getStatus() != EventStatus.TERMINE && event.getStatus() != EventStatus.PUBLIE) return false;
         if (feedbackRepository.existsByEventIdAndUserId(eventId, userId)) return false;
-        return registrationRepository.existsByEventIdAndUserIdAndStatusNot(
-                eventId, userId, RegistrationStatus.ANNULE);
+        return registrationRepository.existsByEventIdAndUserIdAndStatus(
+                eventId, userId, RegistrationStatus.PRESENT);
     }
 
     public boolean hasSubmitted(Long eventId, Integer userId) {

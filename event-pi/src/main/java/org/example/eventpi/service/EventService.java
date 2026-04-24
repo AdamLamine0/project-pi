@@ -22,7 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +38,14 @@ public class EventService {
 
     private final NotificationService notificationService;
     private final UserClient userClient;
+
+    /**
+     * Statuses that still permit edit / delete. Once an event is approved,
+     * published or beyond, it is locked from structural changes so attendees
+     * and downstream systems see a stable record.
+     */
+    private static final Set<EventStatus> EDITABLE_STATUSES =
+            EnumSet.of(EventStatus.BROUILLON, EventStatus.EN_ATTENTE_VALIDATION);
 
     // ── CREATE ────────────────────────────────────────────────────────────
     @Transactional
@@ -255,6 +265,11 @@ public class EventService {
             throw new ForbiddenException(
                     "Vous ne pouvez pas modifier un événement en cours de validation.");
         }
+        // Once published (or any later status), the event is locked from edits for every role.
+        if (!EDITABLE_STATUSES.contains(event.getStatus())) {
+            throw new ForbiddenException(
+                    "Cet événement ne peut plus être modifié (statut : " + event.getStatus() + ").");
+        }
 
         // Resolve effective dates for cross-field validation
         LocalDateTime effectiveStart = request.getStartDate() != null
@@ -306,6 +321,11 @@ public class EventService {
     public void deleteEvent(Long id) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
+        // Once published (or any later status), the event is locked from deletion for every role.
+        if (!EDITABLE_STATUSES.contains(event.getStatus())) {
+            throw new ForbiddenException(
+                    "Cet événement ne peut plus être supprimé (statut : " + event.getStatus() + ").");
+        }
         imageStorageService.delete(event.getCoverImageUrl());
         eventRepository.delete(event);
     }
