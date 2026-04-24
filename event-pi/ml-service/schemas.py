@@ -1,4 +1,3 @@
-from typing import List, Optional
 from pydantic import BaseModel, Field
 
 
@@ -30,7 +29,15 @@ class HealthResponse(BaseModel):
     status: str
 
 
-# ── Full analysis schemas ────────────────────────────────────────────────────
+class ModelInfoResponse(BaseModel):
+    train_rows: int
+    reg_val_mae: float
+    reg_val_r2: float
+    score_val_mae: float
+    score_val_r2: float
+
+
+# ── Full analysis schemas ─────────────────────────────────────────────────────
 
 class RegistrationEstimate(BaseModel):
     min: int

@@ -159,14 +159,27 @@ public class BadgeService {
     }
 
     private BadgeResponse toResponse(Badge b) {
+        String eventTitle = null;
+        if (b.getEventId() != null) {
+            eventTitle = eventRepository.findById(b.getEventId())
+                    .map(Event::getTitle)
+                    .orElse(null);
+        }
+
+        // PNG is only generated when a certificate is produced (PARTICIPATION badges).
+        boolean hasImage = b.getEventId() != null
+                && certificateRepository.findByBadgeId(b.getId()).isPresent();
+
         return BadgeResponse.builder()
                 .id(b.getId())
                 .userId(b.getUserId())
                 .eventId(b.getEventId())
+                .eventTitle(eventTitle)
                 .type(b.getType())
                 .label(b.getLabel())
                 .earnedAt(b.getEarnedAt())
                 .seriesTag(b.getSeriesTag())
+                .hasImage(hasImage)
                 .build();
     }
 }

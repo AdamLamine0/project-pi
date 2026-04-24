@@ -17,6 +17,7 @@ from ml import (
 from schemas import (
     FullAnalysisResponse,
     HealthResponse,
+    ModelInfoResponse,
     PredictionInput,
     RegistrationPrediction,
     SuccessPrediction,
@@ -25,13 +26,13 @@ from schemas import (
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("ml-service")
 
-state = {"reg_model": None, "score_model": None}
+state: dict = {"reg_model": None, "score_model": None, "metrics": {}}
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Bootstrapping ml-service: generating synthetic data...")
-    synthetic_df = generate_synthetic_data(n=500)
+    synthetic_df = generate_synthetic_data(n=1000)
 
     real_df = None
     try:
@@ -44,15 +45,16 @@ async def lifespan(app: FastAPI):
     training_df = build_training_frame(real_df, synthetic_df)
     logger.info("Training on %d rows...", len(training_df))
 
-    reg_model, score_model = train_models(training_df)
-    state["reg_model"] = reg_model
+    reg_model, score_model, metrics = train_models(training_df)
+    state["reg_model"]  = reg_model
     state["score_model"] = score_model
-    logger.info("Models trained and ready.")
+    state["metrics"]    = metrics
+    logger.info("Models ready — %s", metrics)
     yield
     state.clear()
 
 
-app = FastAPI(title="ml-service", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="ml-service", version="2.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -68,18 +70,22 @@ def health():
     return HealthResponse(status="ok")
 
 
+@app.get("/model-info", response_model=ModelInfoResponse)
+def model_info():
+    return ModelInfoResponse(**state["metrics"])
+
+
 @app.post("/predict/registrations", response_model=RegistrationPrediction)
 def predict_registrations(payload: PredictionInput):
-    df = input_to_frame(payload.model_dump())
+    df   = input_to_frame(payload.model_dump())
     pred = state["reg_model"].predict(df)[0]
-    pred = max(0, int(round(float(pred))))
-    pred = min(pred, int(payload.capacity_max))
+    pred = max(0, min(int(round(float(pred))), int(payload.capacity_max)))
     return RegistrationPrediction(predicted_registrations=pred)
 
 
 @app.post("/predict/success-score", response_model=SuccessPrediction)
 def predict_success(payload: PredictionInput):
-    df = input_to_frame(payload.model_dump())
+    df    = input_to_frame(payload.model_dump())
     score = float(state["score_model"].predict(df)[0])
     score = max(0.0, min(100.0, score))
     return SuccessPrediction(success_score=round(score, 2), label=score_label(score))
@@ -87,8 +93,7 @@ def predict_success(payload: PredictionInput):
 
 @app.post("/predict/full-analysis", response_model=FullAnalysisResponse)
 def predict_full_analysis(payload: PredictionInput):
-    result = full_analysis(state["reg_model"], state["score_model"], payload.model_dump())
-    return result
+    return full_analysis(state["reg_model"], state["score_model"], payload.model_dump())
 
 
 if __name__ == "__main__":
