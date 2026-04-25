@@ -48,6 +48,8 @@ public class EventRegistrationService {
                     "Les inscriptions ne sont pas ouvertes pour cet événement.");
         }
 
+        boolean isFree = event.getTicketPrice() == null || event.getTicketPrice() == 0.0;
+
         RegistrationStatus regStatus;
         if (event.getCapacityMax() != null) {
             int available = event.getAvailablePlaces() != null ? event.getAvailablePlaces() : 0;
@@ -60,10 +62,12 @@ public class EventRegistrationService {
             } else {
                 event.decrementAvailablePlaces(numberOfPlaces);
                 eventRepository.save(event);
-                regStatus = RegistrationStatus.INSCRIT;
+                regStatus = isFree ? RegistrationStatus.INSCRIT
+                                   : RegistrationStatus.PAIEMENT_EN_ATTENTE_VALIDATION;
             }
         } else {
-            regStatus = RegistrationStatus.INSCRIT;
+            regStatus = isFree ? RegistrationStatus.INSCRIT
+                               : RegistrationStatus.PAIEMENT_EN_ATTENTE_VALIDATION;
         }
 
         // Re-use the cancelled row if it exists — avoids unique constraint violation
@@ -84,8 +88,6 @@ public class EventRegistrationService {
         if (reg.getTicketNumber() == null) {
             reg.setTicketNumber(java.util.UUID.randomUUID().toString());
         }
-        // Set payment status
-        boolean isFree = event.getTicketPrice() == null || event.getTicketPrice() == 0.0;
         reg.setPaymentStatus(isFree ? PaymentStatus.FREE : PaymentStatus.PENDING);
 
         EventRegistration saved = registrationRepository.save(reg);
@@ -94,11 +96,11 @@ public class EventRegistrationService {
             UserResponse user = userClient.getUserById(userId);
             String fullName = user.getName() + " " + user.getPrenom();
             if (regStatus == RegistrationStatus.INSCRIT) {
-                notificationService.sendRegistrationConfirmed(
-                        user.getEmail(), fullName, saved);
+                notificationService.sendRegistrationConfirmed(user.getEmail(), fullName, saved);
+            } else if (regStatus == RegistrationStatus.PAIEMENT_EN_ATTENTE_VALIDATION) {
+                notificationService.sendPaymentPending(user.getEmail(), fullName, saved);
             } else {
-                notificationService.sendWaitlistNotification(
-                        user.getEmail(), fullName, saved);
+                notificationService.sendWaitlistNotification(user.getEmail(), fullName, saved);
             }
         } catch (Exception e) {
             log.warn("Could not send notification for userId {}: {}",
@@ -120,7 +122,8 @@ public class EventRegistrationService {
             throw new ForbiddenException("Cette inscription est déjà annulée.");
         }
 
-        boolean wasConfirmed = reg.getStatus() == RegistrationStatus.INSCRIT;
+        boolean wasConfirmed = reg.getStatus() == RegistrationStatus.INSCRIT
+                || reg.getStatus() == RegistrationStatus.PAIEMENT_EN_ATTENTE_VALIDATION;
         reg.setStatus(RegistrationStatus.ANNULE);
         registrationRepository.save(reg);
 
@@ -275,6 +278,102 @@ public class EventRegistrationService {
                 .fillRate(capacity > 0
                         ? Math.round((double) confirmed / capacity * 100) : 0)
                 .build();
+    }
+
+    // ── APPROVE PAYMENT ───────────────────────────────────────────────────
+    @Transactional
+    public EventRegistrationResponse approve(Long registrationId) {
+        EventRegistration reg = registrationRepository.findById(registrationId)
+                .orElseThrow(() -> new EventNotFoundException(registrationId));
+
+        if (reg.getStatus() != RegistrationStatus.PAIEMENT_EN_ATTENTE_VALIDATION) {
+            throw new ForbiddenException(
+                    "Cette inscription n'est pas en attente de validation de paiement.");
+        }
+
+        reg.setStatus(RegistrationStatus.INSCRIT);
+        reg.setPaymentStatus(PaymentStatus.PAID);
+        EventRegistration saved = registrationRepository.save(reg);
+
+        try {
+            UserResponse user = userClient.getUserById(reg.getUserId());
+            notificationService.sendPaymentApproved(
+                    user.getEmail(), user.getName() + " " + user.getPrenom(), saved);
+        } catch (Exception e) {
+            log.warn("Could not send payment approval email for userId {}: {}",
+                    reg.getUserId(), e.getMessage());
+        }
+
+        return toResponse(saved);
+    }
+
+    // ── REJECT PAYMENT ────────────────────────────────────────────────────
+    @Transactional
+    public EventRegistrationResponse reject(Long registrationId, String reason) {
+        EventRegistration reg = registrationRepository.findById(registrationId)
+                .orElseThrow(() -> new EventNotFoundException(registrationId));
+
+        if (reg.getStatus() != RegistrationStatus.PAIEMENT_EN_ATTENTE_VALIDATION) {
+            throw new ForbiddenException(
+                    "Cette inscription n'est pas en attente de validation de paiement.");
+        }
+
+        Event event = eventRepository.findByIdForUpdate(reg.getEvent().getId())
+                .orElseThrow(() -> new EventNotFoundException(reg.getEvent().getId()));
+        int places = reg.getNumberOfPlaces() != null ? reg.getNumberOfPlaces() : 1;
+        event.incrementAvailablePlaces(places);
+        eventRepository.save(event);
+
+        reg.setStatus(RegistrationStatus.ANNULE);
+        EventRegistration saved = registrationRepository.save(reg);
+
+        try {
+            UserResponse user = userClient.getUserById(reg.getUserId());
+            notificationService.sendPaymentRejected(
+                    user.getEmail(), user.getName() + " " + user.getPrenom(),
+                    saved, reason);
+        } catch (Exception e) {
+            log.warn("Could not send payment rejection email for userId {}: {}",
+                    reg.getUserId(), e.getMessage());
+        }
+
+        promoteFromWaitlist(reg.getEvent().getId());
+        return toResponse(saved);
+    }
+
+    // ── ADMIN: GET ALL ────────────────────────────────────────────────────
+    public List<EventRegistrationResponse> getAllRegistrations(
+            Long eventId, RegistrationStatus status) {
+        List<EventRegistration> regs;
+        if (eventId != null && status != null) {
+            regs = registrationRepository.findAllJoinedByEventIdAndStatus(eventId, status);
+        } else if (eventId != null) {
+            regs = registrationRepository.findAllJoinedByEventId(eventId);
+        } else if (status != null) {
+            regs = registrationRepository.findAllJoinedByStatus(status);
+        } else {
+            regs = registrationRepository.findAllJoined();
+        }
+
+        java.util.Map<Integer, String> nameCache = new java.util.HashMap<>();
+        for (EventRegistration r : regs) {
+            nameCache.computeIfAbsent(r.getUserId(), uid -> {
+                try {
+                    UserResponse u = userClient.getUserById(uid);
+                    if (u != null) {
+                        String full = (u.getName() + " " + u.getPrenom()).trim();
+                        return full.isEmpty() ? null : full;
+                    }
+                } catch (Exception e) {
+                    log.warn("Could not resolve name for userId {}: {}", uid, e.getMessage());
+                }
+                return null;
+            });
+        }
+
+        return regs.stream()
+                .map(r -> toResponse(r, nameCache.get(r.getUserId())))
+                .toList();
     }
 
     // ── MAPPER ────────────────────────────────────────────────────────────

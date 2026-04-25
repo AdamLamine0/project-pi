@@ -44,4 +44,17 @@ public interface EventRegistrationRepository
 
     @Query("SELECT r FROM EventRegistration r WHERE UPPER(SUBSTRING(r.ticketNumber, 1, 8)) = UPPER(:code)")
     Optional<EventRegistration> findByShortTicketCode(@Param("code") String code);
+
+    @Query("SELECT r FROM EventRegistration r JOIN FETCH r.event ORDER BY r.registeredAt DESC")
+    List<EventRegistration> findAllJoined();
+
+    @Query("SELECT r FROM EventRegistration r JOIN FETCH r.event WHERE r.event.id = :eventId ORDER BY r.registeredAt DESC")
+    List<EventRegistration> findAllJoinedByEventId(@Param("eventId") Long eventId);
+
+    @Query("SELECT r FROM EventRegistration r JOIN FETCH r.event WHERE r.status = :status ORDER BY r.registeredAt DESC")
+    List<EventRegistration> findAllJoinedByStatus(@Param("status") RegistrationStatus status);
+
+    @Query("SELECT r FROM EventRegistration r JOIN FETCH r.event WHERE r.event.id = :eventId AND r.status = :status ORDER BY r.registeredAt DESC")
+    List<EventRegistration> findAllJoinedByEventIdAndStatus(
+            @Param("eventId") Long eventId, @Param("status") RegistrationStatus status);
 }

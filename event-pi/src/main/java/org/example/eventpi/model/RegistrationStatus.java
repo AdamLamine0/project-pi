@@ -4,5 +4,6 @@ public enum RegistrationStatus {
     INSCRIT,
     LISTE_ATTENTE,
     ANNULE,
-    PRESENT
+    PRESENT,
+    PAIEMENT_EN_ATTENTE_VALIDATION
 }

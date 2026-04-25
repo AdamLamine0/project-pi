@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.eventpi.dto.EventRegistrationRequest;
 import org.example.eventpi.dto.EventRegistrationResponse;
 import org.example.eventpi.dto.EventStatsResponse;
+import org.example.eventpi.model.RegistrationStatus;
 import org.example.eventpi.service.EventRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -67,6 +68,30 @@ public class EventRegistrationController {
     public ResponseEntity<EventRegistrationResponse> checkIn(
             @PathVariable Long registrationId) {
         return ResponseEntity.ok(registrationService.checkIn(registrationId));
+    }
+
+    // ── APPROVE PAYMENT ───────────────────────────────────────────────────
+    @PatchMapping("/registrations/{registrationId}/approve")
+    public ResponseEntity<EventRegistrationResponse> approve(
+            @PathVariable Long registrationId) {
+        return ResponseEntity.ok(registrationService.approve(registrationId));
+    }
+
+    // ── REJECT PAYMENT ────────────────────────────────────────────────────
+    @PatchMapping("/registrations/{registrationId}/reject")
+    public ResponseEntity<EventRegistrationResponse> reject(
+            @PathVariable Long registrationId,
+            @RequestBody(required = false) java.util.Map<String, String> body) {
+        String reason = body != null ? body.getOrDefault("reason", "") : "";
+        return ResponseEntity.ok(registrationService.reject(registrationId, reason));
+    }
+
+    // ── ADMIN: ALL REGISTRATIONS ──────────────────────────────────────────
+    @GetMapping("/registrations")
+    public ResponseEntity<List<EventRegistrationResponse>> getAllRegistrations(
+            @RequestParam(required = false) Long eventId,
+            @RequestParam(required = false) RegistrationStatus status) {
+        return ResponseEntity.ok(registrationService.getAllRegistrations(eventId, status));
     }
 
     // ── STATS ─────────────────────────────────────────────────────────────
