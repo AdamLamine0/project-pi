@@ -30,6 +30,15 @@ public interface EventRegistrationRepository
     boolean existsByEventIdAndUserIdAndStatusNot(
             Long eventId, Integer userId, RegistrationStatus status);
 
+    @Query("SELECT r FROM EventRegistration r JOIN FETCH r.event WHERE r.id = :id")
+    Optional<EventRegistration> findByIdWithEvent(@Param("id") Long id);
+
+    @Query("SELECT r FROM EventRegistration r JOIN FETCH r.event WHERE r.event.id = :eventId AND r.userId = :userId")
+    Optional<EventRegistration> findByEventIdAndUserIdWithEvent(@Param("eventId") Long eventId, @Param("userId") Integer userId);
+
+    @Query("SELECT r FROM EventRegistration r JOIN FETCH r.event WHERE r.event.id = :eventId AND r.status = :status ORDER BY r.registeredAt ASC")
+    Optional<EventRegistration> findFirstByEventIdAndStatusWithEventOrderByRegisteredAtAsc(@Param("eventId") Long eventId, @Param("status") RegistrationStatus status);
+
     long countByEventIdAndStatus(Long eventId, RegistrationStatus status);
 
     Optional<EventRegistration> findFirstByEventIdAndStatusOrderByRegisteredAtAsc(

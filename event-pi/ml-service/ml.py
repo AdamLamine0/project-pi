@@ -19,6 +19,7 @@ FEATURE_COLS = [
     "program_slots_count",
     "sector_count",
     "stage_count",
+    "description_length",
     "day_of_week",
     "month",
     "hour_of_day",
@@ -34,6 +35,7 @@ DERIVED_COLS = [
     "log_capacity",
     "log_lead_time",
     "content_richness",
+    "has_description",
 ]
 
 ALL_FEATURE_COLS = FEATURE_COLS + DERIVED_COLS
@@ -46,6 +48,15 @@ EVENT_TYPE_BASE = {
     2: 0.50,  # CONFERENCE
     3: 0.45,  # PITCH
     4: 0.40,  # BOOTCAMP
+}
+
+# Speaker count ranges per event type (type int → (lo, hi))
+_SPEAKER_RANGE = {
+    0: (0, 3),   # WEBINAIRE
+    1: (1, 4),   # WORKSHOP
+    2: (2, 8),   # CONFERENCE
+    3: (1, 3),   # PITCH
+    4: (1, 4),   # BOOTCAMP
 }
 
 # Seasonal boost for event fill-rate (Northern Hemisphere business calendar).
@@ -66,6 +77,7 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     df["log_capacity"]      = np.log1p(df["capacity_max"])
     df["log_lead_time"]     = np.log1p(df["days_published_before_event"])
     df["content_richness"]  = df["speaker_count"] + df["program_slots_count"]
+    df["has_description"]   = (df["description_length"] > 50).astype(int)
     return df
 
 
@@ -83,7 +95,6 @@ def _fill_rate_for(row: dict, rng: np.random.Generator) -> float:
     if int(row["location_type"]) == 1:
         base += 0.10
 
-    # Interaction: free + virtual events fill faster.
     if price == 0 and int(row["location_type"]) == 1:
         base += 0.05
 
@@ -103,6 +114,9 @@ def _fill_rate_for(row: dict, rng: np.random.Generator) -> float:
 
     base += 0.03 * min(int(row["sector_count"]), 4)
     base += 0.02 * min(int(row["stage_count"]), 4)
+
+    if row.get("description_length", 0) > 100:
+        base += 0.04
 
     lead = int(row["days_published_before_event"])
     if lead < 3:
@@ -136,7 +150,6 @@ def _fill_rate_for(row: dict, rng: np.random.Generator) -> float:
 
     base += _MONTH_BOOST.get(int(row["month"]), 0.0)
 
-    # Gaussian noise is more realistic than uniform.
     base += float(rng.normal(0.0, 0.04))
     return float(np.clip(base, 0.05, 1.0))
 
@@ -156,7 +169,6 @@ def _attendance_rate_for(row: dict, fill_rate: float, rng: np.random.Generator) 
     elif fill_rate > 0.8:
         base += 0.05
 
-    # Weekday events see higher show-up rates.
     if int(row["day_of_week"]) < 5:
         base += 0.03
     else:
@@ -168,62 +180,91 @@ def _attendance_rate_for(row: dict, fill_rate: float, rng: np.random.Generator) 
     return float(np.clip(base, 0.2, 1.0))
 
 
-def generate_synthetic_data(n: int = 1000, seed: int = 42) -> pd.DataFrame:
+def _synthetic_success_score(row: dict, fill_rate: float) -> float:
+    """
+    Success score formula for synthetic (future/projected) events.
+    Mirrors db.py _success_score() for non-TERMINE status.
+    """
+    spk  = int(row["speaker_count"])
+    sec  = int(row["sector_count"])
+    dl   = int(row.get("description_length", 0))
+    paid = 1 if float(row["ticket_price"]) > 0 else 0
+    score = (
+        fill_rate         * 30
+        + min(spk / 5, 1) * 25
+        + min(sec / 5, 1) * 20
+        + (1 if dl > 50 else 0) * 15
+        + (1 - paid * 0.3) * 10
+    )
+    return float(min(score, 100.0))
+
+
+def generate_synthetic_data(n: int = 800, seed: int = 42) -> pd.DataFrame:
     rng = np.random.default_rng(seed)
 
     capacity_opts = np.array([20, 30, 50, 75, 100, 150, 200, 300, 500])
-    price_opts    = np.array([0, 0, 0, 0, 10, 20, 50, 100, 150], dtype=float)
+    # 60% paid: weights favour paid options
+    price_opts  = np.array([0, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100, 120], dtype=float)
+    price_w = np.array([40, 5, 5, 6, 6, 6, 6, 5, 5, 4, 4, 4, 3, 1], dtype=float)
+    price_w = price_w / price_w.sum()
 
-    def _w(arr): return arr / arr.sum()
+    slot_w   = np.array([1, 1, 2, 3, 3, 2, 1, 1], dtype=float)
+    slot_w   = slot_w / slot_w.sum()
+    hour_w   = np.array([1, 2, 3, 3, 2, 2, 3, 3, 3, 2, 2, 1, 1, 1], dtype=float)
+    hour_w   = hour_w / hour_w.sum()
+    lead_w   = np.array([1, 1, 2, 3, 3, 3, 2, 1], dtype=float)
+    lead_w   = lead_w / lead_w.sum()
 
-    speaker_w = _w(np.array([1, 2, 3, 3, 2, 1, 1], dtype=float))
-    slot_w    = _w(np.array([1, 1, 2, 3, 3, 2, 1, 1], dtype=float))
-    sector_w  = _w(np.array([1, 2, 3, 3, 2, 1], dtype=float))
-    stage_w   = _w(np.array([1, 2, 3, 2, 1], dtype=float))
-    hour_w    = _w(np.array([1, 2, 3, 3, 2, 2, 3, 3, 3, 2, 2, 1, 1, 1], dtype=float))
-    lead_w    = _w(np.array([1, 1, 2, 3, 3, 3, 2, 1, 1], dtype=float))
-
-    event_types  = rng.integers(0, 5,  size=n)
-    loc_types    = rng.integers(0, 2,  size=n)
+    event_types  = rng.integers(0, 5, size=n)
+    loc_types    = rng.integers(0, 2, size=n)
     capacities   = rng.choice(capacity_opts, size=n)
-    prices       = rng.choice(price_opts, size=n)
-    speakers     = rng.choice(np.arange(7), p=speaker_w, size=n)
-    slots        = rng.choice(np.arange(8), p=slot_w,    size=n)
-    sectors      = rng.choice(np.arange(6), p=sector_w,  size=n)
-    stages       = rng.choice(np.arange(5), p=stage_w,   size=n)
-    days_of_week = rng.integers(0, 7,  size=n)
+    prices       = rng.choice(price_opts, p=price_w, size=n)
+    slots        = rng.choice(np.arange(8), p=slot_w, size=n)
+    # sector_count: randint(1, 7); stage_count: randint(1, 4)
+    sectors      = rng.integers(1, 8, size=n)
+    stages       = rng.integers(1, 5, size=n)
+    days_of_week = rng.integers(0, 7, size=n)
     months       = rng.integers(1, 13, size=n)
     hours        = rng.choice(np.arange(8, 22), p=hour_w, size=n)
-    leads        = rng.choice([1, 3, 7, 14, 21, 30, 45, 60, 90], p=lead_w, size=n)
+    leads        = rng.choice([7, 10, 14, 21, 30, 45, 60, 90], p=lead_w, size=n)
+    # description_length: 50–500 for events with descriptions, 0 for ~20% bare ones
+    bare_mask    = rng.random(size=n) < 0.20
+    desc_lengths = np.where(bare_mask, 0, rng.integers(50, 501, size=n))
 
     rows = []
     for i in range(n):
+        etype = int(event_types[i])
+        # Realistic speaker counts per event type
+        lo, hi = _SPEAKER_RANGE.get(etype, (0, 4))
+        speaker_count = int(rng.integers(lo, hi + 1))
+
         row = {
-            "event_type":                int(event_types[i]),
+            "event_type":                etype,
             "location_type":             int(loc_types[i]),
             "capacity_max":              int(capacities[i]),
             "ticket_price":              float(prices[i]),
-            "speaker_count":             int(speakers[i]),
+            "speaker_count":             speaker_count,
             "program_slots_count":       int(slots[i]),
             "sector_count":              int(sectors[i]),
             "stage_count":               int(stages[i]),
+            "description_length":        int(desc_lengths[i]),
             "day_of_week":               int(days_of_week[i]),
             "month":                     int(months[i]),
             "hour_of_day":               int(hours[i]),
             "days_published_before_event": int(leads[i]),
         }
 
-        fill_rate          = _fill_rate_for(row, rng)
+        # Beta(2,3) gives a realistic right-skewed fill distribution
+        fill_rate = float(np.clip(rng.beta(2, 3), 0.05, 1.0))
+        # Adjust slightly using the feature-aware function for consistency
+        fill_rate = _fill_rate_for(row, rng) * 0.4 + fill_rate * 0.6
+
         registration_count = min(int(round(row["capacity_max"] * fill_rate)), row["capacity_max"])
-        attendance_rate    = _attendance_rate_for(row, fill_rate, rng)
-        attended_count     = int(round(registration_count * attendance_rate))
-        success_score      = fill_rate * 50 + attendance_rate * 50
+        success_score      = _synthetic_success_score(row, fill_rate)
 
         row.update({
             "registration_count": registration_count,
-            "attended_count":     attended_count,
-            "fill_rate":          fill_rate,
-            "attendance_rate":    attendance_rate,
+            "fill_rate":          float(fill_rate),
             "success_score":      float(np.clip(success_score, 0.0, 100.0)),
         })
         rows.append(row)
@@ -251,8 +292,6 @@ def build_training_frame(real_df: pd.DataFrame, synthetic_df: pd.DataFrame) -> p
 
 def train_models(training_df: pd.DataFrame):
     X_base  = training_df[FEATURE_COLS]
-    # Convert to numpy immediately so sklearn never stores feature_names_in_,
-    # which prevents the DecisionTreeRegressor feature-name mismatch warnings.
     X       = engineer_features(X_base)[ALL_FEATURE_COLS].values
     y_reg   = training_df["registration_count"].values
     y_score = training_df["success_score"].values
@@ -283,7 +322,6 @@ def train_models(training_df: pd.DataFrame):
     sc_r2  = r2_score(y_sc_val, score_model.predict(X_val))
     logger.info("Success-score model — val MAE=%.1f  val R²=%.3f", sc_mae, sc_r2)
 
-    # Retrain on the full dataset now that we know validation quality.
     reg_model.fit(X, y_reg)
     score_model.fit(X, y_score)
 
@@ -299,11 +337,10 @@ def train_models(training_df: pd.DataFrame):
 
 def input_to_array(payload: dict) -> np.ndarray:
     """Convert API payload dict to a numpy array ready for model.predict()."""
-    df = pd.DataFrame([{col: payload[col] for col in FEATURE_COLS}])
+    df = pd.DataFrame([{col: payload.get(col, 0) for col in FEATURE_COLS}])
     return engineer_features(df)[ALL_FEATURE_COLS].values
 
 
-# Backward-compatible alias used by the existing endpoint handlers.
 def input_to_frame(payload: dict) -> np.ndarray:
     return input_to_array(payload)
 
@@ -322,7 +359,10 @@ _DAY_NAMES       = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Sat
 _CANDIDATE_HOURS = [9, 10, 11, 14, 15, 16, 17, 18, 19, 20]
 
 
-def predict_registration_range(reg_model, X: np.ndarray, capacity_max: int):
+def predict_registration_range(
+    reg_model, X: np.ndarray, capacity_max: int,
+    n_real_with_regs: int = 0, payload_dict: dict | None = None
+):
     from schemas import RegistrationEstimate
 
     tree_preds = np.array([t.predict(X)[0] for t in reg_model.estimators_])
@@ -335,13 +375,33 @@ def predict_registration_range(reg_model, X: np.ndarray, capacity_max: int):
     spread     = (hi - lo) / (capacity_max + 1)
     confidence = int(round(max(20, min(98, (1.0 - spread) * 100))))
 
+    # ── FIX 6: confidence calibration ────────────────────────────────────
+    # Not enough real events with registration data → less certain
+    if n_real_with_regs < 5:
+        confidence = min(confidence, 55)
+
+    # Very few predicted registrations → cap confidence regardless
+    if point < 10:
+        confidence = min(confidence, 90)
+
+    # Well-configured event signal → boost point estimate
+    if payload_dict:
+        spk = int(payload_dict.get("speaker_count", 0))
+        sec = int(payload_dict.get("sector_count", 0))
+        dl  = int(payload_dict.get("description_length", 0))
+        if spk >= 2 and sec >= 3 and dl > 100:
+            boosted = min(capacity_max, int(round(point * 1.15)))
+            lo      = min(capacity_max, int(round(lo    * 1.15)))
+            hi      = min(capacity_max, int(round(hi    * 1.15)))
+            point   = boosted
+
     return RegistrationEstimate(min=lo, max=hi, point_estimate=point, confidence=confidence)
 
 
 def find_optimal_slot(reg_model, payload_dict: dict, capacity_max: int):
     from schemas import OptimalSlot
 
-    base   = {col: payload_dict[col] for col in FEATURE_COLS}
+    base   = {col: payload_dict.get(col, 0) for col in FEATURE_COLS}
     rows   = []
     combos = []
     for dow in range(7):
@@ -349,7 +409,6 @@ def find_optimal_slot(reg_model, payload_dict: dict, capacity_max: int):
             rows.append({**base, "day_of_week": dow, "hour_of_day": hour})
             combos.append((dow, hour))
 
-    # Batch-predict all 70 combinations in a single call (numpy array → no feature-name warnings).
     X_arr = engineer_features(pd.DataFrame(rows))[ALL_FEATURE_COLS].values
     preds = np.clip(reg_model.predict(X_arr).astype(float), 0, capacity_max)
 
@@ -363,14 +422,16 @@ def find_optimal_slot(reg_model, payload_dict: dict, capacity_max: int):
     return OptimalSlot(day_name=_DAY_NAMES[best_day], time_window=time_window, boost_vs_average=boost)
 
 
-def full_analysis(reg_model, score_model, payload_dict: dict):
+def full_analysis(reg_model, score_model, payload_dict: dict, n_real_with_regs: int = 0):
     from schemas import FullAnalysisResponse
 
     capacity_max = max(1, int(payload_dict.get("capacity_max", 100)))
     X = input_to_frame(payload_dict)
 
-    reg_estimate = predict_registration_range(reg_model, X, capacity_max)
-    optimal      = find_optimal_slot(reg_model, payload_dict, capacity_max)
+    reg_estimate = predict_registration_range(
+        reg_model, X, capacity_max, n_real_with_regs, payload_dict
+    )
+    optimal = find_optimal_slot(reg_model, payload_dict, capacity_max)
 
     suggested = int(np.ceil(reg_estimate.max * 1.15 / 10.0) * 10)
 

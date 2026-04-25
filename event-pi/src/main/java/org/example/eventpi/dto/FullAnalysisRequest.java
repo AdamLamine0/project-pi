@@ -43,6 +43,9 @@ public class FullAnalysisRequest {
     @JsonProperty("days_published_before_event")
     private Integer daysPublishedBeforeEvent;
 
+    @JsonProperty("description_length")
+    private Integer descriptionLength;
+
     // ── Extra context for conflict detection (used by Java only) ───────────
     /** ISO-8601 datetime of the proposed event start (e.g. 2025-05-20T19:00:00) */
     private String proposedDate;
