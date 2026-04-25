@@ -73,6 +73,73 @@ public class NotificationService {
         sendHtml(toEmail, subject, body);
     }
 
+    // ── PAYMENT PENDING VALIDATION ────────────────────────────────────────
+    @Async
+    public void sendPaymentPending(String toEmail,
+                                   String userName,
+                                   EventRegistration registration) {
+        Event event = registration.getEvent();
+        String subject = "⏳ Paiement en attente de validation — " + event.getTitle();
+        String body = baseTemplate(
+                "Votre inscription est en attente",
+                "Bonjour " + userName + ",",
+                "Votre inscription à <strong>" + event.getTitle() +
+                        "</strong> est enregistrée. Le paiement doit être validé " +
+                        "par un administrateur avant de confirmer votre place.",
+                buildEventDetails(event),
+                "Voir l'événement",
+                frontendUrl + "/events/" + event.getId()
+        );
+        sendHtml(toEmail, subject, body);
+    }
+
+    // ── PAYMENT APPROVED ──────────────────────────────────────────────────
+    @Async
+    public void sendPaymentApproved(String toEmail,
+                                    String userName,
+                                    EventRegistration registration) {
+        Event event = registration.getEvent();
+        String subject = "✅ Paiement validé — Inscription confirmée — " + event.getTitle();
+        String body = baseTemplate(
+                "Paiement validé !",
+                "Bonjour " + userName + ",",
+                "Votre paiement pour <strong>" + event.getTitle() +
+                        "</strong> a été validé. Vous êtes désormais inscrit(e) à cet événement.",
+                buildEventDetails(event),
+                "Voir mon inscription",
+                frontendUrl + "/events/" + event.getId()
+        );
+        sendHtml(toEmail, subject, body);
+    }
+
+    // ── PAYMENT REJECTED ──────────────────────────────────────────────────
+    @Async
+    public void sendPaymentRejected(String toEmail,
+                                    String userName,
+                                    EventRegistration registration,
+                                    String reason) {
+        Event event = registration.getEvent();
+        String subject = "❌ Paiement refusé — " + event.getTitle();
+        String details = "<div style='background:#fef2f2;border-radius:8px;" +
+                "padding:16px;margin:16px 0;border-left:4px solid #dc2626;'>" +
+                "<p style='margin:0;font-size:13px;color:#b91c1c'>" +
+                (reason != null && !reason.isBlank()
+                        ? "<strong>Motif :</strong> " + reason
+                        : "Aucun motif précisé.") +
+                "</p></div>";
+        String body = baseTemplate(
+                "Paiement refusé",
+                "Bonjour " + userName + ",",
+                "Votre inscription à <strong>" + event.getTitle() +
+                        "</strong> n'a pas pu être confirmée. " +
+                        "Votre paiement n'a pas été validé.",
+                details,
+                "Voir d'autres événements",
+                frontendUrl + "/events"
+        );
+        sendHtml(toEmail, subject, body);
+    }
+
     // ── EVENT APPROVED ────────────────────────────────────────────────────
     @Async
     public void sendEventApproved(Integer organizerId, Event event) {
