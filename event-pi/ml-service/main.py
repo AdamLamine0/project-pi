@@ -26,19 +26,29 @@ from schemas import (
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger("ml-service")
 
-state: dict = {"reg_model": None, "score_model": None, "metrics": {}}
+state: dict = {
+    "reg_model": None,
+    "score_model": None,
+    "metrics": {},
+    "n_real_with_regs": 0,
+}
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Bootstrapping ml-service: generating synthetic data...")
-    synthetic_df = generate_synthetic_data(n=1000)
+    synthetic_df = generate_synthetic_data(n=800)
 
     real_df = None
+    n_real_with_regs = 0
     try:
         logger.info("Loading real events from DB...")
-        real_df = load_real_events()
-        logger.info("Loaded %d real events", 0 if real_df is None else len(real_df))
+        real_df, n_real_with_regs = load_real_events()
+        logger.info(
+            "Loaded %d real events, %d with confirmed registrations",
+            0 if real_df is None else len(real_df),
+            n_real_with_regs,
+        )
     except Exception as exc:
         logger.warning("Could not load real events (%s); training on synthetic only", exc)
 
@@ -46,15 +56,16 @@ async def lifespan(app: FastAPI):
     logger.info("Training on %d rows...", len(training_df))
 
     reg_model, score_model, metrics = train_models(training_df)
-    state["reg_model"]  = reg_model
-    state["score_model"] = score_model
-    state["metrics"]    = metrics
-    logger.info("Models ready — %s", metrics)
+    state["reg_model"]        = reg_model
+    state["score_model"]      = score_model
+    state["metrics"]          = metrics
+    state["n_real_with_regs"] = n_real_with_regs
+    logger.info("Models ready — %s  n_real_with_regs=%d", metrics, n_real_with_regs)
     yield
     state.clear()
 
 
-app = FastAPI(title="ml-service", version="2.0.0", lifespan=lifespan)
+app = FastAPI(title="ml-service", version="2.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -93,7 +104,12 @@ def predict_success(payload: PredictionInput):
 
 @app.post("/predict/full-analysis", response_model=FullAnalysisResponse)
 def predict_full_analysis(payload: PredictionInput):
-    return full_analysis(state["reg_model"], state["score_model"], payload.model_dump())
+    return full_analysis(
+        state["reg_model"],
+        state["score_model"],
+        payload.model_dump(),
+        n_real_with_regs=state["n_real_with_regs"],
+    )
 
 
 if __name__ == "__main__":

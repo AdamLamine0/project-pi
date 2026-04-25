@@ -31,7 +31,7 @@ public class EventRegistrationService {
     private final BadgeService badgeService;
 
     // ── REGISTER ──────────────────────────────────────────────────────────
-    @Transactional
+    @Transactional(readOnly = false)
     public EventRegistrationResponse register(Long eventId, Integer userId, int numberOfPlaces) {
 
         // Only block if an active (non-cancelled) registration already exists
@@ -111,11 +111,11 @@ public class EventRegistrationService {
     }
 
     // ── CANCEL ────────────────────────────────────────────────────────────
-    @Transactional
+    @Transactional(readOnly = false)
     public EventRegistrationResponse cancel(Long eventId, Integer userId) {
 
         EventRegistration reg = registrationRepository
-                .findByEventIdAndUserId(eventId, userId)
+                .findByEventIdAndUserIdWithEvent(eventId, userId)
                 .orElseThrow(() -> new EventNotFoundException(eventId));
 
         if (reg.getStatus() == RegistrationStatus.ANNULE) {
@@ -156,7 +156,7 @@ public class EventRegistrationService {
     // ── WAITLIST PROMOTION ────────────────────────────────────────────────
     private void promoteFromWaitlist(Long eventId) {
         registrationRepository
-                .findFirstByEventIdAndStatusOrderByRegisteredAtAsc(
+                .findFirstByEventIdAndStatusWithEventOrderByRegisteredAtAsc(
                         eventId, RegistrationStatus.LISTE_ATTENTE)
                 .ifPresent(waiting -> {
                     Event event = eventRepository.findByIdForUpdate(eventId)
@@ -183,9 +183,9 @@ public class EventRegistrationService {
     }
 
     // ── CHECK IN ──────────────────────────────────────────────────────────
-    @Transactional
+    @Transactional(readOnly = false)
     public EventRegistrationResponse checkIn(Long registrationId) {
-        EventRegistration reg = registrationRepository.findById(registrationId)
+        EventRegistration reg = registrationRepository.findByIdWithEvent(registrationId)
                 .orElseThrow(() -> new EventNotFoundException(registrationId));
 
         if (reg.getStatus() != RegistrationStatus.INSCRIT) {
@@ -281,9 +281,9 @@ public class EventRegistrationService {
     }
 
     // ── APPROVE PAYMENT ───────────────────────────────────────────────────
-    @Transactional
+    @Transactional(readOnly = false)
     public EventRegistrationResponse approve(Long registrationId) {
-        EventRegistration reg = registrationRepository.findById(registrationId)
+        EventRegistration reg = registrationRepository.findByIdWithEvent(registrationId)
                 .orElseThrow(() -> new EventNotFoundException(registrationId));
 
         if (reg.getStatus() != RegistrationStatus.PAIEMENT_EN_ATTENTE_VALIDATION) {
@@ -308,9 +308,9 @@ public class EventRegistrationService {
     }
 
     // ── REJECT PAYMENT ────────────────────────────────────────────────────
-    @Transactional
+    @Transactional(readOnly = false)
     public EventRegistrationResponse reject(Long registrationId, String reason) {
-        EventRegistration reg = registrationRepository.findById(registrationId)
+        EventRegistration reg = registrationRepository.findByIdWithEvent(registrationId)
                 .orElseThrow(() -> new EventNotFoundException(registrationId));
 
         if (reg.getStatus() != RegistrationStatus.PAIEMENT_EN_ATTENTE_VALIDATION) {

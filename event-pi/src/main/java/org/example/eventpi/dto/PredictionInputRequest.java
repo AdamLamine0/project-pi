@@ -47,4 +47,7 @@ public class PredictionInputRequest {
 
     @JsonProperty("days_published_before_event")
     private Integer daysPublishedBeforeEvent;
+
+    @JsonProperty("description_length")
+    private Integer descriptionLength;
 }

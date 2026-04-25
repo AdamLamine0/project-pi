@@ -5,15 +5,16 @@ class PredictionInput(BaseModel):
     event_type: int = Field(..., ge=0, le=4)
     location_type: int = Field(..., ge=0, le=1)
     capacity_max: int = Field(..., ge=1)
-    ticket_price: float = Field(..., ge=0)
-    speaker_count: int = Field(..., ge=0)
-    program_slots_count: int = Field(..., ge=0)
-    sector_count: int = Field(..., ge=0)
-    stage_count: int = Field(..., ge=0)
+    ticket_price: float = Field(0, ge=0)
+    speaker_count: int = Field(0, ge=0)
+    program_slots_count: int = Field(0, ge=0)
+    sector_count: int = Field(0, ge=0)
+    stage_count: int = Field(0, ge=0)
+    description_length: int = Field(0, ge=0)
     day_of_week: int = Field(..., ge=0, le=6)
     month: int = Field(..., ge=1, le=12)
     hour_of_day: int = Field(..., ge=0, le=23)
-    days_published_before_event: int = Field(..., ge=0)
+    days_published_before_event: int = Field(0, ge=0)
 
 
 class RegistrationPrediction(BaseModel):

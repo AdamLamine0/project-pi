@@ -134,7 +134,13 @@ public class GatewayRoutes {
         // no authFilter — public endpoint for QR code scanning
     }
 
-
+    @Bean
+    public RouterFunction<ServerResponse> weatherServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/weather/**"), HandlerFunctions.http())
+                .filter(lb("event-pi"));
+        // no authFilter — public endpoint, API key kept server-side
+    }
 
 
 }

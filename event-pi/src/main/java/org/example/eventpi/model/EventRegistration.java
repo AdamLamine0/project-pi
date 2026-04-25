@@ -26,7 +26,7 @@ public class EventRegistration {
     private Integer userId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     @Builder.Default
     private RegistrationStatus status = RegistrationStatus.INSCRIT;
 
