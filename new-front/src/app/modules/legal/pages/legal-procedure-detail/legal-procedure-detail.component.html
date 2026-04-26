@@ -1,0 +1,278 @@
+<div class="page-container" *ngIf="procedure as p; else loadingTpl">
+
+  <!-- En-tête -->
+  <div class="section-header mb-4">
+    <div>
+      <h1 class="section-title">{{ p.projectName }}</h1>
+      <p class="section-subtitle">
+        {{ procedureTypeLabels[p.procedureType] }} —
+        <span class="badge" [ngClass]="getStatusClass(p.status)">
+          {{ statusLabels[p.status] }}
+        </span>
+      </p>
+    </div>
+    <button class="btn btn-soft" type="button" (click)="goBack()">← Retour</button>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+  <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+
+  <!-- Infos dossier -->
+  <div class="info-card mb-4">
+    <h2 class="section-title" style="font-size:18px;">Informations du dossier</h2>
+    <div class="info-grid mt-3">
+      <div class="info-item">
+        <div class="info-item-label">ID dossier</div>
+        <div class="info-item-value">{{ p.id }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-item-label">Expert assigné</div>
+        <div class="info-item-value">{{ p.expertId || 'Non assigné' }}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-item-label">Progression</div>
+        <div class="info-item-value">{{ p.completionRate }} %</div>
+      </div>
+      <div class="info-item">
+        <div class="info-item-label">Créé le</div>
+        <div class="info-item-value">{{ p.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+      </div>
+      <div class="info-item" *ngIf="p.submittedAt">
+        <div class="info-item-label">Soumis le</div>
+        <div class="info-item-value">{{ p.submittedAt | date:'dd/MM/yyyy HH:mm' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analyse IA -->
+  <div class="card-premium p-4 mb-4" *ngIf="p.status === 'EN_COURS' || p.remark || aiResult">
+    <div class="d-flex justify-content-between align-items-start gap-3">
+      <div>
+        <h2 class="section-title" style="font-size:18px;">Analyse IA</h2>
+        <p class="section-subtitle" *ngIf="p.status === 'EN_COURS' && !p.remark">
+          Le dossier est en attente d'analyse ou l'analyse automatique n'a pas encore mis a jour le statut.
+        </p>
+        <p class="section-subtitle" *ngIf="aiRemarkSummary">{{ aiRemarkSummary }}</p>
+      </div>
+
+      <button *ngIf="p.status === 'EN_COURS'"
+              class="btn btn-primary"
+              type="button"
+              [disabled]="analyzingAi"
+              (click)="runAiAnalysis()">
+        {{ analyzingAi ? 'Analyse...' : 'Relancer IA' }}
+      </button>
+    </div>
+
+    <div *ngIf="aiResult" class="ai-grid mt-3">
+      <div class="ai-item">
+        <div class="ai-label">Decision</div>
+        <div class="ai-value">{{ aiResult.decision }}</div>
+      </div>
+      <div class="ai-item">
+        <div class="ai-label">Statut applique</div>
+        <div class="ai-value">{{ statusLabels[aiResult.appliedStatus] }}</div>
+      </div>
+      <div class="ai-item">
+        <div class="ai-label">Gemini</div>
+        <div class="ai-value">{{ aiResult.llmAvailable ? 'Disponible' : 'Indisponible' }}</div>
+      </div>
+    </div>
+
+    <div *ngIf="aiFindingGroups.length" class="ai-findings mt-3">
+      <div class="ai-findings-title">Documents a corriger</div>
+      <div class="ai-finding-card" *ngFor="let group of aiFindingGroups">
+        <div class="ai-finding-document">{{ group.document }}</div>
+        <ul>
+          <li *ngFor="let finding of group.findings">{{ finding }}</li>
+        </ul>
+      </div>
+    </div>
+
+    <div *ngIf="aiResult?.llmFindings?.length" class="mt-3">
+      <strong>Incoherences detectees</strong>
+      <ul class="mb-0">
+        <li *ngFor="let finding of aiResult!.llmFindings">{{ finding }}</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Checklist documentaire -->
+  <div class="card-premium p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h2 class="section-title" style="font-size:18px;">Checklist documentaire</h2>
+        <p class="section-subtitle" *ngIf="checklist">
+          {{ checklist.uploadedCount }} / {{ checklist.requiredCount }} documents obligatoires déposés
+          ({{ checklist.completionPercentage }}%)
+        </p>
+      </div>
+
+      <!-- Barre de progression -->
+      <div class="progress" style="width:200px; height:10px;" *ngIf="checklist">
+        <div class="progress-bar bg-success"
+             [style.width.%]="checklist.completionPercentage">
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="checklist?.items?.length; else noChecklist">
+      <div class="checklist-item mb-3"
+           *ngFor="let item of checklist!.items"
+           [class.checklist-ok]="item.uploaded"
+           [class.checklist-miss]="!item.uploaded">
+
+        <!-- Info du document -->
+        <div class="flex-grow-1">
+          <div class="d-flex align-items-center gap-2">
+            <span class="checklist-dot"
+                  [class.dot-ok]="item.uploaded"
+                  [class.dot-miss]="!item.uploaded">
+            </span>
+            <strong>{{ item.label }}</strong>
+            <span *ngIf="item.required" class="badge bg-danger" style="font-size:10px;">Obligatoire</span>
+          </div>
+          <small class="text-muted">{{ item.description }}</small>
+
+          <!-- Lien si déjà déposé -->
+          <div *ngIf="item.uploaded && item.fileUrl" class="mt-1">
+            <a [href]="item.fileUrl" target="_blank" class="btn btn-sm btn-outline-secondary">
+              📎 Voir le document
+            </a>
+            <button *ngIf="canEditDocuments && item.documentId"
+                    class="btn btn-sm btn-outline-danger ms-2"
+                    (click)="deleteDocument(item.documentId!)">
+              Supprimer
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="canEditDocuments"
+             class="upload-zone d-flex gap-2 align-items-center">
+          <input type="file"
+                 class="form-control form-control-sm"
+                 style="width:220px"
+                 (change)="onFileSelected($event, item.code)" />
+
+          <button class="btn btn-sm btn-primary"
+                  [disabled]="!selectedFiles[item.code] || uploadingCode === item.code"
+                  (click)="uploadDocument(item)">
+            {{ uploadingCode === item.code ? '...' : (item.uploaded ? 'Remplacer' : 'Déposer') }}
+          </button>
+        </div>
+
+        <!-- Tag statut -->
+        <span [ngClass]="item.uploaded ? 'check-tag-ok' : 'check-tag-miss'">
+          {{ item.uploaded ? '✓ Déposé' : '✗ Manquant' }}
+        </span>
+      </div>
+    </div>
+
+    <ng-template #noChecklist>
+      <div class="empty-state">
+        <p>Aucune exigence trouvée pour ce type de procédure.</p>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- Bouton Submit -->
+  <div class="d-flex justify-content-end" *ngIf="canEditDocuments">
+    <button class="btn btn-success btn-lg"
+            [disabled]="!allRequiredUploaded"
+            (click)="submitProcedure()">
+      {{ allRequiredUploaded ? (p.status === 'REFUSE' ? 'Resoumettre le dossier' : 'Soumettre le dossier') : 'Déposez tous les documents obligatoires' }}
+    </button>
+  </div>
+
+  <!-- Téléchargement document final si COMPLETE -->
+  <div class="card-premium p-4 mt-4" *ngIf="p.status === 'COMPLETE'">
+    <h3 class="section-title" style="font-size:18px;">🎉 Dossier validé</h3>
+    <p>Votre dossier a été validé par l'expert juridique. Le document final est disponible.</p>
+    <p *ngIf="p.finalDocumentGeneratedAt" class="section-subtitle">
+      Genere le {{ p.finalDocumentGeneratedAt | date:'dd/MM/yyyy HH:mm' }}
+    </p>
+    <a *ngIf="p.finalDocumentUrl; else finalPending"
+       class="btn btn-primary"
+       [href]="p.finalDocumentUrl"
+       target="_blank"
+       rel="noopener">
+      Visualiser le document final
+    </a>
+    <ng-template #finalPending>
+      <div class="alert alert-info">Le document final est en cours de generation.</div>
+    </ng-template>
+  </div>
+
+  <!-- Chatbot juridique flottant -->
+  <button class="chat-launcher"
+          type="button"
+          [class.chat-launcher-open]="chatOpen"
+          (click)="toggleChat()">
+    <span>Chat juridique</span>
+    <strong *ngIf="!chatOpen && chatMessages.length">{{ chatMessages.length }}</strong>
+  </button>
+
+  <aside class="chat-popup" *ngIf="chatOpen">
+    <div class="chat-popup-header">
+      <div>
+        <h2>Assistant juridique</h2>
+        <p>{{ procedureTypeLabels[p.procedureType] }} - {{ statusLabels[p.status] }}</p>
+      </div>
+      <button type="button" class="chat-close" (click)="closeChat()">x</button>
+    </div>
+
+    <div class="chat-context">
+      <span>{{ checklist?.uploadedCount || 0 }}/{{ checklist?.requiredCount || 0 }} documents</span>
+      <span>{{ p.projectName }}</span>
+    </div>
+
+    <div class="chat-suggestions" *ngIf="chatMessages.length === 0">
+      <button type="button"
+              *ngFor="let suggestion of chatSuggestions"
+              (click)="askSuggestion(suggestion)">
+        {{ suggestion }}
+      </button>
+    </div>
+
+    <div class="chat-box">
+      <div *ngIf="chatMessages.length === 0" class="chat-empty">
+        Posez une question sur la procedure, les documents ou les prochaines etapes.
+      </div>
+
+      <div *ngFor="let message of chatMessages"
+           class="chat-message"
+           [class.chat-user]="message.role === 'user'"
+           [class.chat-assistant]="message.role === 'assistant'">
+        <div>{{ message.text }}</div>
+        <small *ngIf="message.disclaimer">{{ message.disclaimer }}</small>
+      </div>
+
+      <div *ngIf="chatSending" class="chat-message chat-assistant">
+        <div>Analyse du dossier en cours...</div>
+      </div>
+    </div>
+
+    <form class="chat-form" (ngSubmit)="askLegalChat()">
+      <input class="form-control"
+             type="text"
+             name="chatQuestion"
+             [(ngModel)]="chatQuestion"
+             placeholder="Posez votre question juridique..." />
+      <button class="btn btn-primary"
+              type="submit"
+              [disabled]="chatSending || !chatQuestion.trim()">
+        Envoyer
+      </button>
+    </form>
+  </aside>
+
+</div>
+
+<ng-template #loadingTpl>
+  <div class="p-5 text-center">
+    <div *ngIf="loading">Chargement en cours...</div>
+    <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+  </div>
+</ng-template>
+

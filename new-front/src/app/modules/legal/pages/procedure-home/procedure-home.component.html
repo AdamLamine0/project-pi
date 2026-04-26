@@ -1,0 +1,95 @@
+<div class="page-container">
+
+  <!-- Hero -->
+  <div class="hero mb-5">
+    <div class="hero-card">
+      <div class="hero-eyebrow">Module juridique</div>
+      <h1 class="hero-title">Portail des procédures juridiques</h1>
+      <p class="hero-text">
+        Créez vos dossiers, déposez vos documents et suivez l'avancement
+        de votre procédure jusqu'à l'obtention du document final.
+      </p>
+
+      <!-- Actions selon le rôle -->
+      <div class="hero-actions">
+
+        <!-- ENTREPRENEUR -->
+        <ng-container *ngIf="auth.isEntrepreneur()">
+          <a class="btn btn-primary-pro" routerLink="/app/legal/list">
+            Voir mes dossiers
+          </a>
+          <a class="btn btn-soft" routerLink="/app/legal/new">
+            Créer un dossier
+          </a>
+        </ng-container>
+
+        <!-- EXPERT -->
+        <ng-container *ngIf="auth.isExpert()">
+          <a class="btn btn-primary-pro" routerLink="/app/legal/expert/assigned">
+            Dossiers à traiter
+          </a>
+        </ng-container>
+
+        <!-- Autres rôles (USER, MENTOR, etc.) -->
+        <ng-container *ngIf="!auth.isEntrepreneur() && !auth.isExpert()">
+          <p class="text-muted">
+            Connectez-vous en tant qu'entrepreneur pour créer un dossier.
+          </p>
+        </ng-container>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Section types de procédures — visible par tous (vitrine) -->
+  <div class="section-header mb-3">
+    <h2 class="section-title">Procédures disponibles</h2>
+    <p class="section-subtitle">Choisissez la procédure adaptée à votre projet.</p>
+  </div>
+
+  <div class="cards-grid">
+    <div class="card-premium" *ngFor="let type of procedureTypes">
+      <div class="card-top d-flex align-items-center gap-3 mb-2">
+        <span class="icon-tile" style="font-size:24px;">{{ getProcedureIcon(type) }}</span>
+        <div>
+          <h3 class="card-title mb-0">{{ labels[type] }}</h3>
+          <div class="card-code text-muted small">{{ type }}</div>
+        </div>
+      </div>
+
+      <p class="card-description">{{ descriptions[type] }}</p>
+
+      <div class="card-actions d-flex gap-2 mt-3">
+
+        <!-- Bouton créer : ENTREPRENEUR uniquement -->
+        <button class="btn btn-primary-pro"
+                *ngIf="auth.isEntrepreneur()"
+                (click)="createProcedure(type)">
+          Créer un dossier
+        </button>
+
+        <!-- Mes dossiers : ENTREPRENEUR uniquement -->
+        <a class="btn btn-soft"
+           *ngIf="auth.isEntrepreneur()"
+           routerLink="/app/legal/list">
+          Mes dossiers
+        </a>
+
+        <!-- Expert : lien vers ses dossiers assignés -->
+        <a class="btn btn-primary-pro"
+           *ngIf="auth.isExpert()"
+           routerLink="/app/legal/expert/assigned">
+          Voir les dossiers assignés
+        </a>
+
+        <!-- Autres rôles : message informatif -->
+        <span class="text-muted small"
+              *ngIf="!auth.isEntrepreneur() && !auth.isExpert()">
+          Disponible pour les entrepreneurs
+        </span>
+
+      </div>
+    </div>
+  </div>
+
+</div>
