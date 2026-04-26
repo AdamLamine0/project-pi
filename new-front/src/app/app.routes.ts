@@ -25,8 +25,8 @@ export const routes: Routes = [
     component: LandingLayoutComponent,
     children: [
       { path: '', component: LandingComponent },
-      { path: 'events', component: EventsComponent },
-      { path: 'community', loadChildren: () => import('./modules/community/community.module').then(m => m.CommunityModule) },
+      { path: 'events', component: EventsComponent, canActivate: [loginGuard] },
+      { path: 'community', loadChildren: () => import('./modules/community/community.module').then(m => m.CommunityModule), canActivate: [loginGuard] },
       // Profile accessible to any authenticated user (including USER role)
       { path: 'profile', component: ProfileComponent, canActivate: [loginGuard] },
     ],
