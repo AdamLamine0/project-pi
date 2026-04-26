@@ -51,7 +51,6 @@ import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
     VerifyCertificateComponent,
     MapComponent,
     AdminRegistrationsComponent,
-    ShaderBackgroundComponent,
   ],
   imports: [
     BrowserModule,
@@ -61,6 +60,7 @@ import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
     AppRoutingModule,
     NgIconComponent,
     ToastComponent,
+    ShaderBackgroundComponent,
     ...HlmBadgeImports,
     ...HlmProgressImports,
   ],

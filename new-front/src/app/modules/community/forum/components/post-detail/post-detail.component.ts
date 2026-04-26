@@ -56,7 +56,7 @@ import {
           </div>
 
           <!-- Media Display -->
-          <div class="media-grid" *ngIf="post.mediaUrls && post.mediaUrls.length > 0" [class.single]="post.mediaUrls?.length === 1">
+          <div class="media-grid" *ngIf="post.mediaUrls && post.mediaUrls.length > 0" [class.single]="post.mediaUrls.length === 1">
             <div *ngFor="let url of post.mediaUrls" class="media-wrapper hover-lift">
               <ng-container *ngIf="isImage(url)">
                 <div class="image-container" (click)="openMedia(getFullUrl(url))">
@@ -113,7 +113,7 @@ import {
 
       <!-- Comments -->
       <div class="comments-section">
-        <h3 class="comments-title">Commentaires ({{ post.comments?.length || 0 }})</h3>
+        <h3 class="comments-title">Commentaires ({{ post.comments.length }})</h3>
 
         <div class="comment-thread">
           <div *ngFor="let comment of post.comments || []; let i = index" class="comment-bubble hover-lift">
