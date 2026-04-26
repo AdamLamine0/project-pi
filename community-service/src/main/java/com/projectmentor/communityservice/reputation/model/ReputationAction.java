@@ -9,7 +9,8 @@ public enum ReputationAction {
     RECOMMENDATION_RECEIVED(15),
     APPLICATION_ACCEPTED(25),
     GROUP_CREATED(10),
-    EVENT_ATTENDED(8);
+    EVENT_ATTENDED(8),
+    POST_RESOLVED(15);
 
     private final int points;
 

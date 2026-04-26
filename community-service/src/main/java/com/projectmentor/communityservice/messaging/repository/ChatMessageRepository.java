@@ -16,6 +16,12 @@ public interface ChatMessageRepository extends MongoRepository<ChatMessage, Stri
             String senderId2, String receiverId2
     );
 
+    // Tous les messages (envoyés OU reçus) par un membre, pour reconstruire la liste des conversations
+    List<ChatMessage> findBySenderIdOrReceiverIdOrderBySentAtDesc(String senderId, String receiverId);
+
     // messages non lus d'un membre
     List<ChatMessage> findByReceiverIdAndReadFalse(String receiverId);
+
+    // messages par type pour un destinataire (ex: INVITATION)
+    List<ChatMessage> findByReceiverIdAndType(String receiverId, com.projectmentor.communityservice.messaging.model.MessageType type);
 }

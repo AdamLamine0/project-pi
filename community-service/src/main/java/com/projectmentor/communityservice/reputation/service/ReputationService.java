@@ -16,6 +16,7 @@ import java.util.List;
 public class ReputationService {
 
     private final ReputationRepository repository;
+    private final com.projectmentor.communityservice.notification.service.NotificationService notificationService;
 
     // ── initialiser réputation d'un nouveau membre ──
 
@@ -68,8 +69,19 @@ public class ReputationService {
         checkAndAwardBadges(rep);
 
         rep.setLastUpdated(LocalDateTime.now());
+        MemberReputation saved = repository.save(rep);
 
-        return repository.save(rep);
+        // Notify member
+        try {
+            notificationService.createAndSend(
+                    memberId,
+                    com.projectmentor.communityservice.notification.model.NotificationType.REPUTATION_GAINED,
+                    "Vous avez gagné " + action.getPoints() + " points de réputation ! (" + action.name() + ")",
+                    java.util.Map.of("points", String.valueOf(action.getPoints()), "newTotal", String.valueOf(saved.getPoints()))
+            );
+        } catch (Exception ignored) {}
+
+        return saved;
     }
 
     // ── récupérer réputation d'un membre ──

@@ -11,7 +11,9 @@ import com.projectmentor.communityservice.messaging.service.ChatService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -35,6 +37,9 @@ public class MarketplaceService {
     private final QuizService quizService;
     private final ChatService chatService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final com.projectmentor.communityservice.notification.service.NotificationService notificationService;
+    private final org.springframework.context.ApplicationContext applicationContext;
+    private final CandidateMLService candidateMLService;
 
     // ── Opportunities ──────────────────────────────
 
@@ -52,6 +57,7 @@ public class MarketplaceService {
                 .applicationsCount(0)
                 .positionsAvailable(dto.getPositionsAvailable() != null ? dto.getPositionsAvailable() : 1)
                 .quizSentCount(0)
+                .quizCompletedCount(0)
                 .finalisedCount(0)
                 .expiresAt(dto.getExpiresAt())
                 .createdAt(LocalDateTime.now())
@@ -61,7 +67,25 @@ public class MarketplaceService {
     }
 
     public Page<Opportunity> getAllOpportunities(Pageable pageable) {
-        return opportunityRepository.findByDeletedFalse(pageable);
+        return opportunityRepository.findByDeletedFalse(ensureDefaultSort(pageable));
+    }
+
+    public Page<Opportunity> getOpportunitiesByTypePaginated(String type, Pageable pageable) {
+        return opportunityRepository.findByTypeAndDeletedFalse(
+            OpportunityType.valueOf(type),
+            ensureDefaultSort(pageable)
+        );
+    }
+
+    private Pageable ensureDefaultSort(Pageable pageable) {
+        if (pageable.getSort().isUnsorted()) {
+            return PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createdAt")
+            );
+        }
+        return pageable;
     }
 
     public List<Opportunity> getOpportunitiesBySector(String sector) {
@@ -76,6 +100,13 @@ public class MarketplaceService {
         return opportunityRepository.findByPublisherIdAndDeletedFalse(publisherId);
     }
 
+    public Page<Opportunity> getMyOpportunitiesPaginated(String publisherId, Pageable pageable) {
+        return opportunityRepository.findByPublisherIdAndDeletedFalse(
+            publisherId,
+            ensureDefaultSort(pageable)
+        );
+    }
+
     // soft delete
     public void deleteOpportunity(String id) {
         Opportunity opp = opportunityRepository.findById(id)
@@ -88,7 +119,56 @@ public class MarketplaceService {
     public Opportunity updateStatus(String id, String status) {
         Opportunity opp = opportunityRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Opportunity not found"));
-        opp.setStatus(OpportunityStatus.valueOf(status));
+        
+        OpportunityStatus newStatus = OpportunityStatus.valueOf(status);
+        OpportunityStatus oldStatus = opp.getStatus();
+        
+        opp.setStatus(newStatus);
+        Opportunity saved = opportunityRepository.save(opp);
+        
+        // If manually moved to IN_PROGRESS or EXPIRED, trigger the recruitment pipeline automatically
+        if ((newStatus == OpportunityStatus.IN_PROGRESS || newStatus == OpportunityStatus.EXPIRED) 
+            && oldStatus == OpportunityStatus.OPEN) {
+            try {
+                RecruitmentPipelineService pipeline = applicationContext.getBean(RecruitmentPipelineService.class);
+                log.info("Triggering automated recruitment pipeline for opportunity {}", id);
+                pipeline.runDeadlinePipeline(saved);
+            } catch (Exception e) {
+                log.error("Failed to trigger automated pipeline: {}", e.getMessage());
+            }
+        }
+        
+        return saved;
+    }
+
+    public Opportunity getOpportunityById(String id) {
+        return opportunityRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Opportunity not found: " + id));
+    }
+
+    public Opportunity updateOpportunity(String id, CreateOpportunityDTO dto) {
+        Opportunity opp = getOpportunityById(id);
+        opp.setTitle(dto.getTitle());
+        opp.setDescription(dto.getDescription());
+        opp.setSector(dto.getSector());
+        opp.setLocation(dto.getLocation());
+        opp.setType(OpportunityType.valueOf(dto.getType()));
+        opp.setPositionsAvailable(dto.getPositionsAvailable() != null ? dto.getPositionsAvailable() : 1);
+        opp.setSkillsRequired(dto.getSkillsRequired());
+
+        LocalDateTime newDeadline = dto.getExpiresAt();
+        // Automatically reopen the opportunity if the new deadline is in the future
+        // Use UTC for comparison to be consistent with the DeadlineSchedulerService
+        if (newDeadline != null && newDeadline.isAfter(LocalDateTime.now(java.time.ZoneOffset.UTC))) {
+            if (opp.getStatus() == OpportunityStatus.EXPIRED || 
+                opp.getStatus() == OpportunityStatus.CLOSED || 
+                opp.getStatus() == OpportunityStatus.IN_PROGRESS) {
+                log.info("Reopening opportunity {} as deadline was extended to {}", id, newDeadline);
+                opp.setStatus(OpportunityStatus.OPEN);
+            }
+        }
+
+        opp.setExpiresAt(newDeadline);
         return opportunityRepository.save(opp);
     }
 
@@ -97,6 +177,10 @@ public class MarketplaceService {
     public OpportunityApplication apply(String opportunityId, ApplyDTO dto) {
         Opportunity opp = opportunityRepository.findById(opportunityId)
                 .orElseThrow(() -> new RuntimeException("Opportunity not found"));
+
+        if (opp.getStatus() != OpportunityStatus.OPEN) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Les candidatures pour cette offre sont closes.");
+        }
 
         if (opp.getPublisherId().equals(dto.getCandidateId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Vous ne pouvez pas postuler à votre propre offre");
@@ -118,12 +202,28 @@ public class MarketplaceService {
         opp.setApplicationsCount(opp.getApplicationsCount() + 1);
         opportunityRepository.save(opp);
 
-        return applicationRepository.save(application);
+        OpportunityApplication saved = applicationRepository.save(application);
+
+        // Notify publisher
+        try {
+            notificationService.createAndSend(
+                    opp.getPublisherId(),
+                    com.projectmentor.communityservice.notification.model.NotificationType.APPLICATION_RECEIVED,
+                    "Nouvelle candidature reçue pour : " + opp.getTitle(),
+                    java.util.Map.of("opportunityId", opp.getId(), "applicationId", saved.getId())
+            );
+        } catch (Exception ignored) {}
+
+        return saved;
     }
 
     public OpportunityApplication applyWithFile(String opportunityId, ApplyDTO dto, MultipartFile file) throws IOException {
         Opportunity opp = opportunityRepository.findById(opportunityId)
                 .orElseThrow(() -> new RuntimeException("Opportunity not found"));
+
+        if (opp.getStatus() != OpportunityStatus.OPEN) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Les candidatures pour cette offre sont closes.");
+        }
 
         if (opp.getPublisherId().equals(dto.getCandidateId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Vous ne pouvez pas postuler à votre propre offre");
@@ -153,7 +253,19 @@ public class MarketplaceService {
         opp.setApplicationsCount(opp.getApplicationsCount() + 1);
         opportunityRepository.save(opp);
 
-        return applicationRepository.save(application);
+        OpportunityApplication saved = applicationRepository.save(application);
+
+        // Notify publisher
+        try {
+            notificationService.createAndSend(
+                    opp.getPublisherId(),
+                    com.projectmentor.communityservice.notification.model.NotificationType.APPLICATION_RECEIVED,
+                    "Nouvelle candidature reçue pour : " + opp.getTitle(),
+                    java.util.Map.of("opportunityId", opp.getId(), "applicationId", saved.getId())
+            );
+        } catch (Exception ignored) {}
+
+        return saved;
     }
 
     // dashboard candidat
@@ -163,7 +275,20 @@ public class MarketplaceService {
 
     // dashboard publieur
     public List<OpportunityApplication> getApplicationsForOpportunity(String opportunityId) {
-        return applicationRepository.findByOpportunityId(opportunityId);
+        List<OpportunityApplication> apps = applicationRepository.findByOpportunityId(opportunityId);
+        
+        // Auto-mark SENT applications as VIEWED when the publisher opens the list
+        boolean changed = false;
+        for (OpportunityApplication app : apps) {
+            if (app.getStatus() == ApplicationStatus.SENT) {
+                app.setStatus(ApplicationStatus.VIEWED);
+                applicationRepository.save(app);
+                changed = true;
+            }
+        }
+        
+        // Return fresh list if any were updated
+        return changed ? applicationRepository.findByOpportunityId(opportunityId) : apps;
     }
 
     // update statut candidature
@@ -180,9 +305,16 @@ public class MarketplaceService {
                     .orElseThrow(() -> new RuntimeException("Opportunity not found"));
             
             try {
+                // Ensure AI scores are calculated before sending quiz
+                if (app.getCvScore() == null) {
+                    log.info("Calculating AI scores for manual acceptance of application {}", applicationId);
+                    candidateMLService.scoreCandidate(app, opportunity);
+                    applicationRepository.save(app);
+                }
+                
                 quizService.generateAndSendQuiz(app, opportunity);
             } catch (Exception e) {
-                log.error("Error during quizService call: {}", e.getMessage());
+                log.error("Error during manual acceptance processing for app {}: {}", applicationId, e.getMessage());
             }
         }
         

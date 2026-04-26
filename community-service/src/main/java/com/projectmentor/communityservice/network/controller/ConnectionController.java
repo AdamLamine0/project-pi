@@ -55,6 +55,12 @@ public class ConnectionController {
         return connectionService.getPendingRequests(memberId);
     }
 
+    // demandes en attente envoyées
+    @GetMapping("/{memberId}/pending/sent")
+    public List<MemberConnection> getSentPendingRequests(@PathVariable String memberId) {
+        return connectionService.getSentPendingRequests(memberId);
+    }
+
     // toutes les interactions (envoyées + reçues)
     @GetMapping("/{memberId}/all")
     public List<MemberConnection> getAllConnections(@PathVariable String memberId) {

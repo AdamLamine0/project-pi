@@ -4,13 +4,15 @@ server:
 spring:
   application:
     name: community-service
-
+  data:
+    mongodb:
+      uri: mongodb+srv://YOUR_MONGO_USER:YOUR_MONGO_PASSWORD@YOUR_CLUSTER.mongodb.net/community_db?appName=Cluster0
   mongodb:
-    uri: ${MONGODB_URI}
+    uri: mongodb+srv://YOUR_MONGO_USER:YOUR_MONGO_PASSWORD@YOUR_CLUSTER.mongodb.net/community_db?appName=Cluster0
 
 groq:
   api:
-    key: ${GROQ_API_KEY}
+    key: YOUR_GROQ_API_KEY_HERE
 
 user:
   service:

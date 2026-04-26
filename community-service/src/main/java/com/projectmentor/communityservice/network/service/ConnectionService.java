@@ -16,6 +16,8 @@ import java.util.stream.Stream;
 public class ConnectionService {
 
     private final ConnectionRepository repository;
+    private final com.projectmentor.communityservice.notification.service.NotificationService notificationService;
+    private final UserService userService;
 
     // ── envoyer une demande de connexion ──
 
@@ -35,7 +37,20 @@ public class ConnectionService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        return repository.save(connection);
+        MemberConnection saved = repository.save(connection);
+
+        // Notify target
+        try {
+            String name = userService.getUserName(Long.parseLong(requesterId));
+            notificationService.createAndSend(
+                    targetId,
+                    com.projectmentor.communityservice.notification.model.NotificationType.CONNECTION_REQUEST,
+                    name + " souhaite se connecter avec vous.",
+                    java.util.Map.of("requesterId", requesterId, "connectionId", saved.getId())
+            );
+        } catch (Exception ignored) {}
+
+        return saved;
     }
 
     // ── accepter une demande ──
@@ -46,7 +61,20 @@ public class ConnectionService {
 
         connection.setStatus(ConnectionStatus.ACCEPTED);
         connection.setRespondedAt(LocalDateTime.now());
-        return repository.save(connection);
+        MemberConnection saved = repository.save(connection);
+
+        // Notify requester
+        try {
+            String name = userService.getUserName(Long.parseLong(connection.getTargetId()));
+            notificationService.createAndSend(
+                    connection.getRequesterId(),
+                    com.projectmentor.communityservice.notification.model.NotificationType.CONNECTION_ACCEPTED,
+                    name + " a accepté votre demande de connexion.",
+                    java.util.Map.of("targetId", connection.getTargetId(), "connectionId", saved.getId())
+            );
+        } catch (Exception ignored) {}
+
+        return saved;
     }
 
     // ── refuser une demande ──
@@ -87,6 +115,12 @@ public class ConnectionService {
 
     public List<MemberConnection> getPendingRequests(String memberId) {
         return repository.findByTargetIdAndStatus(memberId, ConnectionStatus.PENDING);
+    }
+
+    // ── demandes en attente envoyées ──
+
+    public List<MemberConnection> getSentPendingRequests(String memberId) {
+        return repository.findByRequesterIdAndStatus(memberId, ConnectionStatus.PENDING);
     }
 
     // ── toutes mes interactions (envoyées + reçues) ──

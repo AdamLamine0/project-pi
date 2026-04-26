@@ -8,8 +8,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+
+import com.projectmentor.communityservice.marketplace.service.FileStorageService;
+import org.springframework.http.MediaType;
+import java.io.IOException;
 
 @RestController
 
@@ -20,6 +25,12 @@ import java.util.List;
 public class ForumController {
 
     private final ForumService forumService;
+    private final FileStorageService fileStorageService;
+
+    @PostMapping("/upload")
+    public String uploadImage(@RequestParam("file") MultipartFile file) throws IOException {
+        return "/api/community/marketplace/files/cv/" + fileStorageService.storeFile(file);
+    }
 
     @PostMapping
     public ForumPost createPost(@RequestBody CreatePostDTO dto) {

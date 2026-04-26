@@ -11,6 +11,7 @@ import com.projectmentor.communityservice.marketplace.repository.OpportunityRepo
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -46,8 +47,10 @@ public class MarketplaceController {
     }
 
     @GetMapping
-    public Page<Opportunity> getAllOpportunities(Pageable pageable) {
-        return marketplaceService.getAllOpportunities(pageable);
+    public Page<Opportunity> getAllOpportunities(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return marketplaceService.getAllOpportunities(PageRequest.of(page, size));
     }
 
     @GetMapping("/sector/{sector}")
@@ -56,8 +59,23 @@ public class MarketplaceController {
     }
 
     @GetMapping("/type/{type}")
-    public List<Opportunity> getByType(@PathVariable String type) {
-        return marketplaceService.getOpportunitiesByType(type);
+    public Page<Opportunity> getByType(
+            @PathVariable String type,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "6") int size) {
+        return marketplaceService.getOpportunitiesByTypePaginated(type, PageRequest.of(page, size));
+    }
+
+    @GetMapping("/{id}")
+    public Opportunity getOpportunity(@PathVariable String id) {
+        return marketplaceService.getOpportunityById(id);
+    }
+
+    @PutMapping("/{id}")
+    public Opportunity updateOpportunity(
+            @PathVariable String id,
+            @RequestBody CreateOpportunityDTO dto) {
+        return marketplaceService.updateOpportunity(id, dto);
     }
 
     @GetMapping("/my/{publisherId}")
@@ -226,7 +244,7 @@ public class MarketplaceController {
     @GetMapping("/files/cv/{fileName:.+}")
     public ResponseEntity<byte[]> downloadCv(@PathVariable String fileName) throws IOException {
         String decodedFileName = URLDecoder.decode(fileName, StandardCharsets.UTF_8);
-        log.info("CV download requested. raw=fileName='{}', decoded='{}'", fileName, decodedFileName);
+        log.info(">>> FILE DOWNLOAD REQUEST: fileName='{}', decoded='{}'", fileName, decodedFileName);
 
         try {
             byte[] fileBytes = fileStorageService.getFileBytes(decodedFileName);
@@ -240,6 +258,14 @@ public class MarketplaceController {
                 contentType = "application/msword";
             } else if (lowerFileName.endsWith(".docx")) {
                 contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+            } else if (lowerFileName.endsWith(".png")) {
+                contentType = "image/png";
+            } else if (lowerFileName.endsWith(".jpg") || lowerFileName.endsWith(".jpeg")) {
+                contentType = "image/jpeg";
+            } else if (lowerFileName.endsWith(".gif")) {
+                contentType = "image/gif";
+            } else if (lowerFileName.endsWith(".webp")) {
+                contentType = "image/webp";
             }
 
             return ResponseEntity.ok()

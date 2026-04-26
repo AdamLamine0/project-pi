@@ -27,8 +27,14 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
+    // Public directory of users
+    @GetMapping("/directory")
+    public ResponseEntity<List<User>> getUserDirectory() {
+        return ResponseEntity.ok(userService.getAllUsers());
+    }
+
     // Any logged-in user — get by id
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     public ResponseEntity<User> getUserById(@PathVariable int id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
@@ -80,6 +86,7 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
+
     @GetMapping("/experts")
     public ResponseEntity<List<ExpertSummaryDto>> getExperts() {
         return ResponseEntity.ok(userService.getExperts());
