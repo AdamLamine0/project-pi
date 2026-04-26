@@ -2,22 +2,29 @@ package org.example.eventpi.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.eventpi.dto.EventMapDTO;
 import org.example.eventpi.dto.EventRequest;
 import org.example.eventpi.dto.EventResponse;
 import org.example.eventpi.dto.UpdateEventRequest;
 import org.example.eventpi.dto.UserResponse;
 import org.example.eventpi.exception.EventNotFoundException;
+import org.example.eventpi.exception.EventPastException;
 import org.example.eventpi.exception.ForbiddenException;
 import org.example.eventpi.feign.UserClient;
 import org.example.eventpi.model.Event;
 import org.example.eventpi.model.EventStatus;
 import org.example.eventpi.model.EventType;
+import org.example.eventpi.model.LocationType;
+import org.example.eventpi.model.RegistrationStatus;
+import org.example.eventpi.repository.EventRegistrationRepository;
 import org.example.eventpi.repository.EventRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -26,26 +33,44 @@ import java.util.List;
 public class EventService {
 
     private final EventRepository eventRepository;
+    private final EventRegistrationRepository registrationRepository;
     private final ImageStorageService imageStorageService;
+
     private final NotificationService notificationService;
     private final UserClient userClient;
+
+    /**
+     * Statuses that still permit edit / delete. Once an event is approved,
+     * published or beyond, it is locked from structural changes so attendees
+     * and downstream systems see a stable record.
+     */
+    private static final Set<EventStatus> EDITABLE_STATUSES =
+            EnumSet.of(EventStatus.BROUILLON, EventStatus.EN_ATTENTE_VALIDATION);
 
     // ── CREATE ────────────────────────────────────────────────────────────
     @Transactional
     public EventResponse createEvent(EventRequest request,
                                      Integer organizerId,
                                      String organizerRole) {
+        validateDates(request.getStartDate(), request.getEndDate());
+
         Event event = Event.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .type(request.getType())
                 .status(EventStatus.BROUILLON)
                 .startDate(request.getStartDate())
+                .endDate(request.getEndDate())
                 .locationType(request.getLocationType())
+                .location(request.getLocation())
+                .ticketPrice(request.getTicketPrice())
                 .capacityMax(request.getCapacityMax())
                 .coverImageUrl(request.getCoverImageUrl())
                 .targetSector(request.getTargetSector())
                 .targetStage(request.getTargetStage())
+                .address(request.getAddress())
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
                 .organizerId(organizerId)
                 .organizerRole(organizerRole)
                 .build();
@@ -56,25 +81,33 @@ public class EventService {
     // ── SUBMIT FOR VALIDATION ─────────────────────────────────────────────
     @Transactional
     public EventResponse submitForValidation(Long id, Integer userId, String role) {
+        String normalizedRole = normalizeRole(role);
+        boolean isAdmin = "ADMIN".equals(normalizedRole);
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
 
-        if (!event.getOrganizerId().equals(userId)) {
+        // Admins may submit any event; non-admins may only submit their own
+        if (!isAdmin && !event.getOrganizerId().equals(userId)) {
             throw new ForbiddenException("Vous ne pouvez soumettre que vos propres événements.");
         }
-
         if (event.getStatus() != EventStatus.BROUILLON) {
             throw new ForbiddenException("Seuls les événements en brouillon peuvent être soumis.");
         }
+        // Guard: refuse if start date has already passed
+        if (event.getStartDate() != null && event.getStartDate().isBefore(LocalDateTime.now())) {
+            throw new EventPastException();
+        }
 
-        // Gateway sends "ADMIN" not "ROLE_ADMIN"
-        if ("ADMIN".equals(role)) {
+        if (isAdmin) {
+            // Admin submitting any event goes directly to PUBLIE
             event.setStatus(EventStatus.PUBLIE);
-            log.info("Admin {} published event {} directly", userId, id);
+            event.setValidatedBy(userId);
+            event.setValidatedAt(LocalDateTime.now());
+            log.info("Admin {} published event {} directly via submit", userId, id);
         } else {
             event.setStatus(EventStatus.EN_ATTENTE_VALIDATION);
             event.setSubmittedAt(LocalDateTime.now());
-            log.info("Event {} submitted for validation by userId {} ({})", id, userId, role);
+            log.info("Event {} submitted for validation by userId {} ({})", id, userId, normalizedRole);
         }
 
         return toResponse(eventRepository.save(event));
@@ -86,8 +119,12 @@ public class EventService {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
 
-        if (event.getStatus() != EventStatus.EN_ATTENTE_VALIDATION) {
-            throw new ForbiddenException("Seuls les événements en attente peuvent être approuvés.");
+        // Admin can approve from any status that isn't already published, cancelled, or terminated
+        if (event.getStatus() == EventStatus.PUBLIE
+                || event.getStatus() == EventStatus.ANNULE
+                || event.getStatus() == EventStatus.TERMINE) {
+            throw new ForbiddenException(
+                    "L'événement ne peut pas être approuvé depuis le statut : " + event.getStatus());
         }
 
         event.setStatus(EventStatus.APPROUVE);
@@ -113,8 +150,13 @@ public class EventService {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
 
-        if (event.getStatus() != EventStatus.EN_ATTENTE_VALIDATION) {
-            throw new ForbiddenException("Seuls les événements en attente peuvent être rejetés.");
+        // Admin can reject from any status except already rejected, published, cancelled, or terminated
+        if (event.getStatus() == EventStatus.REJETE
+                || event.getStatus() == EventStatus.PUBLIE
+                || event.getStatus() == EventStatus.ANNULE
+                || event.getStatus() == EventStatus.TERMINE) {
+            throw new ForbiddenException(
+                    "L'événement ne peut pas être rejeté depuis le statut : " + event.getStatus());
         }
 
         event.setStatus(EventStatus.REJETE);
@@ -137,21 +179,25 @@ public class EventService {
     // ── PUBLISH ───────────────────────────────────────────────────────────
     @Transactional
     public EventResponse publishEvent(Long id, Integer userId, String role) {
+        String normalizedRole = normalizeRole(role);
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
 
-        // Gateway sends "ADMIN" not "ROLE_ADMIN"
-        boolean isAdmin = "ADMIN".equals(role);
+        boolean isAdmin = "ADMIN".equals(normalizedRole);
         boolean isOwner = event.getOrganizerId().equals(userId);
 
         if (!isAdmin && !isOwner) {
             throw new ForbiddenException("Vous ne pouvez publier que vos propres événements.");
         }
-
         if (isAdmin) {
-            if (event.getStatus() != EventStatus.BROUILLON &&
-                    event.getStatus() != EventStatus.APPROUVE) {
-                throw new ForbiddenException("L'événement ne peut pas être publié depuis ce statut.");
+            // Admin can publish from any status except already published, cancelled, or terminated
+            if (event.getStatus() == EventStatus.PUBLIE) {
+                throw new ForbiddenException("L'événement est déjà publié.");
+            }
+            if (event.getStatus() == EventStatus.ANNULE
+                    || event.getStatus() == EventStatus.TERMINE) {
+                throw new ForbiddenException(
+                        "L'événement ne peut pas être publié depuis le statut : " + event.getStatus());
             }
         } else {
             if (event.getStatus() != EventStatus.APPROUVE) {
@@ -179,7 +225,8 @@ public class EventService {
     }
 
     // ── READ ALL ──────────────────────────────────────────────────────────
-    public List<EventResponse> getAllEvents(EventStatus status, EventType type, Integer organizerId) {
+    public List<EventResponse> getAllEvents(EventStatus status, EventType type,
+                                            Integer organizerId) {
         List<Event> events;
 
         if (organizerId != null && status != null) {
@@ -203,39 +250,68 @@ public class EventService {
     @Transactional
     public EventResponse updateEvent(Long id, UpdateEventRequest request,
                                      Integer userId, String role) {
+        String normalizedRole = normalizeRole(role);
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
 
-        // Gateway sends "ADMIN" not "ROLE_ADMIN"
-        boolean isAdmin = "ADMIN".equals(role);
+        boolean isAdmin = "ADMIN".equals(normalizedRole);
         boolean isOwner = event.getOrganizerId().equals(userId);
 
+        // Mentors and partners can only modify events they created themselves
         if (!isAdmin && !isOwner) {
             throw new ForbiddenException("Vous ne pouvez modifier que vos propres événements.");
         }
-
         if (!isAdmin && event.getStatus() == EventStatus.EN_ATTENTE_VALIDATION) {
             throw new ForbiddenException(
                     "Vous ne pouvez pas modifier un événement en cours de validation.");
         }
+        // Once published (or any later status), the event is locked from edits for every role.
+        if (!EDITABLE_STATUSES.contains(event.getStatus())) {
+            throw new ForbiddenException(
+                    "Cet événement ne peut plus être modifié (statut : " + event.getStatus() + ").");
+        }
 
-        if (request.getTitle() != null)        event.setTitle(request.getTitle());
-        if (request.getDescription() != null)  event.setDescription(request.getDescription());
-        if (request.getType() != null)         event.setType(request.getType());
-        if (request.getStartDate() != null)    event.setStartDate(request.getStartDate());
+        // Resolve effective dates for cross-field validation
+        LocalDateTime effectiveStart = request.getStartDate() != null
+                ? request.getStartDate() : event.getStartDate();
+        LocalDateTime effectiveEnd = request.getEndDate() != null
+                ? request.getEndDate() : event.getEndDate();
+        validateDates(effectiveStart, effectiveEnd);
+
+        if (request.getTitle() != null) event.setTitle(request.getTitle());
+        if (request.getDescription() != null) event.setDescription(request.getDescription());
+        if (request.getType() != null) event.setType(request.getType());
+        if (request.getStartDate() != null) event.setStartDate(request.getStartDate());
+        if (request.getEndDate() != null) event.setEndDate(request.getEndDate());
         if (request.getLocationType() != null) event.setLocationType(request.getLocationType());
-        if (request.getCapacityMax() != null)  event.setCapacityMax(request.getCapacityMax());
+        if (request.getLocation() != null) event.setLocation(request.getLocation());
+        if (request.getTicketPrice() != null) event.setTicketPrice(request.getTicketPrice());
         if (request.getTargetSector() != null) event.setTargetSector(request.getTargetSector());
-        if (request.getTargetStage() != null)  event.setTargetStage(request.getTargetStage());
+        if (request.getTargetStage() != null) event.setTargetStage(request.getTargetStage());
+
+        // When capacity is increased, recalculate availablePlaces
+        if (request.getCapacityMax() != null) {
+            int oldMax = event.getCapacityMax() != null ? event.getCapacityMax() : 0;
+            int newMax = request.getCapacityMax();
+            int diff = newMax - oldMax;
+            event.setCapacityMax(newMax);
+            int currentAvailable = event.getAvailablePlaces() != null
+                    ? event.getAvailablePlaces() : 0;
+            int newAvailable = Math.max(0, currentAvailable + diff);
+            event.setAvailablePlaces(newAvailable);
+            event.setIsFull(newAvailable <= 0);
+        }
 
         if (isAdmin && request.getStatus() != null) {
             event.setStatus(request.getStatus());
         }
-
         if (request.getCoverImageUrl() != null) {
             imageStorageService.delete(event.getCoverImageUrl());
             event.setCoverImageUrl(request.getCoverImageUrl());
         }
+        if (request.getAddress() != null) event.setAddress(request.getAddress());
+        if (request.getLatitude() != null) event.setLatitude(request.getLatitude());
+        if (request.getLongitude() != null) event.setLongitude(request.getLongitude());
 
         return toResponse(eventRepository.save(event));
     }
@@ -245,9 +321,35 @@ public class EventService {
     public void deleteEvent(Long id) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException(id));
+        // Once published (or any later status), the event is locked from deletion for every role.
+        if (!EDITABLE_STATUSES.contains(event.getStatus())) {
+            throw new ForbiddenException(
+                    "Cet événement ne peut plus être supprimé (statut : " + event.getStatus() + ").");
+        }
         imageStorageService.delete(event.getCoverImageUrl());
         eventRepository.delete(event);
     }
+
+    // ── DATE VALIDATION ───────────────────────────────────────────────────
+    private void validateDates(LocalDateTime start, LocalDateTime end) {
+        if (start != null && start.isBefore(LocalDateTime.now())) {
+            throw new EventPastException();
+        }
+        if (start != null && end != null && !end.isAfter(start)) {
+            throw new ForbiddenException(
+                    "La date de fin doit être postérieure à la date de début.");
+        }
+    }
+
+
+    // ── ROLE NORMALIZATION ────────────────────────────────────────────────
+    private String normalizeRole(String role) {
+        if (role == null) return "";
+        String r = role.trim().toUpperCase();
+        if (r.startsWith("ROLE_")) r = r.substring(5);
+        return r;
+    }
+
 
     // ── MAPPER ────────────────────────────────────────────────────────────
     private EventResponse toResponse(Event event) {
@@ -266,9 +368,17 @@ public class EventService {
                 organizerEmail = user.getEmail();
             }
         } catch (Throwable t) {
-            // Catches FeignException, HystrixRuntimeException, etc.
             log.warn("Could not resolve organizer {} for event {}: {}",
                     event.getOrganizerId(), event.getId(), t.getMessage());
+        }
+
+        // ── COUNT from DB, excluding ANNULE and LISTE_ATTENTE ─────────────────
+        int registeredCount = 0;
+        if (event.getId() != null) {
+            registeredCount = (int) registrationRepository.countByEventIdAndStatusIn(
+                    event.getId(),
+                    List.of(RegistrationStatus.INSCRIT, RegistrationStatus.PRESENT)
+            );
         }
 
         return EventResponse.builder()
@@ -278,8 +388,14 @@ public class EventService {
                 .type(event.getType())
                 .status(event.getStatus())
                 .startDate(event.getStartDate())
+                .endDate(event.getEndDate())
                 .locationType(event.getLocationType())
+                .location(event.getLocation())
+                .ticketPrice(event.getTicketPrice())
                 .capacityMax(event.getCapacityMax())
+                .availablePlaces(event.getCapacityMax() != null ? Math.max(0, event.getCapacityMax() - registeredCount) : null)
+                .isFull(event.getCapacityMax() != null && registeredCount >= event.getCapacityMax())
+                .registeredCount(registeredCount)           // ← ADD THIS
                 .coverImageUrl(event.getCoverImageUrl())
                 .targetSector(event.getTargetSector())
                 .targetStage(event.getTargetStage())
@@ -292,10 +408,30 @@ public class EventService {
                 .validatedBy(event.getValidatedBy())
                 .validatedAt(event.getValidatedAt())
                 .submittedAt(event.getSubmittedAt())
+                .address(event.getAddress())
+                .latitude(event.getLatitude())
+                .longitude(event.getLongitude())
                 .build();
     }
 
-
-
-
+    // ── MAP ───────────────────────────────────────────────────────────────
+    public List<EventMapDTO> getEventsForMap() {
+        return eventRepository.findAll().stream()
+                .filter(e -> e.getLocationType() == LocationType.PRESENTIEL
+                        && e.getStatus() != EventStatus.BROUILLON
+                        && e.getLatitude() != null
+                        && e.getLongitude() != null)
+                .map(e -> EventMapDTO.builder()
+                        .id(e.getId())
+                        .title(e.getTitle())
+                        .type(e.getType())
+                        .status(e.getStatus())
+                        .startDate(e.getStartDate())
+                        .address(e.getAddress())
+                        .latitude(e.getLatitude())
+                        .longitude(e.getLongitude())
+                        .coverImage(e.getCoverImageUrl())
+                        .build())
+                .toList();
+    }
 }
