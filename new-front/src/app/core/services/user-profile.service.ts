@@ -14,7 +14,7 @@ export interface UserPublic {
 @Injectable({ providedIn: 'root' })
 export class UserProfileService {
 
-  private readonly baseUrl = 'http://localhost:8090/api/users';
+  private readonly baseUrl = 'http://localhost:8091/api/users';
   private readonly cache = new Map<string, UserPublic>();
 
   constructor(private http: HttpClient) { }
