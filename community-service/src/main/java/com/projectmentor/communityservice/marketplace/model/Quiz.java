@@ -31,5 +31,7 @@ public class Quiz {
 
     private Double score;
 
+    private Integer timeLimit;
+
     private boolean completed;
 }

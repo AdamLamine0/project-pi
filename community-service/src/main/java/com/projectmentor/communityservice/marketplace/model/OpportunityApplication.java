@@ -28,6 +28,10 @@ public class OpportunityApplication {
 
     private Double quizScore;
 
+    private Double cvScore;
+
+    private Double coverLetterScore;
+
     private String quizId;
 
     private LocalDateTime appliedAt;

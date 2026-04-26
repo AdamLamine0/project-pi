@@ -66,9 +66,31 @@ public class ChatController {
         return chatService.getUnreadMessages(memberId);
     }
 
+    @GetMapping("/api/community/messages/conversations/{userId}")
+    public List<ChatMessage> getRecentConversations(@PathVariable String userId) {
+        return chatService.getRecentConversations(userId);
+    }
+
+    @GetMapping("/api/community/messages/invitations/{memberId}")
+    public List<ChatMessage> getInvitations(@PathVariable String memberId) {
+        return chatService.getInvitations(memberId);
+    }
+
+    @PostMapping("/api/community/messages/invitations/accept")
+    public void acceptInvitation(@RequestParam String userId, @RequestParam String partnerId) {
+        chatService.acceptInvitation(userId, partnerId);
+    }
+
     @PutMapping("/api/community/messages/{messageId}/read")
     public void markAsRead(@PathVariable String messageId) {
         chatService.markAsRead(messageId);
+    }
+
+    @PutMapping("/api/community/messages/read/all")
+    public void markConversationAsRead(
+            @RequestParam String userId,
+            @RequestParam String partnerId) {
+        chatService.markConversationAsRead(userId, partnerId);
     }
 
     @DeleteMapping("/api/community/messages/private")

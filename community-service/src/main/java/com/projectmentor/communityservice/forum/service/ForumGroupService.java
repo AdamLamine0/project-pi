@@ -5,6 +5,8 @@ import com.projectmentor.communityservice.forum.model.ForumGroup;
 import com.projectmentor.communityservice.forum.model.GroupStatus;
 import com.projectmentor.communityservice.forum.model.GroupVisibility;
 import com.projectmentor.communityservice.forum.repository.ForumGroupRepository;
+import com.projectmentor.communityservice.reputation.service.ReputationService;
+import com.projectmentor.communityservice.reputation.model.ReputationAction;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,7 @@ import java.util.List;
 public class ForumGroupService {
 
     private final ForumGroupRepository repository;
+    private final ReputationService reputationService;
 
     // Créer un groupe
     public ForumGroup createGroup(CreateGroupDTO dto) {
@@ -32,7 +35,15 @@ public class ForumGroupService {
                 .status(GroupStatus.ACTIVE)
                 .createdAt(LocalDateTime.now())
                 .build();
-        return repository.save(group);
+        
+        ForumGroup saved = repository.save(group);
+
+        // Reputation Reward
+        if (saved.getCreatedBy() != null) {
+            reputationService.addPoints(saved.getCreatedBy(), ReputationAction.GROUP_CREATED);
+        }
+
+        return saved;
     }
 
     // Rejoindre un groupe

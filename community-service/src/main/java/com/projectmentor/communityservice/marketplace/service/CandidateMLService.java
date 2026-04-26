@@ -427,17 +427,27 @@ public class CandidateMLService {
                 score += experienceScore;
 
                 // Cover letter score (10%) - reduced weight
-                score += calculateCoverLetterFeatures(application) * 0.1;
+                double clScore = calculateCoverLetterFeatures(application);
+                score += clScore * 0.1;
+
+                // Set individual scores in application (normalized to 0-1)
+                application.setCvScore((skillsScore + semanticScore + experienceScore) / 0.9);
+                application.setCoverLetterScore(clScore);
 
                 log.debug("ML-based score for application {}: skills={}, semantic={}, exp={}, cover={}, total={}",
                     application.getId(), skillsScore, semanticScore, experienceScore,
-                    calculateCoverLetterFeatures(application) * 0.1, score);
+                    clScore * 0.1, score);
 
             } else {
                 // No CV text available - use semantic matching on cover letter
                 double semanticScore = calculateSemanticSimilarity(application, opportunity) * 0.7;
                 score += semanticScore;
-                score += calculateCoverLetterFeatures(application) * 0.3;
+                double clScore = calculateCoverLetterFeatures(application);
+                score += clScore * 0.3;
+                
+                application.setCvScore(semanticScore / 0.7);
+                application.setCoverLetterScore(clScore);
+                
                 log.warn("No CV text extracted for application {}, using cover letter semantic matching", application.getId());
             }
         } catch (Exception e) {
@@ -472,24 +482,34 @@ public class CandidateMLService {
                 score += experienceScore;
 
                 // Cover letter score (20%)
-                score += calculateCoverLetterFeatures(application) * 0.2;
+                double clScore = calculateCoverLetterFeatures(application);
+                score += clScore * 0.2;
 
                 // Job title relevance bonus (10%)
                 double titleRelevance = calculateTitleRelevance(cvText, opportunity.getTitle()) * 0.1;
                 score += titleRelevance;
 
+                // Set individual scores in application (normalized)
+                application.setCvScore((skillsScore + experienceScore + titleRelevance) / 0.8);
+                application.setCoverLetterScore(clScore);
+
                 log.debug("Enhanced fallback score for application {}: skills={}, exp={}, cover={}, title={}, total={}",
                     application.getId(), skillsScore, experienceScore,
-                    calculateCoverLetterFeatures(application) * 0.2, titleRelevance, score);
+                    clScore * 0.2, titleRelevance, score);
 
             } else {
                 // No CV text available - rely only on cover letter
-                score = calculateCoverLetterFeatures(application) * 0.5;
+                double clScore = calculateCoverLetterFeatures(application);
+                score = clScore * 0.5;
+                application.setCvScore(0.0);
+                application.setCoverLetterScore(clScore);
                 log.warn("No CV text extracted for application {}, using cover letter only", application.getId());
             }
         } catch (Exception e) {
             log.warn("Enhanced fallback scoring failed for application {}: {}", application.getId(), e.getMessage());
             score = 0.1; // Minimal fallback score
+            application.setCvScore(0.1);
+            application.setCoverLetterScore(0.1);
         }
 
         return Math.min(1.0, Math.max(0.0, score));

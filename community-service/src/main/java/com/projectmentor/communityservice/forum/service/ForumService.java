@@ -8,6 +8,8 @@ import com.projectmentor.communityservice.forum.model.PostStatus;
 import com.projectmentor.communityservice.forum.repository.ForumPostRepository;
 import com.projectmentor.communityservice.forum.repository.ForumGroupRepository;
 import com.projectmentor.communityservice.network.service.UserService;
+import com.projectmentor.communityservice.reputation.service.ReputationService;
+import com.projectmentor.communityservice.reputation.model.ReputationAction;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
@@ -19,16 +21,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-
 @RequiredArgsConstructor
-
 public class ForumService {
 
     private final ForumPostRepository repository;
-
     private final ForumGroupRepository groupRepository;
-
     private final UserService userService;
+    private final com.projectmentor.communityservice.notification.service.NotificationService notificationService;
+    private final ReputationService reputationService;
 
     public ForumPost createPost(CreatePostDTO dto) {
 
@@ -66,11 +66,24 @@ public class ForumService {
                 .status(PostStatus.OPEN)
                 .viewsCount(0)
                 .likesCount(0)
+                .mediaUrls(dto.getMediaUrls() != null ? dto.getMediaUrls() : new ArrayList<>())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        return repository.save(post);
+        ForumPost saved = repository.save(post);
+
+        // Reputation Reward
+        if (saved.getAuthorId() != null) {
+            // If post contains media (video or uploaded images), it counts as a RESOURCE_PUBLISHED (+20 pts)
+            if (saved.getMediaUrls() != null && !saved.getMediaUrls().isEmpty()) {
+                reputationService.addPoints(saved.getAuthorId(), ReputationAction.RESOURCE_PUBLISHED);
+            } else {
+                reputationService.addPoints(saved.getAuthorId(), ReputationAction.POST_CREATED);
+            }
+        }
+
+        return saved;
     }
 
     public List<ForumPost> getAllPosts() {
@@ -139,6 +152,24 @@ public class ForumService {
         post.getComments().add(comment);
 
         ForumPost saved = repository.save(post);
+
+        // Reputation Reward
+        if (comment.getAuthorId() != null) {
+            reputationService.addPoints(comment.getAuthorId(), ReputationAction.COMMENT_ADDED);
+        }
+
+        // Notify post author if commenter is not the author
+        if (post.getAuthorId() != null && !post.getAuthorId().equals(comment.getAuthorId())) {
+            try {
+                notificationService.createAndSend(
+                        post.getAuthorId(),
+                        com.projectmentor.communityservice.notification.model.NotificationType.NEW_COMMENT,
+                        comment.getAuthorName() + " a commenté votre publication : " + post.getTitle(),
+                        java.util.Map.of("postId", post.getId())
+                );
+            } catch (Exception ignored) {}
+        }
+
         enrichPostWithAuthorNames(saved);
         return saved;
     }
@@ -169,6 +200,12 @@ public class ForumService {
 
         parentComment.getReplies().add(reply);
         ForumPost saved = repository.save(post);
+
+        // Reputation Reward
+        if (reply.getAuthorId() != null) {
+            reputationService.addPoints(reply.getAuthorId(), ReputationAction.COMMENT_ADDED);
+        }
+
         enrichPostWithAuthorNames(saved);
         return saved;
     }
@@ -197,6 +234,9 @@ public class ForumService {
             // sinon → like
             post.getLikedBy().add(userId);
             post.setLikesCount(post.getLikesCount() + 1);
+
+            // Reputation Reward for Liked Post
+            reputationService.addPoints(userId, ReputationAction.POST_LIKED);
         }
 
         ForumPost saved = repository.save(post);
@@ -210,6 +250,7 @@ public class ForumService {
         post.setContent(dto.getContent());
         post.setTags(dto.getTags());
         post.setSector(dto.getSector());
+        post.setMediaUrls(dto.getMediaUrls() != null ? dto.getMediaUrls() : post.getMediaUrls());
         post.setUpdatedAt(LocalDateTime.now());
         ForumPost saved = repository.save(post);
         enrichPostWithAuthorNames(saved);
@@ -222,6 +263,22 @@ public class ForumService {
         post.setStatus(PostStatus.ARCHIVED);
         repository.save(post);
     }
+
+    public ForumPost resolvePost(String postId) {
+        ForumPost post = repository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+        post.setStatus(PostStatus.RESOLVED);
+        ForumPost saved = repository.save(post);
+
+        // Reputation Reward for Resolving
+        if (saved.getAuthorId() != null) {
+            reputationService.addPoints(saved.getAuthorId(), ReputationAction.POST_RESOLVED);
+        }
+
+        enrichPostWithAuthorNames(saved);
+        return saved;
+    }
+
     public List<ForumPost> searchPosts(String keyword) {
         TextCriteria criteria = TextCriteria
                 .forDefaultLanguage()

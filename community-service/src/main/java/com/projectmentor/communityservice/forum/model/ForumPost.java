@@ -50,4 +50,7 @@ public class ForumPost {
     private List<Comment> comments = new ArrayList<>();
     @Builder.Default
     private List<String> likedBy = new ArrayList<>();
+
+    @Builder.Default
+    private List<String> mediaUrls = new ArrayList<>();
 }

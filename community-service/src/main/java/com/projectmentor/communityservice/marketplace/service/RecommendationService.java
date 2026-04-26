@@ -3,6 +3,7 @@ package com.projectmentor.communityservice.marketplace.service;
 import com.projectmentor.communityservice.marketplace.model.Opportunity;
 import com.projectmentor.communityservice.marketplace.model.OpportunityApplication;
 import com.projectmentor.communityservice.marketplace.model.OpportunityStatus;
+import com.projectmentor.communityservice.marketplace.repository.ApplicationRepository;
 import com.projectmentor.communityservice.marketplace.repository.OpportunityRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,7 @@ public class RecommendationService {
 
     private final MarketplaceService marketplaceService;
     private final OpportunityRepository opportunityRepository;
+    private final ApplicationRepository applicationRepository;
     private final FileStorageService fileStorageService;
     private final CandidateMLService candidateMLService;
 
@@ -253,9 +255,20 @@ public class RecommendationService {
     }
 
     /**
-     * Get top candidates for an opportunity based on ML-powered scoring
+     * Get top candidates for an opportunity based on ML-powered scoring (limit = positionsAvailable * 3)
      */
     public List<OpportunityApplication> getTopCandidates(String opportunityId) {
+        Opportunity opportunity = opportunityRepository.findById(opportunityId)
+                .orElseThrow(() -> new RuntimeException("Opportunity not found: " + opportunityId));
+        
+        int limit = Math.max(3, opportunity.getPositionsAvailable() * 3);
+        return getTopCandidates(opportunityId, limit);
+    }
+
+    /**
+     * Get top candidates for an opportunity based on ML-powered scoring with specific limit
+     */
+    public List<OpportunityApplication> getTopCandidates(String opportunityId, int limit) {
         log.info("Finding top candidates for opportunity: {} using ML model", opportunityId);
 
         // Get the opportunity
@@ -269,6 +282,8 @@ public class RecommendationService {
         List<ScoredApplication> scoredApplications = applications.stream()
                 .map(app -> {
                     double score = candidateMLService.scoreCandidate(app, opportunity);
+                    // Save individual scores (CV and Cover Letter) to the database
+                    applicationRepository.save(app);
                     log.debug("Candidate {} scored {} for opportunity {}", app.getId(), score, opportunityId);
                     return new ScoredApplication(app, score);
                 })
@@ -278,9 +293,9 @@ public class RecommendationService {
         log.info("Ranked {} candidates for opportunity {} (scoring mode: {})",
                 scoredApplications.size(), opportunityId, candidateMLService.getScoringMode());
 
-        // Return top 4 candidates (AI-recommended)
+        // Return top candidates (AI-recommended)
         return scoredApplications.stream()
-                .limit(4)
+                .limit(limit)
                 .map(ScoredApplication::getApplication)
                 .collect(Collectors.toList());
     }

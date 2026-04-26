@@ -1,4 +1,4 @@
-package com.projectmentor.communityservice.marketplace.model;
+﻿package com.projectmentor.communityservice.marketplace.model;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -44,6 +44,9 @@ public class Opportunity {
 
     @Builder.Default
     private int quizSentCount = 0;
+
+    @Builder.Default
+    private int quizCompletedCount = 0;
 
     @Builder.Default
     private int finalisedCount = 0;

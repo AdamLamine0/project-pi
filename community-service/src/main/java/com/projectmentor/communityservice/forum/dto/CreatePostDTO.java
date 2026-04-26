@@ -21,4 +21,6 @@ public class CreatePostDTO {
 
     private String sector;
 
+    private List<String> mediaUrls;
+
 }
