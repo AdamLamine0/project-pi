@@ -6,6 +6,6 @@ export function absoluteGatewayUrl(path: string | null | undefined): string {
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
-  const base = 'http://localhost:8090';
+  const base = 'http://localhost:8091';
   return base + (path.startsWith('/') ? path : `/${path}`);
 }
