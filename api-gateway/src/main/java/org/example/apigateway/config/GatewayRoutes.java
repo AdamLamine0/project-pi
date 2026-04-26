@@ -59,6 +59,14 @@ public class GatewayRoutes {
     }
 
     @Bean
+    public RouterFunction<ServerResponse> communityServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/community/**"), HandlerFunctions.http())
+                .filter(lb("community-service"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
     public RouterFunction<ServerResponse> meetingServiceRoute() {
         return RouterFunctions
                 .route(path("/api/meeting-invitations/**"), HandlerFunctions.http())
