@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/events/events.component.css"],
-  "sourcesContent": ["/* Component-scoped styles for EventsComponent.\n   Global styles (page-shell, cards, badges, etc.) live in styles.css. */\n\n@keyframes spin {\n  to { transform: rotate(360deg); }\n}\n"],
-  "mappings": ";AAGA,WAAA;AACE;AAAK,eAAA,OAAA;AAA2B;AAClC;",
-  "names": []
-}
