@@ -24,11 +24,12 @@ public class AuthFilter {
             "/api/auth/forgot-password",
             "/api/auth/reset-password",
             "/oauth2/authorization/google",
-            "/login/oauth2/code/google"
+            "/login/oauth2/code/google",
+            "/api/community/marketplace/files"
     );
 
     private boolean isPublicPath(String path) {
-        return PUBLIC_PATHS.stream().anyMatch(path::contains);
+        return PUBLIC_PATHS.stream().anyMatch(path::startsWith);
     }
 
     public HandlerFilterFunction<ServerResponse, ServerResponse> jwtFilter() {
@@ -36,16 +37,18 @@ public class AuthFilter {
             String path = request.uri().getPath();
             String method = request.method().name();
 
-            System.out.println("Gateway path: " + path + " method: " + method);
+            System.out.println("Gateway checking path: '" + path + "' | method: " + method);
 
-            // Let CorsFilter handle OPTIONS — don't touch it here
+            // Let CorsFilter handle OPTIONS – forward without token check
             if ("OPTIONS".equals(method)) {
-                return ServerResponse.ok().build();
+                return next.handle(request);
             }
 
             if (isPublicPath(path)) {
-                System.out.println("Public path — forwarding");
+                System.out.println(">>> PUBLIC PATH MATCHED: " + path + " — forwarding without token");
                 return next.handle(request);
+            } else {
+                System.out.println(">>> SECURE PATH: " + path + " — checking token");
             }
 
             String authHeader = request.headers().firstHeader("Authorization");
