@@ -17,6 +17,7 @@ import { PartnershipsComponent } from './pages/partnerships/partnerships.compone
 import { EventsComponent } from './pages/events/events.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 import { VerifyCertificateComponent } from './pages/verify-certificate/verify-certificate.component';
+import { AdminRegistrationsComponent } from './pages/admin-registrations/admin-registrations.component';
 
 export const routes: Routes = [
   {
@@ -36,7 +37,8 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'login', pathMatch: 'full' },
       { path: 'login', component: LoginComponent },
-      { path: 'signup', component: SignupComponent },
+      { path: 'register', component: SignupComponent },
+      { path: 'signup', component: SignupComponent }, // Keep both for compatibility
     ],
   },
   {
@@ -55,6 +57,7 @@ export const routes: Routes = [
       { path: 'partnerships', component: PartnershipsComponent },
       { path: 'events', component: EventsComponent },
       { path: 'profile', component: ProfileComponent },
+      { path: 'registrations', component: AdminRegistrationsComponent },
     ],
   },
   { path: 'verify/:token', component: VerifyCertificateComponent },
