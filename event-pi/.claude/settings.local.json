@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./mvnw compile:*)",
+      "Bash(xargs grep *)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(grep -E \"\\\\.\\(ts|html\\)$\")",
+      "Read(//d/PI/pi farah/pi farah/FoundersLab/**)",
+      "Bash(npx tsc *)",
+      "mcp__ide__getDiagnostics",
+      "Bash(xargs cat *)",
+      "Bash(npx ng *)"
+    ]
+  }
+}

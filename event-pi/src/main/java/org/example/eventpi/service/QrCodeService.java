@@ -68,7 +68,7 @@ public class QrCodeService {
         g.setStroke(new BasicStroke(1.5f));
         g.drawOval(18, 18, W - 36, H - 36);
 
-        // ── "PIcloud" header ──────────────────────────────────────────────
+        // ── "FoundersLab" header ──────────────────────────────────────────
         g.setColor(new Color(0xC9, 0xA0, 0x2A));
         g.setFont(new Font("SansSerif", Font.BOLD, 15));
         drawCentered(g, "FoundersLab", W, 52);
@@ -80,10 +80,9 @@ public class QrCodeService {
 
         // ── QR code centered ──────────────────────────────────────────────
         BufferedImage qr = generateQrImage(verificationUrl);
-        // Recolor QR: white modules on transparent, gold on navy
         BufferedImage qrColored = recolorQr(qr,
-                new Color(0x0D, 0x1B, 0x2A),      // dark pixels → navy bg
-                new Color(0xC9, 0xA0, 0x2A));      // light pixels → gold
+                new Color(0x0D, 0x1B, 0x2A),
+                new Color(0xC9, 0xA0, 0x2A));
         int qrX = (W - QR_SIZE) / 2;
         g.drawImage(qrColored, qrX, 95, null);
 
@@ -103,8 +102,6 @@ public class QrCodeService {
         g.setFont(new Font("SansSerif", Font.PLAIN, 9));
         drawCentered(g, "Scan to verify authenticity", W, 340);
 
-        // ── Clip to circle ────────────────────────────────────────────────
-        // Already drawn as circle background; dispose graphics
         g.dispose();
 
         return badge;
@@ -131,7 +128,6 @@ public class QrCodeService {
         for (int x = 0; x < w; x++) {
             for (int y = 0; y < h; y++) {
                 int pixel = original.getRGB(x, y);
-                // QR dark modules are black (0xFF000000)
                 result.setRGB(x, y, (pixel == 0xFF000000)
                         ? darkColor.getRGB()
                         : lightColor.getRGB());

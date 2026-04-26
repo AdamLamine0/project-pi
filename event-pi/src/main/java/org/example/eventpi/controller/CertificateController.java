@@ -3,6 +3,8 @@ package org.example.eventpi.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.eventpi.dto.CertificateResponse;
 import org.example.eventpi.dto.VerificationResponse;
+import org.example.eventpi.service.CertificateService;
+
 import org.example.eventpi.model.Certificate;
 import org.example.eventpi.service.CertificateService;
 import org.example.eventpi.service.NotificationService;
@@ -11,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -21,6 +24,7 @@ import java.util.List;
 public class CertificateController {
 
     private final CertificateService certificateService;
+
     private final NotificationService notificationService;
 
 
@@ -72,18 +76,29 @@ public class CertificateController {
 
 
 
+    /**
+     * Serves the PNG for a badge. Defaults to {@code inline} so the image can be
+     * rendered inside an {@code <img>} tag; pass {@code ?download=true} to force
+     * the browser to save the file. Returns 404 if the badge has no generated
+     * image on disk (e.g. SERIE_COMPLETION badges currently have no certificate).
+     */
     @GetMapping("/api/badges/{id}/image")
     public ResponseEntity<byte[]> downloadBadgeImage(
             @PathVariable Long id,
+            @RequestParam(value = "download", defaultValue = "false") boolean download,
             @RequestHeader("X-User-Id") String userId) {
         try {
-            // token is stored on certificate — find by badgeId
             Certificate cert = certificateService.getByBadgeId(id);
-            byte[] png = Files.readAllBytes(
-                    Paths.get("uploads/badges/" + cert.getVerificationToken() + ".png"));
+            java.nio.file.Path file = Paths.get("uploads/badges", cert.getVerificationToken() + ".png")
+                    .toAbsolutePath();
+            if (!Files.exists(file) || !Files.isRegularFile(file)) {
+                return ResponseEntity.notFound().build();
+            }
+            byte[] png = Files.readAllBytes(file);
+            String disposition = (download ? "attachment" : "inline")
+                    + "; filename=\"badge-" + id + ".png\"";
             return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "attachment; filename=\"badge-" + id + ".png\"")
+                    .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
                     .contentType(MediaType.IMAGE_PNG)
                     .body(png);
         } catch (Exception e) {
