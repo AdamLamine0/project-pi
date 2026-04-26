@@ -1,7 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
 import { LegalProcedureService } from '../../../../services/legal-procedure.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { UserService } from '../../../../core/services/user.service';
@@ -45,7 +43,8 @@ export class ExpertProceduresComponent implements OnInit {
     private readonly service: LegalProcedureService,
     private readonly users: UserService,
     private readonly fb: FormBuilder,
-    private readonly auth: AuthService
+    private readonly auth: AuthService,
+    private readonly cdr: ChangeDetectorRef
   ) {
     this.expertId = this.auth.getUserId();
   }
@@ -64,13 +63,15 @@ export class ExpertProceduresComponent implements OnInit {
 
     this.service.getAssignedProcedures(this.expertId).subscribe({
       next: (data) => {
-        this.procedures = data;
+        this.procedures = this.sortByCreatedAtDesc(data);
         this.loading = false;
-        this.loadEntrepreneurNames(data);
+        this.loadEntrepreneurNames(this.procedures);
+        this.cdr.detectChanges();
       },
       error: (err) => {
         this.errorMessage = err?.error?.message || 'Erreur lors du chargement.';
         this.loading = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -84,19 +85,30 @@ export class ExpertProceduresComponent implements OnInit {
     this.errorMessage = '';
     this.successMessage = '';
 
-    forkJoin({
-      procedure: this.service.getById(p.id).pipe(catchError(() => of(p))),
-      checklist: this.service.getChecklist(p.id).pipe(catchError(() => of(undefined)))
-    }).subscribe({
-      next: ({ procedure, checklist }) => {
+    this.service.getById(p.id).subscribe({
+      next: (procedure) => {
         this.selectedProcedure = procedure;
-        this.selectedChecklist = checklist;
         this.selectedDocument = procedure.documents?.[0];
         this.detailLoading = false;
         this.loadEntrepreneurNames([procedure]);
+        this.cdr.detectChanges();
       },
       error: () => {
+        this.selectedProcedure = p;
+        this.selectedDocument = p.documents?.[0];
         this.detailLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+
+    this.service.getChecklist(p.id).subscribe({
+      next: (checklist) => {
+        this.selectedChecklist = checklist;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.selectedChecklist = undefined;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -126,6 +138,7 @@ export class ExpertProceduresComponent implements OnInit {
       error: (err) => {
         this.errorMessage = err?.error?.message || 'Erreur lors de la decision.';
         this.submitting = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -171,11 +184,19 @@ export class ExpertProceduresComponent implements OnInit {
       this.users.getUserById(id)
         .then((user: User) => {
           this.entrepreneurNames[id] = `${user.name || ''} ${user.prenom || ''}`.trim() || user.email || `Entrepreneur #${id}`;
+          this.cdr.detectChanges();
         })
         .catch(() => {
           this.entrepreneurNames[id] = `Entrepreneur #${id}`;
+          this.cdr.detectChanges();
         });
     });
+  }
+
+  private sortByCreatedAtDesc(procedures: LegalProcedureResponse[]): LegalProcedureResponse[] {
+    return [...procedures].sort((a, b) =>
+      new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+    );
   }
 
   private fileExtension(url: string): string {

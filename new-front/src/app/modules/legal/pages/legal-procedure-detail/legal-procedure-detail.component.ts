@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { LegalProcedureService } from '../../../../services/legal-procedure.service';
@@ -45,13 +45,25 @@ export class LegalProcedureDetailComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly service: LegalProcedureService,
     private readonly location: Location,
-    private readonly auth: AuthService
+    private readonly auth: AuthService,
+    private readonly cdr: ChangeDetectorRef
   ) {
     this.userId = this.auth.getUserId();
   }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
+    const navigationState = history.state?.['procedure'] as LegalProcedureResponse | undefined;
+
+    if (id && navigationState?.id === id) {
+      this.procedure = navigationState;
+      this.loading = false;
+      this.loadChecklist(id);
+      this.cdr.detectChanges();
+      this.refreshProcedure(id);
+      return;
+    }
+
     if (id) this.loadAll(id);
   }
 
@@ -65,30 +77,60 @@ export class LegalProcedureDetailComponent implements OnInit {
     this.chatOpen = false;
   }
 
+  get chatMissingDocuments(): ChecklistItem[] {
+    return this.checklist?.items?.filter(item => item.required && !item.uploaded) || [];
+  }
+
+  get chatUploadedDocuments(): ChecklistItem[] {
+    return this.checklist?.items?.filter(item => item.uploaded) || [];
+  }
+
   askSuggestion(question: string): void {
     this.chatQuestion = question;
     this.askLegalChat();
   }
 
   loadAll(id: string): void {
-    this.loading = true;
+    this.loading = !this.procedure;
+    this.errorMessage = '';
     this.service.getById(id).subscribe({
       next: (data) => {
         this.procedure = data;
-        this.loadChecklist(id);
         this.loading = false;
+        this.loadChecklist(id);
+        this.cdr.detectChanges();
       },
       error: (err) => {
         this.errorMessage = err?.error?.message || 'Erreur lors du chargement du dossier.';
         this.loading = false;
+        this.cdr.detectChanges();
       }
     });
   }
 
   loadChecklist(id: string): void {
     this.service.getChecklist(id).subscribe({
-      next: (data) => { this.checklist = data; },
-      error: (err) => console.error('Erreur checklist', err)
+      next: (data) => {
+        this.checklist = data;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Erreur checklist', err);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private refreshProcedure(id: string): void {
+    this.service.getById(id).subscribe({
+      next: (data) => {
+        this.procedure = data;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.errorMessage = err?.error?.message || 'Erreur lors de la synchronisation du dossier.';
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -332,7 +374,8 @@ export class LegalProcedureDetailComponent implements OnInit {
     if (missing.length > 0) {
       return [
         `Quels documents dois-je preparer pour ${procedureLabel} ?`,
-        `Comment corriger le document ${missing[0].label} ?`,
+        `Explique-moi comment preparer ${missing[0].label}.`,
+        'Quelle est la prochaine action pour avancer ?',
         'Pourquoi mon dossier peut etre refuse ?'
       ];
     }
@@ -346,9 +389,10 @@ export class LegalProcedureDetailComponent implements OnInit {
     }
 
     return [
-      `Explique-moi la procedure ${procedureLabel}`,
-      'C quoi POC ?',
-      'Comment eviter un refus par l IA ?'
+      `Explique-moi la procedure ${procedureLabel}.`,
+      'Verifie mon dossier et dis-moi quoi faire ensuite.',
+      'Comment eviter un refus par l IA ?',
+      'C quoi POC ?'
     ];
   }
 

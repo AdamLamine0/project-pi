@@ -21,7 +21,7 @@ export class LegalProcedureFormComponent implements OnInit {
   experts: ExpertSummary[] = [];
 
   readonly procedureTypes: ProcedureType[] = [
-    'SARL', 'SUARL', 'LABEL_STARTUP', 'PI', 'FISCALITE', 'CONFORMITE', 'AUTRE'
+    'SARL', 'SUARL', 'LABEL_STARTUP', 'PI', 'FISCALITE', 'CONFORMITE'
   ];
   readonly procedureTypeLabels = PROCEDURE_TYPE_LABELS;
 
@@ -47,7 +47,7 @@ export class LegalProcedureFormComponent implements OnInit {
     });
 
     const typeFromQuery = this.route.snapshot.queryParamMap.get('type');
-    if (typeFromQuery) {
+    if (typeFromQuery && this.procedureTypes.includes(typeFromQuery as ProcedureType)) {
       this.form.patchValue({ procedureType: typeFromQuery });
     }
 
