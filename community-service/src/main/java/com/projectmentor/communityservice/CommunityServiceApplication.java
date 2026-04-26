@@ -1,4 +1,4 @@
-﻿package com.projectmentor.communityservice;
+package com.projectmentor.communityservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
