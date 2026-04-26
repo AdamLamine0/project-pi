@@ -24,7 +24,8 @@ public class AuthFilter {
             "/api/auth/forgot-password",
             "/api/auth/reset-password",
             "/oauth2/authorization/google",
-            "/login/oauth2/code/google"
+            "/login/oauth2/code/google",
+            "/verify"   // covers /api/tickets/{id}/verify and /api/verify/**
     );
 
     private boolean isPublicPath(String path) {
