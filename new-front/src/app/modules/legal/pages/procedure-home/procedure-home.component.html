@@ -1,95 +1,132 @@
-<div class="page-container">
+<div class="legal-shell">
 
-  <!-- Hero -->
-  <div class="hero mb-5">
-    <div class="hero-card">
-      <div class="hero-eyebrow">Module juridique</div>
-      <h1 class="hero-title">Portail des procédures juridiques</h1>
-      <p class="hero-text">
-        Créez vos dossiers, déposez vos documents et suivez l'avancement
-        de votre procédure jusqu'à l'obtention du document final.
+  <section class="legal-hero">
+    <div class="legal-hero__content">
+      <span class="legal-eyebrow">Module juridique</span>
+      <h1>Portail des procedures juridiques</h1>
+      <p>
+        Centralisez vos dossiers, suivez les documents requis, deposez les pieces justificatives
+        et avancez jusqu'a la validation expert.
       </p>
 
-      <!-- Actions selon le rôle -->
-      <div class="hero-actions">
-
-        <!-- ENTREPRENEUR -->
+      <div class="legal-actions">
         <ng-container *ngIf="auth.isEntrepreneur()">
-          <a class="btn btn-primary-pro" routerLink="/app/legal/list">
-            Voir mes dossiers
-          </a>
-          <a class="btn btn-soft" routerLink="/app/legal/new">
-            Créer un dossier
-          </a>
+          <a class="legal-btn legal-btn--primary" routerLink="/app/legal/new">Creer un dossier</a>
+          <a class="legal-btn legal-btn--secondary" routerLink="/app/legal/list">Voir mes dossiers</a>
         </ng-container>
 
-        <!-- EXPERT -->
         <ng-container *ngIf="auth.isExpert()">
-          <a class="btn btn-primary-pro" routerLink="/app/legal/expert/assigned">
-            Dossiers à traiter
-          </a>
+          <a class="legal-btn legal-btn--primary" routerLink="/app/legal/expert/assigned">Dossiers a traiter</a>
         </ng-container>
 
-        <!-- Autres rôles (USER, MENTOR, etc.) -->
         <ng-container *ngIf="!auth.isEntrepreneur() && !auth.isExpert()">
-          <p class="text-muted">
-            Connectez-vous en tant qu'entrepreneur pour créer un dossier.
-          </p>
+          <span class="legal-note">Connectez-vous avec un role entrepreneur pour ouvrir un dossier.</span>
         </ng-container>
-
       </div>
     </div>
-  </div>
 
-  <!-- Section types de procédures — visible par tous (vitrine) -->
-  <div class="section-header mb-3">
-    <h2 class="section-title">Procédures disponibles</h2>
-    <p class="section-subtitle">Choisissez la procédure adaptée à votre projet.</p>
-  </div>
+    <div class="legal-hero__panel">
+      <div class="legal-mini-step">
+        <span>01</span>
+        <strong>Choisir</strong>
+        <small>Selectionnez la procedure adaptee.</small>
+      </div>
+      <div class="legal-mini-step">
+        <span>02</span>
+        <strong>Deposer</strong>
+        <small>Completez la checklist documentaire.</small>
+      </div>
+      <div class="legal-mini-step">
+        <span>03</span>
+        <strong>Valider</strong>
+        <small>Soumettez le dossier a l'expert.</small>
+      </div>
+    </div>
+  </section>
 
-  <div class="cards-grid">
-    <div class="card-premium" *ngFor="let type of procedureTypes">
-      <div class="card-top d-flex align-items-center gap-3 mb-2">
-        <span class="icon-tile" style="font-size:24px;">{{ getProcedureIcon(type) }}</span>
+  <section class="procedure-advisor">
+    <div class="procedure-advisor__copy">
+      <span class="legal-eyebrow">Assistant d'orientation</span>
+      <h2>Vous ne savez pas quelle procedure choisir ?</h2>
+      <p>
+        Decrivez votre situation en quelques mots. L'assistant vous proposera le parcours le plus adapte
+        et les premiers documents a preparer.
+      </p>
+
+      <div class="procedure-advisor__chips">
+        <button type="button"
+                *ngFor="let suggestion of advisorSuggestions"
+                (click)="askAdvisor(suggestion)">
+          {{ suggestion }}
+        </button>
+      </div>
+    </div>
+
+    <form class="procedure-advisor__form" (ngSubmit)="askAdvisor()">
+      <textarea name="advisorQuestion"
+                rows="4"
+                [(ngModel)]="advisorQuestion"
+                placeholder="Ex: je suis seul fondateur et je veux creer une structure pour mon projet SaaS..."></textarea>
+      <button class="legal-btn legal-btn--primary"
+              type="submit"
+              [disabled]="advisorSending || !advisorQuestion.trim()">
+        {{ advisorSending ? 'Analyse...' : 'Me conseiller' }}
+      </button>
+
+      <div class="procedure-advisor__answer" *ngIf="advisorAnswer">
+        {{ advisorAnswer }}
+      </div>
+      <div class="procedure-advisor__error" *ngIf="advisorError">
+        {{ advisorError }}
+      </div>
+    </form>
+  </section>
+
+  <section class="legal-section-head">
+    <div>
+      <span class="legal-eyebrow">Catalogue</span>
+      <h2>Procedures disponibles</h2>
+      <p>Choisissez un parcours selon votre besoin administratif ou juridique.</p>
+    </div>
+  </section>
+
+  <section class="procedure-grid">
+    <article class="procedure-card" *ngFor="let type of procedureTypes">
+      <div class="procedure-card__head">
+        <span class="procedure-icon">{{ getProcedureIcon(type) }}</span>
         <div>
-          <h3 class="card-title mb-0">{{ labels[type] }}</h3>
-          <div class="card-code text-muted small">{{ type }}</div>
+          <h3>{{ labels[type] }}</h3>
+          <small>{{ type }}</small>
         </div>
       </div>
 
-      <p class="card-description">{{ descriptions[type] }}</p>
+      <p>{{ descriptions[type] }}</p>
 
-      <div class="card-actions d-flex gap-2 mt-3">
-
-        <!-- Bouton créer : ENTREPRENEUR uniquement -->
-        <button class="btn btn-primary-pro"
+      <div class="procedure-card__actions">
+        <button class="legal-btn legal-btn--primary"
                 *ngIf="auth.isEntrepreneur()"
                 (click)="createProcedure(type)">
-          Créer un dossier
+          Creer
         </button>
 
-        <!-- Mes dossiers : ENTREPRENEUR uniquement -->
-        <a class="btn btn-soft"
+        <a class="legal-btn legal-btn--secondary"
            *ngIf="auth.isEntrepreneur()"
            routerLink="/app/legal/list">
           Mes dossiers
         </a>
 
-        <!-- Expert : lien vers ses dossiers assignés -->
-        <a class="btn btn-primary-pro"
+        <a class="legal-btn legal-btn--primary"
            *ngIf="auth.isExpert()"
            routerLink="/app/legal/expert/assigned">
-          Voir les dossiers assignés
+          Examiner
         </a>
 
-        <!-- Autres rôles : message informatif -->
-        <span class="text-muted small"
+        <span class="procedure-card__hint"
               *ngIf="!auth.isEntrepreneur() && !auth.isExpert()">
-          Disponible pour les entrepreneurs
+          Entrepreneur uniquement
         </span>
-
       </div>
-    </div>
-  </div>
+    </article>
+  </section>
 
 </div>

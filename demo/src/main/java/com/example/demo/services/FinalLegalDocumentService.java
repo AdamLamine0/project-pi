@@ -264,7 +264,7 @@ public class FinalLegalDocumentService {
             case PI -> "Propriete intellectuelle";
             case FISCALITE -> "Fiscalite";
             case CONFORMITE -> "Conformite";
-            case AUTRE -> "Autre procedure juridique";
+            case AUTRE -> "Procedure juridique";
         };
     }
 

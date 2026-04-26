@@ -11,6 +11,7 @@ import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.LegalMapper;
 import com.example.demo.repository.LegalDocumentRepository;
 import com.example.demo.repository.LegalProcedureRepository;
+import com.example.demo.repository.ProcedureDocumentRequirementRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
 
     private final LegalProcedureRepository procedureRepository;
     private final LegalDocumentRepository documentRepository;
+    private final ProcedureDocumentRequirementRepository requirementRepository;
     private final LegalMapper mapper;
     private final ChecklistService checklistService;
     private final LegalAiAnalysisService legalAiAnalysisService;
@@ -38,6 +40,10 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
 
     @Override
     public LegalProcedureResponse create(CreateLegalProcedureRequest request, Integer entrepreneurId) {
+        if (request.procedureType() == com.example.demo.enums.ProcedureType.AUTRE) {
+            throw new BusinessException("Ce type de procedure n'est plus disponible.");
+        }
+
         LegalProcedure procedure = LegalProcedure.builder()
                 .entrepreneurId(entrepreneurId)
                 .expertId(request.expertId())
@@ -171,6 +177,7 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
             procedure.setRemark(remark);
         }
 
+        recalculateCompletionRate(procedure);
         return mapper.toProcedureResponse(procedureRepository.save(procedure));
     }
 
@@ -199,16 +206,36 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
     }
 
     private void recalculateCompletionRate(LegalProcedure procedure) {
-        long total = documentRepository.countByProcedureId(procedure.getId());
-        if (total == 0) {
+        if (procedure.getStatus() == ProcedureStatus.COMPLETE) {
+            procedure.setCompletionRate(100F);
+            return;
+        }
+
+        if (procedure.getStatus() == ProcedureStatus.EN_ATTENTE_EXPERT
+                || procedure.getStatus() == ProcedureStatus.EN_COURS) {
+            procedure.setCompletionRate(50F);
+            return;
+        }
+
+        List<String> requiredCodes = requirementRepository
+                .findByProcedureType(procedure.getProcedureType())
+                .stream()
+                .filter(requirement -> Boolean.TRUE.equals(requirement.getRequired()))
+                .map(requirement -> requirement.getCode())
+                .toList();
+
+        if (requiredCodes.isEmpty()) {
             procedure.setCompletionRate(0F);
             return;
         }
-        long deposed = documentRepository.countByProcedureIdAndStatus(
-                procedure.getId(), DocumentStatus.DEPOSE);
-        long validated = documentRepository.countByProcedureIdAndStatus(
-                procedure.getId(), DocumentStatus.VALIDE);
-        float rate = ((float) (deposed + validated) / total) * 100;
+
+        long uploadedRequired = documentRepository.findByProcedureId(procedure.getId())
+                .stream()
+                .filter(document -> requiredCodes.contains(document.getRequirementCode()))
+                .filter(document -> document.getStatus() != DocumentStatus.NON_DEPOSE)
+                .count();
+
+        float rate = ((float) uploadedRequired / requiredCodes.size()) * 50F;
         procedure.setCompletionRate(Math.round(rate * 100f) / 100f);
     }
 

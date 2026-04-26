@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   LegalProcedureResponse,
+  ProcedureType,
   ProcedureStatus,
+  PROCEDURE_TYPE_LABELS,
   STATUS_LABELS
 } from '../../../../models/legal-procedure.model';
 import { LegalProcedureService } from '../../../../services/legal-procedure.service';
@@ -18,6 +20,8 @@ export class LegalProcedureListComponent implements OnInit {
 
   procedures: LegalProcedureResponse[] = [];
   filteredProcedures: LegalProcedureResponse[] = [];
+  searchTerm = '';
+  selectedType = '';
   selectedStatus = '';
   loading = false;
   errorMessage = '';
@@ -26,13 +30,18 @@ export class LegalProcedureListComponent implements OnInit {
     'BROUILLON', 'EN_COURS', 'EN_ATTENTE_EXPERT', 'COMPLETE', 'REFUSE'
   ];
   readonly statusLabels = STATUS_LABELS;
+  readonly procedureTypeLabels = PROCEDURE_TYPE_LABELS;
+  readonly procedureTypes: ProcedureType[] = [
+    'SARL', 'SUARL', 'LABEL_STARTUP', 'PI', 'FISCALITE', 'CONFORMITE'
+  ];
 
   private readonly userId: number;
 
   constructor(
     private readonly service: LegalProcedureService,
     private readonly router: Router,
-    private readonly auth: AuthService
+    private readonly auth: AuthService,
+    private readonly cdr: ChangeDetectorRef
   ) {
     this.userId = this.auth.getUserId();
   }
@@ -47,21 +56,29 @@ export class LegalProcedureListComponent implements OnInit {
 
     this.service.getMyProcedures(this.userId).subscribe({
       next: (data) => {
-        this.procedures = data;
-        this.applyFilter();
+        this.procedures = this.sortByCreatedAtDesc(data);
         this.loading = false;
+        this.applyFilter();
+        this.cdr.detectChanges();
       },
       error: (err: any) => {
         this.errorMessage = err?.error?.message || 'Erreur lors du chargement.';
         this.loading = false;
+        this.cdr.detectChanges();
       }
     });
   }
 
   applyFilter(): void {
-    this.filteredProcedures = this.selectedStatus
-      ? this.procedures.filter(p => p.status === this.selectedStatus)
-      : [...this.procedures];
+    const query = this.normalize(this.searchTerm);
+
+    this.filteredProcedures = this.procedures.filter(procedure => {
+      const matchesSearch = !query || this.normalize(procedure.projectName).includes(query);
+      const matchesStatus = !this.selectedStatus || procedure.status === this.selectedStatus;
+      const matchesType = !this.selectedType || procedure.procedureType === this.selectedType;
+
+      return matchesSearch && matchesStatus && matchesType;
+    });
   }
 
   openCreate(): void {
@@ -89,6 +106,20 @@ export class LegalProcedureListComponent implements OnInit {
 
   getStatusClass(status: ProcedureStatus): string {
     return `status-${status.toLowerCase().replace(/_/g, '-')}`;
+  }
+
+  private sortByCreatedAtDesc(procedures: LegalProcedureResponse[]): LegalProcedureResponse[] {
+    return [...procedures].sort((a, b) =>
+      new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+    );
+  }
+
+  private normalize(value: string | null | undefined): string {
+    return (value || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
   }
 }
 

@@ -1,6 +1,6 @@
 export type ProcedureType =
   | 'SARL' | 'SUARL' | 'LABEL_STARTUP'
-  | 'PI' | 'FISCALITE' | 'CONFORMITE' | 'AUTRE';
+  | 'PI' | 'FISCALITE' | 'CONFORMITE';
 
 export type ProcedureStatus =
   | 'BROUILLON' | 'EN_COURS' | 'EN_ATTENTE_EXPERT' | 'COMPLETE' | 'REFUSE';
@@ -123,7 +123,6 @@ export const PROCEDURE_TYPE_LABELS: Record<ProcedureType, string> = {
   PI: 'Propriete Intellectuelle',
   FISCALITE: 'Fiscalite',
   CONFORMITE: 'Conformite',
-  AUTRE: 'Autre procedure',
 };
 
 export const PROCEDURE_TYPE_DESCRIPTIONS: Record<ProcedureType, string> = {
@@ -133,7 +132,6 @@ export const PROCEDURE_TYPE_DESCRIPTIONS: Record<ProcedureType, string> = {
   PI: 'Protection de la propriete intellectuelle.',
   FISCALITE: 'Assistance fiscale et demarches administratives.',
   CONFORMITE: 'Verification de conformite juridique.',
-  AUTRE: 'Autre procedure juridique.',
 };
 
 export const STATUS_LABELS: Record<ProcedureStatus, string> = {

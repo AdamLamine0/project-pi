@@ -78,11 +78,6 @@ public class DataInitializer implements CommandLineRunner {
         saveIfNotExists(ProcedureType.CONFORMITE, "RAPPORT_AUDIT", "Rapport d'audit",
                 "Rapport d'audit ou diagnostic si disponible.", false);
 
-        // AUTRE
-        saveIfNotExists(ProcedureType.AUTRE, "NOTE_DEMANDE", "Note de demande",
-                "Description détaillée du besoin juridique.", true);
-        saveIfNotExists(ProcedureType.AUTRE, "PIECES_JUSTIFICATIVES", "Pièces justificatives",
-                "Toute pièce utile au traitement du dossier.", true);
     }
 
     private void saveIfNotExists(ProcedureType procedureType, String code, String label, String description, boolean required) {

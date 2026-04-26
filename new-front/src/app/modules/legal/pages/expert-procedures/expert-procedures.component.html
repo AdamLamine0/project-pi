@@ -8,7 +8,7 @@
 
   <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
   <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
-  <div *ngIf="loading" class="alert alert-info">Chargement...</div>
+  <div *ngIf="loading && !procedures.length" class="alert alert-info">Chargement...</div>
 
   <div class="expert-layout">
     <section class="expert-list">
@@ -33,6 +33,7 @@
 
         <div class="expert-meta">
           <span>{{ entrepreneurName(p.entrepreneurId) }}</span>
+          <span>{{ p.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
           <span>{{ p.completionRate }}%</span>
         </div>
         <div class="expert-progress">

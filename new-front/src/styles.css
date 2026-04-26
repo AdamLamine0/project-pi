@@ -2003,3 +2003,615 @@ app-legal-procedure-detail .form-section {
     overflow-x: auto;
   }
 }
+
+/* Legal module refreshed layout */
+app-procedure-home .legal-shell,
+app-legal-procedure-list .legal-shell,
+app-legal-procedure-detail .legal-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  color: var(--text-body);
+}
+
+app-procedure-home .legal-hero,
+app-legal-procedure-list .legal-page-head,
+app-legal-procedure-detail .legal-page-head,
+app-legal-procedure-detail .legal-panel,
+app-legal-procedure-detail .legal-submit-panel,
+app-legal-procedure-detail .legal-final-panel,
+app-legal-procedure-list .legal-toolbar,
+app-legal-procedure-list .legal-table-card,
+app-procedure-home .procedure-card {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--surface);
+  box-shadow: 0 1px 4px rgba(11, 15, 42, 0.04);
+}
+
+app-procedure-home .legal-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  background:
+    linear-gradient(135deg, rgba(28, 79, 195, 0.1), transparent 46%),
+    var(--surface);
+}
+
+app-procedure-home .legal-hero h1,
+app-legal-procedure-list .legal-page-head h1,
+app-legal-procedure-detail .legal-page-head h1,
+app-legal-procedure-detail .legal-panel h2,
+app-legal-procedure-detail .legal-submit-panel h2,
+app-legal-procedure-detail .legal-final-panel h2,
+app-procedure-home .legal-section-head h2,
+app-procedure-home .procedure-card h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+app-procedure-home .legal-hero h1,
+app-legal-procedure-list .legal-page-head h1,
+app-legal-procedure-detail .legal-page-head h1 {
+  font-size: clamp(1.55rem, 3vw, 2.2rem);
+}
+
+app-procedure-home .legal-hero p,
+app-legal-procedure-list .legal-page-head p,
+app-legal-procedure-detail .legal-page-head p,
+app-legal-procedure-detail .legal-panel p,
+app-legal-procedure-detail .legal-submit-panel p,
+app-legal-procedure-detail .legal-final-panel p,
+app-procedure-home .legal-section-head p,
+app-procedure-home .procedure-card p {
+  margin: 0.45rem 0 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+app-procedure-home .legal-eyebrow,
+app-legal-procedure-list .legal-eyebrow,
+app-legal-procedure-detail .legal-eyebrow {
+  display: inline-flex;
+  margin-bottom: 0.45rem;
+  color: #1C4FC3;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+app-procedure-home .legal-actions,
+app-procedure-home .procedure-card__actions,
+app-legal-procedure-list .legal-row-actions,
+app-legal-procedure-detail .legal-head-actions,
+app-legal-procedure-detail .legal-panel__head,
+app-legal-procedure-detail .document-upload,
+app-legal-procedure-detail .document-check__file {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+app-procedure-home .legal-actions {
+  margin-top: 1.25rem;
+}
+
+app-procedure-home .legal-hero__panel {
+  display: grid;
+  gap: 0.75rem;
+}
+
+app-procedure-home .legal-mini-step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.15rem 0.75rem;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  padding: 0.85rem;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+app-procedure-home .legal-mini-step span {
+  grid-row: span 2;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.75rem;
+  background: var(--badge-blue-bg);
+  color: var(--badge-blue-text);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+app-procedure-home .legal-mini-step strong,
+app-procedure-home .procedure-card h3,
+app-legal-procedure-list .legal-table__title,
+app-legal-procedure-detail .document-check h3 {
+  color: var(--text-primary);
+}
+
+app-procedure-home .legal-mini-step small,
+app-legal-procedure-list .legal-table__muted,
+app-procedure-home .procedure-card small {
+  color: var(--text-muted);
+}
+
+app-procedure-home .legal-section-head,
+app-legal-procedure-detail .legal-panel__head,
+app-legal-procedure-detail .legal-submit-panel,
+app-legal-procedure-detail .legal-page-head--split {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+app-procedure-home .procedure-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+app-procedure-home .procedure-card {
+  display: flex;
+  min-height: 14rem;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+app-procedure-home .procedure-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+app-procedure-home .procedure-icon {
+  display: grid;
+  place-items: center;
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 0.9rem;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+  font-size: 1.2rem;
+}
+
+app-procedure-home .procedure-card__hint,
+app-procedure-home .legal-note {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+app-procedure-home .legal-btn,
+app-legal-procedure-list .legal-btn,
+app-legal-procedure-detail .legal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2.55rem;
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  padding: 0.65rem 0.95rem;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+app-procedure-home .legal-btn--primary,
+app-legal-procedure-list .legal-btn--primary,
+app-legal-procedure-detail .legal-btn--primary,
+app-legal-procedure-detail .legal-btn--success {
+  border-color: transparent;
+  background: linear-gradient(135deg, #1C4FC3, #1D1384);
+  color: #fff;
+}
+
+app-legal-procedure-detail .legal-btn--success {
+  background: linear-gradient(135deg, #059669, #047857);
+}
+
+app-procedure-home .legal-btn--secondary,
+app-legal-procedure-list .legal-btn--secondary,
+app-legal-procedure-detail .legal-btn--secondary {
+  background: var(--chip-active-bg);
+  border-color: var(--chip-active-border);
+  color: var(--chip-active-text);
+}
+
+app-legal-procedure-list .legal-btn--danger {
+  background: var(--badge-red-bg);
+  border-color: transparent;
+  color: var(--badge-red-text);
+}
+
+app-legal-procedure-list .legal-btn--sm,
+app-legal-procedure-detail .legal-btn--sm {
+  min-height: 2rem;
+  border-radius: 0.7rem;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.75rem;
+}
+
+app-procedure-home .legal-btn:disabled,
+app-legal-procedure-list .legal-btn:disabled,
+app-legal-procedure-detail .legal-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+app-legal-procedure-list .legal-page-head,
+app-legal-procedure-detail .legal-page-head,
+app-legal-procedure-detail .legal-panel,
+app-legal-procedure-detail .legal-submit-panel,
+app-legal-procedure-detail .legal-final-panel {
+  padding: clamp(1rem, 2.4vw, 1.4rem);
+}
+
+app-legal-procedure-list .legal-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+app-legal-procedure-list .legal-toolbar label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+app-legal-procedure-list .legal-toolbar label span {
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+app-legal-procedure-list .legal-toolbar select,
+app-legal-procedure-list .legal-toolbar input,
+app-legal-procedure-detail .document-upload input,
+app-legal-procedure-detail .chat-form input {
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  padding: 0.75rem 0.9rem;
+}
+
+app-legal-procedure-list .legal-toolbar__search {
+  flex: 1 1 16rem;
+}
+
+app-legal-procedure-list .legal-toolbar__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+app-legal-procedure-list .legal-toolbar__meta strong {
+  color: var(--text-primary);
+  font-size: 1.5rem;
+}
+
+app-legal-procedure-list .legal-table-card {
+  overflow-x: auto;
+}
+
+app-legal-procedure-list .legal-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+app-legal-procedure-list .legal-table th,
+app-legal-procedure-list .legal-table td {
+  padding: 0.95rem;
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: left;
+  font-size: 0.84rem;
+}
+
+app-legal-procedure-list .legal-table th {
+  color: var(--text-secondary);
+  font-weight: 800;
+}
+
+app-legal-procedure-list .legal-table tr:last-child td {
+  border-bottom: 0;
+}
+
+app-legal-procedure-list .legal-progress,
+app-legal-procedure-detail .legal-progress {
+  width: 8rem;
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-input);
+}
+
+app-legal-procedure-detail .legal-progress--wide {
+  width: min(12rem, 100%);
+}
+
+app-legal-procedure-list .legal-progress div,
+app-legal-procedure-detail .legal-progress div {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #1C4FC3, #059669);
+}
+
+app-legal-procedure-list .legal-status,
+app-legal-procedure-detail .legal-status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.38rem 0.68rem;
+  background: var(--badge-neutral-bg);
+  color: var(--badge-neutral-text);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+app-legal-procedure-list .status-en-cours,
+app-legal-procedure-detail .status-en-cours,
+app-legal-procedure-list .status-en-attente-expert,
+app-legal-procedure-detail .status-en-attente-expert {
+  background: var(--badge-amber-bg);
+  color: var(--badge-amber-text);
+}
+
+app-legal-procedure-list .status-complete,
+app-legal-procedure-detail .status-complete {
+  background: var(--badge-green-bg);
+  color: var(--badge-green-text);
+}
+
+app-legal-procedure-list .status-refuse,
+app-legal-procedure-detail .status-refuse {
+  background: var(--badge-red-bg);
+  color: var(--badge-red-text);
+}
+
+app-legal-procedure-list .legal-alert,
+app-legal-procedure-detail .legal-alert {
+  border-radius: 0.9rem;
+  padding: 0.85rem 1rem;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+app-legal-procedure-list .legal-alert--error,
+app-legal-procedure-detail .legal-alert--error {
+  background: var(--badge-red-bg);
+  color: var(--badge-red-text);
+}
+
+app-legal-procedure-list .legal-alert--info,
+app-legal-procedure-detail .legal-alert--info {
+  background: var(--badge-blue-bg);
+  color: var(--badge-blue-text);
+}
+
+app-legal-procedure-detail .legal-alert--success {
+  background: var(--badge-green-bg);
+  color: var(--badge-green-text);
+}
+
+app-legal-procedure-list .legal-empty,
+app-legal-procedure-detail .legal-empty,
+app-legal-procedure-detail .legal-loading {
+  display: grid;
+  place-items: center;
+  gap: 0.6rem;
+  min-height: 11rem;
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+app-legal-procedure-list .legal-empty strong,
+app-legal-procedure-detail .legal-empty strong {
+  color: var(--text-primary);
+}
+
+app-legal-procedure-detail .legal-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1rem;
+}
+
+app-legal-procedure-detail .legal-summary-card {
+  display: flex;
+  min-height: 6.5rem;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: var(--surface);
+}
+
+app-legal-procedure-detail .legal-summary-card span {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+app-legal-procedure-detail .legal-summary-card strong {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+app-legal-procedure-detail .legal-checklist-progress {
+  display: grid;
+  gap: 0.45rem;
+  justify-items: end;
+  color: var(--text-primary);
+  font-weight: 800;
+}
+
+app-legal-procedure-detail .document-checklist {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1.1rem;
+}
+
+app-legal-procedure-detail .document-check {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: flex-start;
+  border: 1px solid var(--border);
+  border-radius: 0.95rem;
+  padding: 1rem;
+  background: var(--surface-subtle);
+}
+
+app-legal-procedure-detail .document-check--done {
+  border-color: rgba(5, 150, 105, 0.26);
+  background: linear-gradient(90deg, rgba(209, 250, 229, 0.52), transparent 50%);
+}
+
+app-legal-procedure-detail .document-check__state span {
+  display: grid;
+  place-items: center;
+  width: 2.15rem;
+  height: 2.15rem;
+  border-radius: 999px;
+  background: var(--badge-amber-bg);
+  color: var(--badge-amber-text);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+app-legal-procedure-detail .document-check--done .document-check__state span {
+  background: var(--badge-green-bg);
+  color: var(--badge-green-text);
+}
+
+app-legal-procedure-detail .document-check__title-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+}
+
+app-legal-procedure-detail .document-check h3 {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 800;
+}
+
+app-legal-procedure-detail .document-check p {
+  margin-top: 0.35rem;
+  font-size: 0.84rem;
+}
+
+app-legal-procedure-detail .document-required,
+app-legal-procedure-detail .document-status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.32rem 0.58rem;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+app-legal-procedure-detail .document-required {
+  background: var(--badge-red-bg);
+  color: var(--badge-red-text);
+}
+
+app-legal-procedure-detail .document-status {
+  background: var(--badge-amber-bg);
+  color: var(--badge-amber-text);
+}
+
+app-legal-procedure-detail .document-status--done {
+  background: var(--badge-green-bg);
+  color: var(--badge-green-text);
+}
+
+app-legal-procedure-detail .document-check__file {
+  margin-top: 0.65rem;
+}
+
+app-legal-procedure-detail .document-check__file a,
+app-legal-procedure-detail .legal-link-danger {
+  border: 0;
+  background: transparent;
+  color: #1C4FC3;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+app-legal-procedure-detail .legal-link-danger {
+  color: var(--badge-red-text);
+}
+
+app-legal-procedure-detail .document-upload {
+  margin-top: 0.75rem;
+}
+
+app-legal-procedure-detail .document-upload input {
+  max-width: 18rem;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+app-legal-procedure-detail .legal-note-box {
+  margin-top: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  padding: 1rem;
+  background: var(--surface-subtle);
+}
+
+app-legal-procedure-detail .legal-note-box ul {
+  margin: 0.65rem 0 0;
+  padding-left: 1.2rem;
+}
+
+@media (min-width: 880px) {
+  app-procedure-home .legal-hero {
+    grid-template-columns: minmax(0, 1.65fr) minmax(260px, 0.8fr);
+    align-items: center;
+  }
+}
+
+@media (max-width: 760px) {
+  app-legal-procedure-detail .document-check {
+    grid-template-columns: 1fr;
+  }
+
+  app-legal-procedure-detail .document-status {
+    width: fit-content;
+  }
+
+  app-legal-procedure-detail .legal-checklist-progress {
+    justify-items: start;
+    width: 100%;
+  }
+}

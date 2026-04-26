@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import { lucideEye, lucideEyeOff } from '@ng-icons/lucide';
 import { AuthService } from '../../core/services/auth.service';
+import { Role } from '../../core/models/user.model';
 
 @Component({
   selector: 'app-signup',
@@ -37,6 +38,16 @@ import { AuthService } from '../../core/services/auth.service';
       <label class="auth-field">
         <span>Email</span>
         <input formControlName="email" type="email" placeholder="you@example.com" autocomplete="email" />
+      </label>
+
+      <label class="auth-field">
+        <span>Role</span>
+        <select formControlName="role" autocomplete="off">
+          <option value="" disabled>Choose a role...</option>
+          @for (role of roleOptions; track role) {
+            <option [value]="role">{{ displayRole(role) }}</option>
+          }
+        </select>
       </label>
 
       <label class="auth-field">
@@ -78,6 +89,14 @@ export class SignupComponent {
   protected readonly showPassword = signal(false);
   protected readonly showConfirm = signal(false);
   protected readonly form: FormGroup;
+  protected readonly roleOptions = [
+    Role.USER,
+    Role.ENTREPRENEUR,
+    Role.EXPERT,
+    Role.MENTOR,
+    Role.INVESTOR,
+    Role.PARTNER,
+  ];
   protected isSubmitting = false;
   protected errorMessage = '';
 
@@ -91,6 +110,7 @@ export class SignupComponent {
         name: ['', Validators.required],
         prenom: ['', Validators.required],
         email: ['', [Validators.required, Validators.email]],
+        role: ['', Validators.required],
         password: ['', [Validators.required, Validators.minLength(6)]],
         confirmPassword: ['', Validators.required],
       },
@@ -122,5 +142,9 @@ export class SignupComponent {
     const password = form.get('password')?.value;
     const confirm = form.get('confirmPassword')?.value;
     return password === confirm ? null : { passwordMismatch: true };
+  }
+
+  protected displayRole(role: Role): string {
+    return role === Role.PARTNER ? 'Partner' : role.charAt(0) + role.slice(1).toLowerCase();
   }
 }
