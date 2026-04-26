@@ -1,0 +1,22 @@
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { DealCard } from './deal-card';
+
+describe('DealCard', () => {
+  let component: DealCard;
+  let fixture: ComponentFixture<DealCard>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [DealCard],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(DealCard);
+    component = fixture.componentInstance;
+    await fixture.whenStable();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});
