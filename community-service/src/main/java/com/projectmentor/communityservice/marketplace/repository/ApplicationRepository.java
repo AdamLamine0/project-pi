@@ -1,4 +1,4 @@
-﻿package com.projectmentor.communityservice.marketplace.repository;
+package com.projectmentor.communityservice.marketplace.repository;
 
 import com.projectmentor.communityservice.marketplace.model.OpportunityApplication;
 import org.springframework.data.mongodb.repository.MongoRepository;
