@@ -1,6 +1,7 @@
 package org.example.eventpi.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.eventpi.dto.SpeakerCandidateResponse;
 import org.example.eventpi.dto.SpeakerRequest;
 import org.example.eventpi.dto.SpeakerResponse;
 import org.example.eventpi.exception.EventNotFoundException;
@@ -110,6 +111,33 @@ public class SpeakerService {
                         : List.of())
                 .build();
     }
+    /**
+     * Creates a speaker from a LinkedIn candidate, or reuses an existing one
+     * when the same {@code linkedinUrl} is already in the database.
+     * This prevents duplicate speakers when the same profile is imported
+     * for different programs or events.
+     */
+    @Transactional
+    public SpeakerResponse importOrReuse(SpeakerCandidateResponse candidate) {
+        // Deduplication by LinkedIn URL
+        if (candidate.getLinkedinUrl() != null && !candidate.getLinkedinUrl().isBlank()) {
+            var existing = speakerRepository.findByLinkedinUrl(candidate.getLinkedinUrl());
+            if (existing.isPresent()) {
+                return toResponse(existing.get());
+            }
+        }
+        Speaker speaker = Speaker.builder()
+                .fullName(candidate.getFullName())
+                .title(candidate.getTitle())
+                .company(candidate.getCompany())
+                .bio(candidate.getBio())
+                .photoUrl(candidate.getPhotoUrl())
+                .linkedinUrl(candidate.getLinkedinUrl())
+                .events(new ArrayList<>())
+                .build();
+        return toResponse(speakerRepository.save(speaker));
+    }
+
     @Transactional
     public void updatePhoto(Long id, String photoUrl) {
         Speaker speaker = speakerRepository.findById(id)

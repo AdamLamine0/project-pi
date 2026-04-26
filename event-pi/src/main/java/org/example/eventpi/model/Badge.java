@@ -36,6 +36,9 @@ public class Badge {
     @Column(name = "series_tag", length = 100)
     private String seriesTag;
 
+    @Column(name = "image_path")
+    private String imagePath;
+
     @PrePersist
     protected void onCreate() {
         if (earnedAt == null) earnedAt = LocalDateTime.now();
