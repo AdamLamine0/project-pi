@@ -37,7 +37,7 @@ import { lucideUser, lucideMessageSquare, lucideEye, lucideThumbsUp, lucideArrow
 
       <div class="card-body">
         <div class="body-content">
-          <p class="post-excerpt">{{ post.content | slice:0:160 }}{{ (post.content?.length || 0) > 160 ? '...' : '' }}</p>
+          <p class="post-excerpt">{{ post.content | slice:0:160 }}{{ post.content.length > 160 ? '...' : '' }}</p>
           <div class="tag-row" *ngIf="post.tags?.length">
             <span *ngFor="let tag of post.tags | slice:0:3" class="post-tag">#{{ tag }}</span>
           </div>
@@ -54,7 +54,7 @@ import { lucideUser, lucideMessageSquare, lucideEye, lucideThumbsUp, lucideArrow
           
           <div class="media-count" *ngIf="post.mediaUrls && post.mediaUrls.length > 1">
             <ng-icon name="lucideImage"></ng-icon>
-            <span>+{{ (post.mediaUrls?.length || 0) - 1 }}</span>
+            <span>+{{ post.mediaUrls.length - 1 }}</span>
           </div>
         </div>
       </div>
