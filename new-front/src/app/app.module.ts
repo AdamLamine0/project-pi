@@ -26,6 +26,8 @@ import { RoadmapsComponent } from './pages/roadmaps/roadmaps.component';
 import { VerifyCertificateComponent } from './pages/verify-certificate/verify-certificate.component';
 import { MapComponent } from './shared/components/map/map.component'; // Add this import
 import { ToastComponent } from './shared/components/toast/toast.component';
+import { AdminRegistrationsComponent } from './pages/admin-registrations/admin-registrations.component';
+import { ShaderBackgroundComponent } from './shared/components/shader-background/shader-background.component';
 import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
 
 @NgModule({
@@ -47,7 +49,8 @@ import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
     ProjectsComponent,
     RoadmapsComponent,
     VerifyCertificateComponent,
-    MapComponent, // Add MapComponent here
+    MapComponent,
+    AdminRegistrationsComponent,
   ],
   imports: [
     BrowserModule,
@@ -57,6 +60,7 @@ import { jwtInterceptor } from './core/interceptors/jwt.interceptor';
     AppRoutingModule,
     NgIconComponent,
     ToastComponent,
+    ShaderBackgroundComponent,
     ...HlmBadgeImports,
     ...HlmProgressImports,
   ],

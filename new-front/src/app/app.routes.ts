@@ -16,6 +16,7 @@ import { PartnershipsComponent } from './pages/partnerships/partnerships.compone
 import { EventsComponent } from './pages/events/events.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 import { VerifyCertificateComponent } from './pages/verify-certificate/verify-certificate.component';
+import { AdminRegistrationsComponent } from './pages/admin-registrations/admin-registrations.component';
 
 export const routes: Routes = [
   {
@@ -23,8 +24,8 @@ export const routes: Routes = [
     component: LandingLayoutComponent,
     children: [
       { path: '', component: LandingComponent },
-      { path: 'events', component: EventsComponent },
-      { path: 'community', loadChildren: () => import('./modules/community/community.module').then(m => m.CommunityModule) },
+      { path: 'events', component: EventsComponent, canActivate: [loginGuard] },
+      { path: 'community', loadChildren: () => import('./modules/community/community.module').then(m => m.CommunityModule), canActivate: [loginGuard] },
       { path: 'procedures', loadChildren: () => import('./modules/legal/legal.module').then(m => m.LegalModule) },
       // Profile accessible to any authenticated user (including USER role)
       { path: 'profile', component: ProfileComponent, canActivate: [loginGuard] },
@@ -36,7 +37,8 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'login', pathMatch: 'full' },
       { path: 'login', component: LoginComponent },
-      { path: 'signup', component: SignupComponent },
+      { path: 'register', component: SignupComponent },
+      { path: 'signup', component: SignupComponent }, // Keep both for compatibility
     ],
   },
   {
@@ -55,6 +57,7 @@ export const routes: Routes = [
       { path: 'partnerships', component: PartnershipsComponent },
       { path: 'events', component: EventsComponent },
       { path: 'profile', component: ProfileComponent },
+      { path: 'registrations', component: AdminRegistrationsComponent },
     ],
   },
   { path: 'verify/:token', component: VerifyCertificateComponent },

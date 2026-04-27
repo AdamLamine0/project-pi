@@ -2,6 +2,7 @@ package org.example.eventpi.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.eventpi.model.PaymentStatus;
 import java.time.LocalDateTime;
 
 @Entity
@@ -25,7 +26,7 @@ public class EventRegistration {
     private Integer userId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     @Builder.Default
     private RegistrationStatus status = RegistrationStatus.INSCRIT;
 
@@ -41,6 +42,17 @@ public class EventRegistration {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "ticket_number", unique = true, length = 36)
+    private String ticketNumber;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status", length = 20)
+    private PaymentStatus paymentStatus;
+
+    @Column(name = "number_of_places")
+    @Builder.Default
+    private Integer numberOfPlaces = 1;
 
     @PrePersist
     protected void onCreate() {

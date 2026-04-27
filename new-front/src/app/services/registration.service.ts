@@ -10,8 +10,9 @@ export class RegistrationService {
 
   constructor(private readonly http: HttpClient) {}
 
-  register(eventId: number): Observable<EventRegistration> {
-    return this.http.post<EventRegistration>(`${this.api}/${eventId}/register`, {});
+  register(eventId: number, numberOfPlaces?: number): Observable<EventRegistration> {
+    const body = numberOfPlaces ? { numberOfPlaces } : {};
+    return this.http.post<EventRegistration>(`${this.api}/${eventId}/register`, body);
   }
 
   cancel(eventId: number): Observable<EventRegistration> {
@@ -28,5 +29,17 @@ export class RegistrationService {
 
   checkIn(registrationId: number): Observable<EventRegistration> {
     return this.http.patch<EventRegistration>(`${this.api}/registrations/${registrationId}/checkin`, {});
+  }
+
+  getAllRegistrations(): Observable<EventRegistration[]> {
+    return this.http.get<EventRegistration[]>(`${this.api}/registrations`);
+  }
+
+  approve(registrationId: number): Observable<EventRegistration> {
+    return this.http.patch<EventRegistration>(`${this.api}/registrations/${registrationId}/approve`, {});
+  }
+
+  reject(registrationId: number, reason?: string): Observable<EventRegistration> {
+    return this.http.patch<EventRegistration>(`${this.api}/registrations/${registrationId}/reject`, { reason });
   }
 }

@@ -59,6 +59,14 @@ public class GatewayRoutes {
     }
 
     @Bean
+    public RouterFunction<ServerResponse> communityServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/community/**"), HandlerFunctions.http())
+                .filter(lb("community-service"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
     public RouterFunction<ServerResponse> meetingServiceRoute() {
         return RouterFunctions
                 .route(path("/api/meeting-invitations/**"), HandlerFunctions.http())
@@ -124,39 +132,22 @@ public class GatewayRoutes {
     }
 
     @Bean
+    public RouterFunction<ServerResponse> ticketServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/tickets/**"), HandlerFunctions.http())
+                .filter(lb("event-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
     public RouterFunction<ServerResponse> verifyRoute() {
         return RouterFunctions
                 .route(path("/api/verify/**"), HandlerFunctions.http())
                 .filter(lb("event-pi"));
         // no authFilter — public endpoint for QR code scanning
     }
-    @Bean
-    public RouterFunction<ServerResponse> legalProcedureTypeRoute() {
-        return RouterFunctions
-                .route(path("/api/procedure-types/**"), HandlerFunctions.http())  // fix typo
-                .filter(lb("legal-pi"))
-                .filter(authFilter.jwtFilter());
-    }
 
-    @Bean
-    public RouterFunction<ServerResponse> legalProceduresRoute() {
-        return RouterFunctions
-                .route(path("/api/legal-procedures/**"), HandlerFunctions.http())  // add this
-                .filter(lb("legal-pi"))
-                .filter(authFilter.jwtFilter());
-    }
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(List.of("http://localhost:4200"));
-        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
 
-        return source;
-    }
 }
