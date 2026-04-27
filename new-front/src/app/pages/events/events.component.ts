@@ -532,7 +532,10 @@ export class EventsComponent implements OnInit, OnDestroy {
   }
 
   private fetchFormWeather(lat: number, lon: number, date: string): void {
-    const isoDate = date.includes('T') ? date : date + 'T00:00:00';
+    // Backend requires full ISO-8601 (seconds mandatory): e.g. 2026-04-28T20:46:00
+    const isoDate = date.includes('T')
+      ? (date.length === 16 ? date + ':00' : date)
+      : date + 'T00:00:00';
     this.loadingFormWeather = true;
     this.formWeather = null;
     this.cdr.markForCheck();
@@ -551,10 +554,14 @@ export class EventsComponent implements OnInit, OnDestroy {
       this.selectedEventWeather = { available: false, reason: 'This event has already passed' };
       return;
     }
+    const rawDate = event.startDate;
+    const isoDate = rawDate.includes('T')
+      ? (rawDate.length === 16 ? rawDate + ':00' : rawDate)
+      : rawDate + 'T00:00:00';
     this.loadingEventWeather = true;
     this.selectedEventWeather = null;
     this.cdr.markForCheck();
-    this.weatherService.getWeather(event.latitude, event.longitude, event.startDate).subscribe({
+    this.weatherService.getWeather(event.latitude, event.longitude, isoDate).subscribe({
       next: (w) => { this.selectedEventWeather = w; this.loadingEventWeather = false; this.cdr.markForCheck(); },
       error: () => { this.loadingEventWeather = false; this.cdr.markForCheck(); },
     });

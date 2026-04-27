@@ -129,6 +129,106 @@
   white-space: nowrap;
 }
 
+/* ── Floating particle orbs ───────────────────────────────────────
+   Each orb drifts upward from its `bottom` anchor, fades in, then out.
+   All tuneable properties are CSS custom properties set inline in HTML.
+─────────────────────────────────────────────────────────────────── */
+.fl-particles {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.fl-particle {
+  position: absolute;
+  border-radius: 50%;
+  width: var(--size, 5px);
+  height: var(--size, 5px);
+  left: var(--left, 50%);
+  bottom: var(--bot, 10%);
+  background: radial-gradient(
+    circle at 35% 35%,
+    rgba(91, 167, 232, 0.92) 0%,
+    rgba(55, 138, 221, 0.55) 50%,
+    transparent 100%
+  );
+  box-shadow: 0 0 calc(var(--size, 5px) * 2.5) rgba(91, 167, 232, 0.55),
+              0 0 calc(var(--size, 5px) * 5)   rgba(55, 138, 221, 0.20);
+  opacity: 0;
+  animation: fl-orb-float var(--dur, 9s) var(--delay, 0s) ease-in-out infinite;
+}
+
+@keyframes fl-orb-float {
+  0%   { transform: translateY(0)      translateX(0);               opacity: 0; }
+  12%  { opacity: var(--opacity, 0.6); }
+  50%  { transform: translateY(-120px) translateX(calc(var(--drift, 15px) * 0.5)); }
+  88%  { opacity: 0.12; }
+  100% { transform: translateY(-250px) translateX(var(--drift, 15px)); opacity: 0; }
+}
+
+/* ── Headline aurora glow (pulsing radial behind the h2) ──────────
+   Uses a ::before pseudo so it lives behind the text without
+   affecting the parent's fl-fade-up opacity animation.
+─────────────────────────────────────────────────────────────────── */
+.fl-brand__heading {
+  position: relative;
+}
+
+.fl-brand__heading::before {
+  content: '';
+  position: absolute;
+  inset: -40px -70px;
+  background: radial-gradient(
+    ellipse at 44% 58%,
+    rgba(55, 138, 221, 0.24) 0%,
+    rgba(24, 95, 165, 0.14) 40%,
+    transparent 72%
+  );
+  filter: blur(22px);
+  z-index: -1;
+  pointer-events: none;
+  animation: fl-heading-glow 5s ease-in-out infinite;
+}
+
+@keyframes fl-heading-glow {
+  0%, 100% { opacity: 0.65; transform: scale(1); }
+  50%       { opacity: 1;    transform: scale(1.07); }
+}
+
+/* ── Eyebrow accent streak ────────────────────────────────────────
+   A faint horizontal shimmer behind the "The Founder Platform" label.
+─────────────────────────────────────────────────────────────────── */
+.fl-brand__eyebrow {
+  position: relative;
+}
+
+.fl-brand__eyebrow::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  margin-top: 14px;
+  background: linear-gradient(
+    90deg,
+    rgba(55, 138, 221, 0.55) 0%,
+    rgba(91, 167, 232, 0.25) 60%,
+    transparent 100%
+  );
+  transform: scaleX(0.8);
+  transform-origin: left;
+  animation: fl-streak-in 0.8s ease 0.6s forwards;
+  opacity: 0;
+}
+
+@keyframes fl-streak-in {
+  from { opacity: 0; transform: scaleX(0); }
+  to   { opacity: 1; transform: scaleX(0.8); }
+}
+
 /* CSS fallback when WebGL is unavailable */
 @keyframes auth-gradient-shift {
   0%, 100% { background-position: 0% 50%; }

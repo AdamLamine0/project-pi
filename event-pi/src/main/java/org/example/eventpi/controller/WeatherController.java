@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 
 @RestController
-@RequestMapping("/api/weather")
+@RequestMapping({"/api/weather", "/api/events/weather"})
 @RequiredArgsConstructor
 public class WeatherController {
 

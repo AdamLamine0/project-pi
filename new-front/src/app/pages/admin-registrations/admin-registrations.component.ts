@@ -215,7 +215,7 @@ export class AdminRegistrationsComponent implements OnInit {
   }
 
   protected paymentLabel(payment: string | null): string {
-    if (!payment) return 'ΓÇö';
+    if (!payment) return '—';
     const map: Record<string, string> = {
       FREE: 'Free',
       PENDING: 'Pending',
@@ -226,7 +226,7 @@ export class AdminRegistrationsComponent implements OnInit {
   }
 
   protected formatDate(dateStr: string): string {
-    if (!dateStr) return 'ΓÇö';
+    if (!dateStr) return '—';
     return new Date(dateStr).toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'short',
