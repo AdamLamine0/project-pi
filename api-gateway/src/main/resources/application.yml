@@ -1,3 +1,6 @@
+server:
+  port: 8091
+
 spring:
   cloud:
     gateway:
@@ -7,5 +10,19 @@ spring:
             uri: lb://user-pi
             predicates:
               - Path=/api/auth/**, /api/users/**
+            filters:
+              - StripPrefix=0
+
+          - id: event-service
+            uri: lb://event-pi
+            predicates:
+              - Path=/api/events/**, /api/weather, /api/weather/**, /api/verify/**, /api/tickets/**, /api/registrations/**, /api/speakers/**, /api/programs/**, /api/feedback/**, /api/badges/**, /api/certificates/**, /api/predictions/**
+            filters:
+              - StripPrefix=0
+
+          - id: community-service
+            uri: http://localhost:8082
+            predicates:
+              - Path=/api/community/**
             filters:
               - StripPrefix=0

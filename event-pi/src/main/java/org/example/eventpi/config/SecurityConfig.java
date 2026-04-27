@@ -44,7 +44,7 @@ public class SecurityConfig {
                 .addFilterBefore(gatewayHeaderFilter(),
                         UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/verify/**", "/api/tickets/*/verify", "/api/weather/**").permitAll()
+                        .requestMatchers("/api/verify/**", "/api/tickets/*/verify", "/api/weather", "/api/weather/**", "/api/events/weather", "/api/events/weather/**").permitAll()
                         .anyRequest().authenticated()
                 );
         return http.build();

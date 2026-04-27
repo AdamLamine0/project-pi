@@ -24,10 +24,11 @@ export const routes: Routes = [
     path: '',
     component: LandingLayoutComponent,
     children: [
-      { path: '', component: LandingComponent },
+      // Landing page: public, no authentication required
+      { path: '', component: LandingComponent, pathMatch: 'full' },
+      // The routes below require the user to be signed in
       { path: 'events', component: EventsComponent, canActivate: [loginGuard] },
       { path: 'community', loadChildren: () => import('./modules/community/community.module').then(m => m.CommunityModule), canActivate: [loginGuard] },
-      // Profile accessible to any authenticated user (including USER role)
       { path: 'profile', component: ProfileComponent, canActivate: [loginGuard] },
     ],
   },
