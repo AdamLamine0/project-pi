@@ -18,7 +18,7 @@ public class EventProgramController {
 
     private final EventProgramService programService;
     private static final Set<String> WRITE_ROLES =
-            Set.of("ADMIN", "MENTOR", "PARTENAIRE");
+            Set.of("ADMIN", "MENTOR", "PARTNER");
 
     @GetMapping
     public ResponseEntity<List<EventProgramResponse>> getProgram(

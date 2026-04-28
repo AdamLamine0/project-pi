@@ -629,7 +629,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   protected closeProfile(): void {
     const isDashboardUser = this.authService.hasRole(
-      Role.ADMIN, Role.MENTOR, Role.INVESTOR, Role.PARTNER, Role.PARTENAIRE
+      Role.ADMIN, Role.MENTOR, Role.INVESTOR, Role.PARTNER
     );
     this.router.navigate([isDashboardUser ? '/app/dashboard' : '/']);
   }
@@ -639,7 +639,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   protected get isDashboardUser(): boolean {
-    return this.authService.hasRole(Role.ADMIN, Role.MENTOR, Role.INVESTOR, Role.PARTNER, Role.PARTENAIRE);
+    return this.authService.hasRole(Role.ADMIN, Role.MENTOR, Role.INVESTOR, Role.PARTNER);
   }
 
   protected get fullName(): string {
@@ -926,7 +926,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       return 'Member';
     }
 
-    return role === 'PARTENAIRE' ? 'Partner' : role.charAt(0) + role.slice(1).toLowerCase();
+    return role.charAt(0) + role.slice(1).toLowerCase();
   }
 
   protected formatDate(value: string | null): string {

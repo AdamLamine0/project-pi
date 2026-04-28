@@ -38,8 +38,8 @@ public class MeetingInvitationController {
     }
 
     private void checkAllowed(String role) {
-        if (!"ROLE_ADMIN".equals(role) && !"ROLE_USER".equals(role)) {
-            throw new RuntimeException("Access denied: ADMIN or USER role required");
+        if (!"ROLE_ADMIN".equals(role) && !"ROLE_USER".equals(role) && !"ROLE_ENTREPRENEUR".equals(role)) {
+            throw new RuntimeException("Access denied: ADMIN or ENTREPRENEUR role required");
         }
     }
 

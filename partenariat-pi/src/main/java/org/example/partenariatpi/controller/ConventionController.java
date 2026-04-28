@@ -123,7 +123,7 @@ public class ConventionController {
             @RequestHeader("X-User-Id") String requestingUserIdRaw) {
         String r = cleanRole(role);
         Integer requestingUserId = Integer.parseInt(requestingUserIdRaw.split(",")[0].trim());
-        if ("ROLE_USER".equals(r) && !request.getUserId().equals(requestingUserId))
+        if (isEntrepreneurRole(r) && !request.getUserId().equals(requestingUserId))
             throw new RuntimeException("Access denied: you can only create conventions for yourself");
         return ResponseEntity.ok(conventionService.create(request, r));
     }
@@ -203,6 +203,10 @@ public class ConventionController {
     private void checkAdmin(String role) {
         if (!"ROLE_ADMIN".equals(role))
             throw new RuntimeException("Access denied: ADMIN role required");
+    }
+
+    private boolean isEntrepreneurRole(String role) {
+        return "ROLE_USER".equals(role) || "ROLE_ENTREPRENEUR".equals(role);
     }
     @PostMapping("/{id}/annuler")
     public ResponseEntity<ConventionResponse> annuler(

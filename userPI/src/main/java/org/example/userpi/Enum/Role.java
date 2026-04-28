@@ -5,10 +5,7 @@ public enum Role {
     ADMIN,
     MENTOR,
     INVESTOR,
-    INVESTISSEUR,
     PARTNER,
-    PARTENAIRE,
     ENTREPRENEUR,
-    EXPERT,
-    ETUDIANT
+    EXPERT
 }
