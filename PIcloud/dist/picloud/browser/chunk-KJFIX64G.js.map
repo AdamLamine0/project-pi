@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/core/services/auth.guard.ts"],
+  "sourcesContent": ["import { CanActivateFn, Router, ActivatedRouteSnapshot } from '@angular/router';\r\nimport { inject } from '@angular/core';\r\nimport { AuthService } from '../services/auth.service';\r\n\r\nexport const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state) => {\r\n  const authService = inject(AuthService);\r\n  const router = inject(Router);\r\n\r\n  if (!authService.isLoggedIn()) {\r\n    router.navigate(['/auth/login']);\r\n    return false;\r\n  }\r\n\r\n  const requiredRole = route.data['role'];       \r\n  const requiredRoles = route.data['roles'];     \r\n\r\n  if (requiredRoles) {\r\n    if (!requiredRoles.includes(authService.getRole())) {\r\n      router.navigate(['/events']);\r\n      return false;\r\n    }\r\n  } else if (requiredRole) {\r\n    if (authService.getRole() !== requiredRole) {\r\n      router.navigate(['/events']);\r\n      return false;\r\n    }\r\n  }\r\n\r\n  return true;\r\n};"],
+  "mappings": ";;;;;;;AAIO,IAAM,YAA2B,CAAC,OAA+B,UAAS;AAC/E,QAAM,cAAc,OAAO,WAAW;AACtC,QAAM,SAAS,OAAO,MAAM;AAE5B,MAAI,CAAC,YAAY,WAAU,GAAI;AAC7B,WAAO,SAAS,CAAC,aAAa,CAAC;AAC/B,WAAO;EACT;AAEA,QAAM,eAAe,MAAM,KAAK,MAAM;AACtC,QAAM,gBAAgB,MAAM,KAAK,OAAO;AAExC,MAAI,eAAe;AACjB,QAAI,CAAC,cAAc,SAAS,YAAY,QAAO,CAAE,GAAG;AAClD,aAAO,SAAS,CAAC,SAAS,CAAC;AAC3B,aAAO;IACT;EACF,WAAW,cAAc;AACvB,QAAI,YAAY,QAAO,MAAO,cAAc;AAC1C,aAAO,SAAS,CAAC,SAAS,CAAC;AAC3B,aAAO;IACT;EACF;AAEA,SAAO;AACT;",
+  "names": []
+}
