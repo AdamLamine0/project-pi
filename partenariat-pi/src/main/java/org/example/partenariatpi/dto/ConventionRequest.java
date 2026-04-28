@@ -13,10 +13,10 @@ public class ConventionRequest {
     @NotNull(message = "User required")
     private Integer userId;
 
-    @NotNull(message = "Date debut is required")
+    // Dates are now OPTIONAL during creation/update.
+    // They become REQUIRED only at confirmation time (sent in the confirmer payload).
+    // Both parties negotiate objectifs first, then lock in the dates when they sign.
     private LocalDate dateDebut;
-
-    @NotNull(message = "Date fin is required")
     private LocalDate dateFin;
 
     // Set by the controller (not sent by client — server-side only)

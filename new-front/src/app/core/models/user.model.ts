@@ -1,4 +1,4 @@
-export type UserRole = 'USER' | 'ADMIN' | 'MENTOR' | 'INVESTOR' | 'PARTNER' | 'ENTREPRENEUR' | 'EXPERT';
+export type UserRole = 'USER' | 'ADMIN' | 'MENTOR' | 'INVESTOR' | 'PARTNER' | 'PARTENAIRE' | 'ENTREPRENEUR' | 'EXPERT';
 
 export interface User {
   id: number;
@@ -16,6 +16,7 @@ export enum Role {
   MENTOR = 'MENTOR',
   INVESTOR = 'INVESTOR',
   PARTNER = 'PARTNER',
+  PARTENAIRE = 'PARTENAIRE',
   ENTREPRENEUR = 'ENTREPRENEUR',
   EXPERT = 'EXPERT',
 }
@@ -45,5 +46,4 @@ export interface RegisterRequest {
   prenom: string;
   email: string;
   password: string;
-  role: UserRole;
 }

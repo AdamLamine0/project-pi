@@ -282,8 +282,8 @@ export class OpportunityCreateComponent implements OnInit {
   checkUserRole() {
     this.canCreateOpportunity = this.authService.isAdmin() ||
                               this.authService.isEntrepreneur() ||
-      this.authService.isPartner() ||
-      this.authService.isInvestor();
+                              this.authService.isPartenaire() ||
+                              this.authService.isInvestisseur();
   }
 
   addSkillEvent(event: any): void {
@@ -310,9 +310,10 @@ export class OpportunityCreateComponent implements OnInit {
     let expiresAt = undefined;
 
     if (dateValue && timeValue) {
-      // We send the local time string without 'Z' because the backend uses LocalDateTime.
-      // If we use toISOString(), it shifts the time to UTC which causes a mismatch when retrieved.
-      expiresAt = `${dateValue}T${timeValue}:00`;
+      const [hours, minutes] = timeValue.split(':').map(Number);
+      const combined = new Date(dateValue);
+      combined.setHours(hours, minutes, 0, 0);
+      expiresAt = combined.toISOString();
     }
 
     const dto = {

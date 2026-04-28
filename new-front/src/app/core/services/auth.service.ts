@@ -1,6 +1,6 @@
 import { Inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { HttpBackend, HttpClient } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthResponse, LoginRequest, RegisterRequest, UserRole } from '../models/user.model';
@@ -10,31 +10,26 @@ import { USER_API_BASE } from '../config/api.config';
 export class AuthService {
   private readonly apiUrl = `${USER_API_BASE}/auth`;
   private readonly isBrowser: boolean;
-  private readonly publicHttp: HttpClient;
 
   constructor(
     private readonly http: HttpClient,
     private readonly router: Router,
-    httpBackend: HttpBackend,
     @Inject(PLATFORM_ID) platformId: object,
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
-    this.publicHttp = new HttpClient(httpBackend);
   }
 
   async register(request: RegisterRequest): Promise<AuthResponse> {
-    this.clearAuthState();
     const response = await firstValueFrom(
-      this.publicHttp.post<AuthResponse>(`${this.apiUrl}/register`, request),
+      this.http.post<AuthResponse>(`${this.apiUrl}/register`, request),
     );
     this.saveToken(response.token);
     return response;
   }
 
   async login(request: LoginRequest): Promise<AuthResponse> {
-    this.clearAuthState();
     const response = await firstValueFrom(
-      this.publicHttp.post<AuthResponse>(`${this.apiUrl}/login`, request),
+      this.http.post<AuthResponse>(`${this.apiUrl}/login`, request),
     );
     this.saveToken(response.token);
     return response;
@@ -105,34 +100,11 @@ export class AuthService {
   }
 
   getPostAuthRedirectPath(): string {
-    if (this.hasRole('ADMIN')) {
+    if (this.hasRole('ADMIN', 'MENTOR', 'PARTNER', 'PARTENAIRE')) {
       return '/app/dashboard';
     }
 
-    if (this.hasRole('MENTOR')) {
-      return '/app/mentoring';
-    }
-
-    if (this.hasRole('PARTNER', 'PARTENAIRE' as UserRole)) {
-      return '/app/partnerships';
-    }
-
-    if (this.hasRole('INVESTOR')) {
-      return '/app/investments';
-    }
-
     return '/';
-  }
-
-  private clearAuthState(): void {
-    if (!this.isBrowser) {
-      return;
-    }
-
-    localStorage.removeItem('token');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('role');
-    localStorage.removeItem('email');
   }
 
   private normalizeRole(rawRole: string): UserRole | '' {
@@ -157,9 +129,12 @@ export class AuthService {
   isUser(): boolean { return this.getRole() === 'USER'; }
   isMentor(): boolean { return this.getRole() === 'MENTOR'; }
   isInvestor(): boolean { return this.getRole() === 'INVESTOR'; }
-  isPartner(): boolean { return this.getRole() === 'PARTNER' || this.getRole() === ('PARTENAIRE' as UserRole); }
+  isInvestisseur(): boolean { return this.isInvestor(); }
+  isPartner(): boolean { return this.getRole() === 'PARTNER' || this.getRole() === 'PARTENAIRE'; }
+  isPartenaire(): boolean { return this.isPartner(); }
   isEntrepreneur(): boolean { return this.getRole() === 'ENTREPRENEUR'; }
   isExpert(): boolean { return this.getRole() === 'EXPERT'; }
+  isEtudiant(): boolean { return this.getRole() === 'USER'; }
   hasLegalAccess(): boolean { return this.isEntrepreneur() || this.isExpert() || this.isAdmin(); }
 
   // Compat: PIcloud's saveUserData

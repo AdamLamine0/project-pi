@@ -26,7 +26,7 @@ public class SpeakerController {
     private final ImageStorageService imageStorageService;
 
     private static final Set<String> WRITE_ROLES =
-            Set.of("ADMIN", "MENTOR", "PARTNER");
+            Set.of("ADMIN", "MENTOR", "PARTENAIRE");
 
     // ── LINKEDIN IMPORT ───────────────────────────────────────────────────
 

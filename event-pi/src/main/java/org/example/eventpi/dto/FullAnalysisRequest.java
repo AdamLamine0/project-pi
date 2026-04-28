@@ -48,10 +48,8 @@ public class FullAnalysisRequest {
 
     // ── Extra context for conflict detection (used by Java only) ───────────
     /** ISO-8601 datetime of the proposed event start (e.g. 2025-05-20T19:00:00) */
-    @JsonProperty("proposed_date")
     private String proposedDate;
 
     /** String event type code, e.g. WEBINAIRE, WORKSHOP */
-    @JsonProperty("event_type_code")
     private String eventTypeCode;
 }

@@ -181,24 +181,20 @@ public class ConventionPdfService {
                 .setFontColor(ColorConstants.DARK_GRAY)
                 .setMarginTop(10).setMarginBottom(6));
 
-        Table table = new Table(UnitValue.createPercentArray(new float[]{2, 3, 2, 1.5f}))
+        // 3 columns now — no Échéance column
+        Table table = new Table(UnitValue.createPercentArray(new float[]{2.5f, 4f, 1.5f}))
                 .setWidth(UnitValue.createPercentValue(100))
                 .setMarginBottom(14);
 
         // Headers
         table.addHeaderCell(headerCell("Titre", bold));
         table.addHeaderCell(headerCell("Description", bold));
-        table.addHeaderCell(headerCell("Échéance", bold));
         table.addHeaderCell(headerCell("Statut", bold));
 
         for (Objectif o : filtered) {
             table.addCell(cell(o.getTitre() != null ? o.getTitre() : "—", normal));
             table.addCell(cell(o.getDescription() != null ? o.getDescription() : "—", normal));
-            table.addCell(cell(
-                    o.getDateEcheance() != null
-                            ? o.getDateEcheance().format(DATE_FMT) : "—", normal));
-            table.addCell(cell(
-                    o.getStatut() != null ? o.getStatut().name() : "—", normal));
+            table.addCell(cell(o.getStatut() != null ? o.getStatut().name() : "—", normal));
         }
 
         doc.add(table);

@@ -1,0 +1,122 @@
+<div class="pending-page">
+
+  <div class="page-header">
+    <div>
+      <div class="page-label">Administration</div>
+      <h1 class="page-title">Validation des événements</h1>
+    </div>
+    <span class="badge-count" *ngIf="!loading">
+      {{ events.length }} en attente
+    </span>
+  </div>
+
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <span>Chargement...</span>
+  </div>
+
+  <div class="alert-error" *ngIf="error && !loading">{{ error }}</div>
+
+  <div class="empty-state" *ngIf="!loading && !error && events.length === 0">
+    <div class="empty-icon">✓</div>
+    <p class="empty-title">Aucun événement en attente</p>
+    <p class="empty-sub">Tous les événements ont été traités.</p>
+  </div>
+
+  <div class="pending-list" *ngIf="!loading && events.length > 0">
+    <div class="pending-card" *ngFor="let event of events"
+         [class.card-approved]="actionSuccess[event.id] === 'approved'"
+         [class.card-rejected]="actionSuccess[event.id] === 'rejected'">
+
+      <!-- Success overlay -->
+      <div class="success-overlay" *ngIf="actionSuccess[event.id]">
+        <span *ngIf="actionSuccess[event.id] === 'approved'">✓ Approuvé</span>
+        <span *ngIf="actionSuccess[event.id] === 'rejected'">✕ Rejeté</span>
+      </div>
+
+      <!-- Tags row -->
+      <div class="card-meta">
+        <span class="tag-type">{{ event.type }}</span>
+        <span class="tag-location">{{ event.locationType }}</span>
+        <span class="meta-date">{{ event.startDate | date:'dd MMM yyyy' }}</span>
+      </div>
+
+      <!-- Title -->
+      <h2 class="card-title">{{ event.title }}</h2>
+      <p class="card-desc">{{ event.description }}</p>
+
+      <!-- Organizer info -->
+      <div class="card-organizer">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        <span class="org-name">
+          {{ event.organizerName || ('Organisateur #' + event.organizerId) }}
+        </span>
+      <span class="org-role-badge"
+      [class.role-mentor]="event.organizerRole.includes('MENTOR')"
+      [class.role-partner]="event.organizerRole.includes('PARTNER') || event.organizerRole.includes('PARTENAIRE')">
+  {{ event.organizerRole }}
+</span>
+        <span class="org-email" *ngIf="event.organizerEmail">· {{ event.organizerEmail }}</span>
+      </div>
+
+      <!-- Details row -->
+      <div class="card-details">
+        <span class="detail-item">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+          </svg>
+          {{ event.capacityMax }} places
+        </span>
+        <span class="detail-item" *ngIf="event.submittedAt">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+          Soumis le {{ event.submittedAt | date:'dd/MM/yyyy HH:mm' }}
+        </span>
+        <span class="detail-item" *ngIf="event.targetSector?.length">
+          {{ event.targetSector.join(', ') }}
+        </span>
+      </div>
+
+      <!-- Reject reason input -->
+      <div class="reject-panel" *ngIf="rejectingId === event.id">
+        <textarea class="reject-input" placeholder="Raison du rejet (obligatoire)..."
+          [(ngModel)]="rejectReason[event.id]" rows="3">
+        </textarea>
+        <div class="reject-actions">
+         <button class="btn-confirm-reject"
+  (click)="confirmReject(event.id)"
+  [disabled]="actionLoading[event.id] || !hasRejectReason(event.id)">
+  <span *ngIf="!actionLoading[event.id]">Confirmer le rejet</span>
+  <span *ngIf="actionLoading[event.id]">...</span>
+</button>
+          <button class="btn-cancel" (click)="cancelReject()">Annuler</button>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="card-actions" *ngIf="!actionSuccess[event.id] && rejectingId !== event.id">
+        <button class="btn-approve" (click)="approve(event.id)" [disabled]="actionLoading[event.id]">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span *ngIf="!actionLoading[event.id]">Approuver</span>
+          <span *ngIf="actionLoading[event.id]">...</span>
+        </button>
+        <button class="btn-reject" (click)="startReject(event.id)" [disabled]="actionLoading[event.id]">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+          Rejeter
+        </button>
+        <a [routerLink]="['/events', event.id]" class="btn-view">Voir détail →</a>
+      </div>
+
+    </div>
+  </div>
+
+</div>

@@ -10,8 +10,7 @@
       "Bash(npx tsc *)",
       "mcp__ide__getDiagnostics",
       "Bash(xargs cat *)",
-      "Bash(npx ng *)",
-      "Bash(mvn compile *)"
+      "Bash(npx ng *)"
     ]
   }
 }

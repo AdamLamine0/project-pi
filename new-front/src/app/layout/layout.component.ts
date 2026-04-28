@@ -10,7 +10,7 @@ import {
   lucideAlertCircle, lucideEdit, lucideMoon, lucideSun, lucideStar,
   lucideMonitor, lucideMenu, lucideCamera, lucideKey, lucideTrash2,
   lucideChevronRight, lucideLanguages, lucideCreditCard, lucideMessageSquare,
-  lucideClipboardList,
+  lucideClipboardList, lucideBuilding, lucideFileText, lucideVideo,
 } from '@ng-icons/lucide';
 import { filter } from 'rxjs/operators';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -36,7 +36,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
       lucideAlertCircle, lucideEdit, lucideMoon, lucideSun, lucideStar,
       lucideMonitor, lucideMenu, lucideCamera, lucideKey, lucideTrash2,
       lucideChevronRight, lucideLanguages, lucideCreditCard, lucideMessageSquare,
-      lucideClipboardList,
+      lucideClipboardList, lucideBuilding, lucideFileText, lucideVideo,
     }),
   ],
   template: `
@@ -86,7 +86,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
 
         <!-- Nav items -->
         <nav class="flex flex-col gap-0.5 py-3 flex-1" style="padding-inline:10px; overflow:hidden;">
-          @for (item of visibleNavItems(); track item.route) {
+          @for (item of filteredNavItems(); track item.route) {
             <a
               [routerLink]="item.route"
               routerLinkActive="active-nav"
@@ -893,21 +893,30 @@ export class LayoutComponent {
   }
 
   protected readonly navItems: NavItem[] = [
-    { icon: 'lucideLayoutDashboard', label: 'Dashboard',    route: '/app/dashboard', roles: ['ADMIN'] },
+    { icon: 'lucideLayoutDashboard', label: 'Dashboard',    route: '/app/dashboard'    },
     { icon: 'lucideRocket',          label: 'Projects',     route: '/app/projects'     },
     { icon: 'lucideUsers',           label: 'Community',    route: '/app/community'    },
-    { icon: 'lucideScale',           label: 'Procedures',   route: '/app/legal', roles: ['ADMIN'] },
+    { icon: 'lucideScale',           label: 'Legal',        route: '/app/legal'        },
     { icon: 'lucideTrendingUp',      label: 'Investments',  route: '/app/investments'  },
     { icon: 'lucideGraduationCap',   label: 'Mentoring',    route: '/app/mentoring'    },
     { icon: 'lucideMap',             label: 'Roadmaps',     route: '/app/roadmaps'     },
-    { icon: 'lucideHandshake',       label: 'Partnerships', route: '/app/partnerships' },
+    { icon: 'lucideHandshake',       label: 'Partnerships', route: '/app/partenariat/list' },
     { icon: 'lucideCalendar',        label: 'Events',       route: '/app/events'       },
-    { icon: 'lucideClipboardList',   label: 'Registrations', route: '/app/registrations' },
+    { icon: 'lucideBuilding',        label: 'Mon Organisation', route: '/app/partenariat/mon-organisation', roles: ['PARTNER', 'PARTENAIRE'] },
+    { icon: 'lucideFileText',        label: 'Conventions',  route: '/app/partenariat/conventions', roles: ['ADMIN', 'PARTNER', 'PARTENAIRE', 'USER'] },
+    { icon: 'lucideVideo',           label: 'Meeting',      route: '/app/partenariat/meetings', roles: ['ADMIN', 'PARTNER', 'PARTENAIRE', 'USER'] },
+    { icon: 'lucideClipboardList',   label: 'Registrations', route: '/app/registrations', roles: ['ADMIN'] },
+    { icon: 'lucideUsers',           label: 'Users',         route: '/app/users',         roles: ['ADMIN'] },
   ];
 
-  protected readonly visibleNavItems = computed(() =>
-    this.navItems.filter(item => !item.roles || item.roles.includes(this.authService.getRole()))
-  );
+  // Filter nav items based on user role
+  protected readonly filteredNavItems = computed(() => {
+    const userRole = this.authService.getRole();
+    return this.navItems.filter(item => {
+      if (!item.roles) return true; // No role restriction
+      return item.roles.includes(userRole);
+    });
+  });
 
   private readonly url = toSignal(
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)),
@@ -917,7 +926,7 @@ export class LayoutComponent {
   protected readonly currentPageTitle = computed(() => {
     this.url();
     const cleanUrl = this.router.url.split('?')[0];
-    return this.visibleNavItems().find((item) => cleanUrl.startsWith(item.route))?.label ?? 'FoundersLab';
+    return this.filteredNavItems().find((item) => cleanUrl.startsWith(item.route))?.label ?? 'FoundersLab';
   });
 
   protected readonly userDisplayName = computed(() => {
@@ -933,6 +942,10 @@ export class LayoutComponent {
     const role = this.authService.getRole();
     if (!role) {
       return 'Member';
+    }
+
+    if (role === 'PARTENAIRE') {
+      return 'Partner';
     }
 
     return role.charAt(0) + role.slice(1).toLowerCase();

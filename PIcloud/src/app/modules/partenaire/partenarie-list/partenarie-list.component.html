@@ -1,0 +1,250 @@
+<!-- partenarie-list.component.html -->
+<div class="pl-page">
+
+  <!-- ── HEADER ─────────────────────────────────────────────────── -->
+  <div class="pl-header">
+    <div class="pl-header-text">
+      <p class="pl-eyebrow">Network</p>
+      <h1 class="pl-title">Partner Organizations</h1>
+      <p class="pl-sub">{{ filtered.length }} organization{{ filtered.length !== 1 ? 's' : '' }} found</p>
+    </div>
+
+    <button class="btn-primary" *ngIf="isAdmin" (click)="goToCreate()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5"  y1="12" x2="19" y2="12"/>
+      </svg>
+      Add a partner
+    </button>
+  </div>
+
+  <!-- ── ALERTS ──────────────────────────────────────────────────── -->
+  <div class="alert success" *ngIf="successMessage">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+    </svg>
+    {{ successMessage }}
+  </div>
+  <div class="alert error" *ngIf="errorMessage">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ errorMessage }}
+  </div>
+
+  <!-- ── FILTERS ─────────────────────────────────────────────────── -->
+  <div class="pl-filters">
+    <div class="search-box">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" placeholder="Search by name, email, region…"
+        [(ngModel)]="searchTerm" (input)="applyFilter()"/>
+    </div>
+
+    <select [(ngModel)]="selectedType" (change)="applyFilter()">
+      <option value="">All types</option>
+      <option *ngFor="let t of types" [value]="t">{{ t }}</option>
+    </select>
+
+    <!-- Status filter: admin sees all statuses, others only see ACTIVE -->
+    <select *ngIf="isAdmin" [(ngModel)]="selectedStatut" (change)="applyFilter()">
+      <option value="">All statuses</option>
+      <option *ngFor="let s of statuts" [value]="s">{{ s }}</option>
+    </select>
+  </div>
+
+  <!-- ── LOADING ─────────────────────────────────────────────────── -->
+  <div class="loading-row" *ngIf="isLoading">
+    <span class="ring"></span> Loading…
+  </div>
+
+  <!-- ── GRID ────────────────────────────────────────────────────── -->
+  <div class="pl-grid" *ngIf="!isLoading">
+
+    <div class="org-card" *ngFor="let o of paginated"
+         [class.card-suspended]="o.statut === PartnerStatus.SUSPENDED"
+         [class.card-terminated]="o.statut === PartnerStatus.TERMINATED">
+
+      <div class="card-top">
+        <span class="type-label">{{ o.type }}</span>
+        <span class="badge" [ngClass]="statutClass(o.statut)">{{ o.statut }}</span>
+      </div>
+
+      <div class="card-body">
+        <h3 class="org-nom">{{ o.nom }}</h3>
+        <p class="org-desc">{{ o.description || '—' }}</p>
+
+        <div class="org-meta">
+          <span *ngIf="o.region">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+            </svg>
+            {{ o.region }}
+          </span>
+          <span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            {{ o.contactEmail }}
+          </span>
+        </div>
+      </div>
+
+      <!-- ── Terminate inline confirm ── -->
+      <div class="terminate-confirm" *ngIf="confirmTerminate === o.id">
+        <p class="confirm-text">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          Terminate <strong>{{ o.nom }}</strong>? The responsible user will lose access.
+        </p>
+        <div class="confirm-btns">
+          <button class="btn-cancel-sm" (click)="cancelTerminate()">Cancel</button>
+          <button class="btn-terminate-confirm" (click)="confirmTerminateAction(o)"
+                  [disabled]="isChanging(o.id)">
+            <span class="spin-sm" *ngIf="isChanging(o.id)"></span>
+            Yes, terminate
+          </button>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <a *ngIf="o.siteWeb" [href]="o.siteWeb" target="_blank" class="btn-site">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+          Website
+        </a>
+
+        <!-- View button — non-admins only, active orgs -->
+        <button class="btn-view"
+                *ngIf="!isAdmin && o.statut === PartnerStatus.ACTIVE"
+                (click)="goToView(o.id)"
+                title="View details">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          View
+        </button>
+
+        <!-- Meeting button -->
+        <button class="btn-meeting"
+                *ngIf="canRequestMeeting && o.statut === PartnerStatus.ACTIVE"
+                (click)="goToMeetingRequest(o.id)"
+                title="Request a meeting">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 7l-7 5 7 5V7z"/>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+          </svg>
+          Meeting
+        </button>
+
+        <!-- ── ADMIN actions ─────────────────────────────────────── -->
+        <div class="admin-actions" *ngIf="isAdmin">
+
+          <!-- Edit (disabled when terminated) -->
+          <button class="btn-edit"
+                  (click)="goToDetail(o.id)"
+                  [disabled]="o.statut === PartnerStatus.TERMINATED"
+                  title="Edit">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Edit
+          </button>
+
+          <!-- Suspend / Activate toggle (only when ACTIVE or SUSPENDED) -->
+          <button *ngIf="o.statut === PartnerStatus.ACTIVE"
+                  class="btn-suspend"
+                  (click)="toggleSuspend(o)"
+                  [disabled]="isChanging(o.id)"
+                  title="Suspend this partner">
+            <span class="spin-sm" *ngIf="isChanging(o.id)"></span>
+            <svg *ngIf="!isChanging(o.id)" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="10" y1="15" x2="10" y2="9"/>
+              <line x1="14" y1="15" x2="14" y2="9"/>
+            </svg>
+            Suspend
+          </button>
+
+          <button *ngIf="o.statut === PartnerStatus.SUSPENDED"
+                  class="btn-activate"
+                  (click)="toggleSuspend(o)"
+                  [disabled]="isChanging(o.id)"
+                  title="Reactivate this partner">
+            <span class="spin-sm" *ngIf="isChanging(o.id)"></span>
+            <svg *ngIf="!isChanging(o.id)" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="10 8 16 12 10 16 10 8"/>
+            </svg>
+            Activate
+          </button>
+
+          <!-- Terminate (only when ACTIVE or SUSPENDED) -->
+          <button *ngIf="o.statut === PartnerStatus.ACTIVE || o.statut === PartnerStatus.SUSPENDED"
+                  class="btn-terminate"
+                  (click)="requestTerminate(o)"
+                  [disabled]="isChanging(o.id)"
+                  title="Terminate this partner">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+              <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+            </svg>
+            Terminate
+          </button>
+
+          <!-- Delete (only when TERMINATED) -->
+          <button *ngIf="o.statut === PartnerStatus.TERMINATED"
+                  class="btn-del"
+                  (click)="delete(o)"
+                  title="Delete permanently">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+              <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+            </svg>
+            Delete
+          </button>
+
+        </div>
+      </div>
+
+    </div>
+
+    <div class="empty-state" *ngIf="paginated.length === 0">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <p>No organizations found</p>
+    </div>
+  </div>
+
+  <!-- ── PAGINATION ──────────────────────────────────────────────── -->
+  <div class="tfoot" *ngIf="!isLoading && totalPages > 1">
+    <span class="tfoot-info">{{ paginated.length }} / {{ filtered.length }}</span>
+    <div class="pager">
+      <button [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      <button *ngFor="let p of pageNumbers"
+        [class.active]="p === currentPage" (click)="goToPage(p)">{{ p }}</button>
+      <button [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+</div>

@@ -9,7 +9,6 @@ import org.example.partenariatpi.model.Convention;
 import org.example.partenariatpi.model.OrganisationPartenaire;
 import org.example.partenariatpi.repository.ConventionRepository;
 import org.springframework.stereotype.Service;
-import java.time.temporal.ChronoUnit;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -53,10 +52,10 @@ public class ConventionService {
     }
 
     // ── CREATE ────────────────────────────────────────────────────────────────
+    // Dates are NOT required at creation time.
+    // They are negotiated and locked when both parties sign (confirmer).
 
     public ConventionResponse create(ConventionRequest request, String role) {
-        validateDates(request.getDateDebut(), request.getDateFin());
-
         OrganisationPartenaire org = orgService.findById(request.getOrganisationPartenaireId());
         Convention c = mapper.toEntity(request, org);
         c.setModifieParRole(role);
@@ -75,16 +74,21 @@ public class ConventionService {
     //
     // Rules:
     //  1. You CANNOT confirm if YOU were the last one to modify (modifieParRole == your role)
-    //  2. You CANNOT confirm if you already confirmed AND the other party hasn't yet
-    //  3. Once both confirmed → ACTIVE
-    //  4. If one party confirms and the other modifies → both confirmations reset
+    //     unless the other party already confirmed.
+    //  2. You CANNOT confirm twice.
+    //  3. The FIRST party to confirm must supply dateDebut + dateFin — these are validated
+    //     and locked on the convention.  The second party confirms the same locked dates.
+    //  4. Once both confirmed → ACTIVE.
+    //  5. If one party confirms and the other modifies → both confirmations reset.
 
-    public ConventionResponse confirmer(Integer id, String role, String signature) {
+    public ConventionResponse confirmer(Integer id, String role, String signature,
+                                        LocalDate dateDebut, LocalDate dateFin) {
         Convention existing = findById(id);
 
-        if (sameConventionSide(role, existing.getModifieParRole())) {
+        // ── Block check: modifier cannot self-confirm until other party has confirmed ──
+        if (role.equals(existing.getModifieParRole())) {
             boolean otherHasConfirmed =
-                    isEntrepreneurRole(role)
+                    "ROLE_USER".equals(role)
                             ? Boolean.TRUE.equals(existing.getConfirmeParPartenaire())
                             : Boolean.TRUE.equals(existing.getConfirmeParUser());
             if (!otherHasConfirmed) {
@@ -94,54 +98,74 @@ public class ConventionService {
             existing.setModifieParRole(null);
         }
 
-        if (isEntrepreneurRole(role) && Boolean.TRUE.equals(existing.getConfirmeParUser())) {
+        // ── Already confirmed check ───────────────────────────────────────────
+        if ("ROLE_USER".equals(role) && Boolean.TRUE.equals(existing.getConfirmeParUser())) {
             throw new RuntimeException("Vous avez déjà confirmé cette convention.");
         }
         if ("ROLE_PARTNER".equals(role) && Boolean.TRUE.equals(existing.getConfirmeParPartenaire())) {
             throw new RuntimeException("Vous avez déjà confirmé cette convention.");
         }
 
-        // ── Stocker la signature ──────────────────────────────────────────────
+        // ── Date handling ────────────────────────────────────────────────────
+        // Neither party has confirmed yet → dates must be provided and are validated + locked.
+        boolean neitherConfirmedYet = !Boolean.TRUE.equals(existing.getConfirmeParUser())
+                && !Boolean.TRUE.equals(existing.getConfirmeParPartenaire());
+
+        if (neitherConfirmedYet) {
+            // First confirmer must supply valid dates
+            if (dateDebut == null || dateFin == null) {
+                throw new RuntimeException(
+                        "Vous devez fournir dateDebut et dateFin lors de la première confirmation.");
+            }
+            validateDates(dateDebut, dateFin);
+            existing.setDateDebut(dateDebut);
+            existing.setDateFin(dateFin);
+        }
+        // Second confirmer: dates are already locked — ignore any supplied values.
+
+        // ── Store signature ───────────────────────────────────────────────────
         if (signature != null && !signature.isBlank()) {
-            if (isEntrepreneurRole(role)) {
+            if ("ROLE_USER".equals(role)) {
                 existing.setSignatureUser(signature);
             } else if ("ROLE_PARTNER".equals(role)) {
                 existing.setSignaturePartenaire(signature);
             }
         }
 
-        if (isEntrepreneurRole(role)) {
+        // ── Mark confirmation ─────────────────────────────────────────────────
+        if ("ROLE_USER".equals(role)) {
             existing.setConfirmeParUser(true);
         } else if ("ROLE_PARTNER".equals(role)) {
             existing.setConfirmeParPartenaire(true);
         }
 
+        // ── Activate if both have confirmed ───────────────────────────────────
         if (Boolean.TRUE.equals(existing.getConfirmeParUser())
                 && Boolean.TRUE.equals(existing.getConfirmeParPartenaire())) {
             existing.setStatut(StatutConvention.ACTIVE);
             existing.setSignedAt(LocalDate.now());
             existing.setModifieParRole(null);
         } else {
-            existing.setStatut(StatutConvention.SIGNEE);
+            existing.setStatut(StatutConvention.SIGNED);
         }
 
         return mapper.toResponse(repository.save(existing));
     }
 
     // ── UPDATE ────────────────────────────────────────────────────────────────
+    // Dates remain optional here too; they are proposed as part of negotiation
+    // and finalized only at confirmation.
 
     public ConventionResponse update(Integer id, ConventionRequest request, String role) {
-        validateDates(request.getDateDebut(), request.getDateFin());
-
         Convention existing = findById(id);
-        existing.setDateDebut(request.getDateDebut());
-        existing.setDateFin(request.getDateFin());
+        // Only update dates if the requester explicitly sends them
+        if (request.getDateDebut() != null) existing.setDateDebut(request.getDateDebut());
+        if (request.getDateFin()   != null) existing.setDateFin(request.getDateFin());
         resetConfirmations(existing, role);
         return mapper.toResponse(repository.save(existing));
     }
-    // ── RESET CONFIRMATIONS (called also after objectif changes) ──────────────
-    // Call this whenever any party modifies anything on the convention.
-    // This makes the OTHER party re-confirm after seeing the change.
+
+    // ── RESET CONFIRMATIONS ───────────────────────────────────────────────────
 
     public ConventionResponse resetConfirmationsAfterObjectifChange(Integer conventionId, String role) {
         Convention existing = findById(conventionId);
@@ -152,8 +176,8 @@ public class ConventionService {
     private void resetConfirmations(Convention c, String role) {
         c.setConfirmeParUser(false);
         c.setConfirmeParPartenaire(false);
-        c.setStatut(StatutConvention.BROUILLON);
-        c.setModifieParRole(role);  // track WHO last modified → they cannot confirm next
+        c.setStatut(StatutConvention.DRAFT);
+        c.setModifieParRole(role);
     }
 
     // ── STATUT ────────────────────────────────────────────────────────────────
@@ -161,7 +185,7 @@ public class ConventionService {
     public ConventionResponse updateStatut(Integer id, StatutConvention statut) {
         Convention existing = findById(id);
         existing.setStatut(statut);
-        if (statut == StatutConvention.SIGNEE && existing.getSignedAt() == null) {
+        if (statut == StatutConvention.SIGNED && existing.getSignedAt() == null) {
             existing.setSignedAt(LocalDate.now());
         }
         return mapper.toResponse(repository.save(existing));
@@ -203,7 +227,7 @@ public class ConventionService {
             }
         }
 
-        existing.setStatut(StatutConvention.EXPIREE);
+        existing.setStatut(StatutConvention.EXPIRED);
         existing.setRenouvellementDemandeParRole(null);
         repository.save(existing);
 
@@ -218,6 +242,20 @@ public class ConventionService {
             checkIsParty(existing, requestingRole, requestingUserId);
         }
         repository.deleteById(id);
+    }
+
+    // ── ANNULER ───────────────────────────────────────────────────────────────
+
+    public ConventionResponse annuler(Integer id, String role, Integer requestingUserId) {
+        Convention existing = findById(id);
+        checkIsParty(existing, role, requestingUserId);
+
+        if (existing.getStatut() == StatutConvention.EXPIRED) {
+            throw new RuntimeException("Convention déjà expirée.");
+        }
+
+        existing.setStatut(StatutConvention.EXPIRED);
+        return mapper.toResponse(repository.save(existing));
     }
 
     // ── SECURITY ──────────────────────────────────────────────────────────────
@@ -248,46 +286,28 @@ public class ConventionService {
         return repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Convention not found with id: " + id));
     }
-    public ConventionResponse annuler(Integer id, String role, Integer requestingUserId) {
+
+    public void markAsCompleted(Integer id) {
         Convention existing = findById(id);
-        checkIsParty(existing, role, requestingUserId);
-
-        if (existing.getStatut() == StatutConvention.EXPIREE) {
-            throw new RuntimeException("Convention déjà expirée.");
-        }
-
-        existing.setStatut(StatutConvention.EXPIREE);
-        return mapper.toResponse(repository.save(existing));
+        existing.setStatut(StatutConvention.COMPLETED);
+        repository.save(existing);
     }
 
-    // ── Ajouter validateDates() ───────────────────────────────────────────────────
+    // ── DATE VALIDATION (only called at confirmation time) ────────────────────
+
     private void validateDates(LocalDate dateDebut, LocalDate dateFin) {
         LocalDate tomorrow = LocalDate.now().plusDays(1);
 
-        if (dateDebut == null || dateDebut.isBefore(tomorrow)) {
+        if (dateDebut.isBefore(tomorrow)) {
             throw new RuntimeException(
                     "La date de début doit être au minimum demain (" + tomorrow + ").");
         }
-
-        if (dateFin == null || dateFin.isBefore(dateDebut.plusMonths(3))) {
+        // dateFin must be AT LEAST 3 months after dateDebut (inclusive)
+        LocalDate minDateFin = dateDebut.plusMonths(3);
+        if (dateFin.isBefore(minDateFin)) {
             throw new RuntimeException(
-                    "La date de fin doit être au minimum 3 mois après la date de début.");
+                    "La date de fin doit être au minimum 3 mois après la date de début (au plus tôt le "
+                            + minDateFin + ").");
         }
-    }
-
-    private boolean isEntrepreneurRole(String role) {
-        return "ROLE_USER".equals(role) || "ROLE_ENTREPRENEUR".equals(role);
-    }
-
-    private String conventionSide(String role) {
-        if (isEntrepreneurRole(role)) return "ENTREPRENEUR";
-        if ("ROLE_PARTNER".equals(role)) return "PARTNER";
-        if ("ROLE_ADMIN".equals(role)) return "ADMIN";
-        return role;
-    }
-
-    private boolean sameConventionSide(String left, String right) {
-        if (left == null || right == null) return false;
-        return conventionSide(left).equals(conventionSide(right));
     }
 }

@@ -15,7 +15,7 @@
 
     <!-- ── Center pill: Navigation links ── -->
     <nav class="pill pill-nav" [@pillCenter]="pillState()" aria-label="Primary navigation">
-      @for (link of navLinks; track link.id) {
+      @for (link of filteredNavLinks(); track link.id) {
       @if (link.type === 'route') {
       <a class="nav-link" [routerLink]="link.route" [class.active]="activeLink() === link.id"
         (click)="setActive(link.id)">
@@ -157,7 +157,7 @@
   <!-- ── Mobile menu overlay ── -->
   @if (mobileMenu()) {
   <div class="mobile-menu" [@mobileOverlay] role="dialog" aria-modal="true">
-    @for (link of navLinks; track link.id) {
+    @for (link of filteredNavLinks(); track link.id) {
     @if (link.type === 'route') {
     <a class="mobile-link" [routerLink]="link.route" (click)="mobileMenu.set(false); setActive(link.id)">
       {{ link.label }}

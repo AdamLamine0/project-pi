@@ -38,34 +38,24 @@ public class LegalProcedureController {
         return ResponseEntity.ok(service.findByEntrepreneur(entrepreneurId));
     }
 
-    @GetMapping("/stats")
-    public ResponseEntity<LegalProcedureStatsResponse> stats() {
-        return ResponseEntity.ok(service.getStats());
-    }
-
-    @GetMapping("/admin/all")
-    public ResponseEntity<List<LegalProcedureResponse>> allProcedures() {
-        return ResponseEntity.ok(service.findAll());
-    }
-
-    @GetMapping("/{id:[0-9a-fA-F\\-]{36}}")
+    @GetMapping("/{id}")
     public ResponseEntity<LegalProcedureResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
-    @GetMapping("/{id:[0-9a-fA-F\\-]{36}}/checklist")
+    @GetMapping("/{id}/checklist")
     public ResponseEntity<ProcedureChecklistResponse> getChecklist(@PathVariable UUID id) {
         return ResponseEntity.ok(checklistService.getChecklist(id));
     }
 
-    @PostMapping("/{id:[0-9a-fA-F\\-]{36}}/submit")
+    @PostMapping("/{id}/submit")
     public ResponseEntity<LegalProcedureResponse> submit(
             @PathVariable UUID id,
             @RequestHeader("X-User-Id") Integer entrepreneurId) {
         return ResponseEntity.ok(service.submit(id, entrepreneurId));
     }
 
-    @DeleteMapping("/{id:[0-9a-fA-F\\-]{36}}")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteDraft(
             @PathVariable UUID id,
             @RequestHeader("X-User-Id") Integer entrepreneurId) {
@@ -83,7 +73,7 @@ public class LegalProcedureController {
         return ResponseEntity.ok(service.findByExpert(expertId));
     }
 
-    @PostMapping("/{id:[0-9a-fA-F\\-]{36}}/expert-decision")
+    @PostMapping("/{id}/expert-decision")
     public ResponseEntity<LegalProcedureResponse> expertDecision(
             @PathVariable UUID id,
             @Valid @RequestBody ExpertDecisionRequest request,
