@@ -36,14 +36,14 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
 
         LegalProcedure procedure = procedureRepository.findById(procedureId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Dossier introuvable avec l'id : " + procedureId));
+                        "Case not found with id: " + procedureId));
 
         if (!canEditDocuments(procedure.getStatus())) {
             throw new BusinessException(
-                    "Les documents ne peuvent etre modifies que sur un dossier en BROUILLON ou REFUSE.");
+                    "Documents can only be changed on a DRAFT or REJECTED case.");
         }
 
-        // Si un document existe déjà pour ce requirement → on le remplace
+        // If a document already exists for this requirement, replace it.
         documentRepository.findByProcedureId(procedureId).stream()
                 .filter(d -> d.getRequirementCode().equals(requirementCode))
                 .findFirst()
@@ -71,7 +71,7 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
     public List<LegalDocumentResponse> findByProcedure(UUID procedureId) {
         if (!procedureRepository.existsById(procedureId)) {
             throw new ResourceNotFoundException(
-                    "Dossier introuvable avec l'id : " + procedureId);
+                    "Case not found with id: " + procedureId);
         }
         return documentRepository.findByProcedureId(procedureId)
                 .stream()
@@ -84,11 +84,11 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
                                               UpdateLegalDocumentStatusRequest request) {
         LegalDocument document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Document introuvable avec l'id : " + documentId));
+                        "Document not found with id: " + documentId));
 
         if (isLocked(document.getProcedure().getStatus())) {
             throw new BusinessException(
-                    "Impossible de modifier un document d'un dossier terminé.");
+                    "Cannot update a document from a completed case.");
         }
 
         document.setStatus(request.status());
@@ -103,11 +103,11 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
     public void delete(UUID documentId) {
         LegalDocument document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Document introuvable avec l'id : " + documentId));
+                        "Document not found with id: " + documentId));
 
         if (!canEditDocuments(document.getProcedure().getStatus())) {
             throw new BusinessException(
-                    "Impossible de supprimer un document d'un dossier deja soumis, sauf apres refus IA.");
+                    "Cannot delete a document from a submitted case unless it was rejected by AI.");
         }
 
         LegalProcedure procedure = document.getProcedure();

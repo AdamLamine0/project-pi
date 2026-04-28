@@ -41,7 +41,7 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
     @Override
     public LegalProcedureResponse create(CreateLegalProcedureRequest request, Integer entrepreneurId) {
         if (request.procedureType() == com.example.demo.enums.ProcedureType.AUTRE) {
-            throw new BusinessException("Ce type de procedure n'est plus disponible.");
+            throw new BusinessException("This procedure type is no longer available.");
         }
 
         LegalProcedure procedure = LegalProcedure.builder()
@@ -77,16 +77,16 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
         LegalProcedure procedure = getProcedureEntity(id);
 
         if (!procedure.getEntrepreneurId().equals(entrepreneurId)) {
-            throw new BusinessException("Acces non autorise a ce dossier.");
+            throw new BusinessException("Access to this case is not authorized.");
         }
         if (procedure.getStatus() != ProcedureStatus.BROUILLON
                 && procedure.getStatus() != ProcedureStatus.REFUSE) {
-            throw new BusinessException("Seul un dossier en BROUILLON ou REFUSE peut etre soumis.");
+            throw new BusinessException("Only a DRAFT or REJECTED case can be submitted.");
         }
 
         boolean allUploaded = checklistService.areAllRequiredDocumentsUploaded(id);
         if (!allUploaded) {
-            throw new BusinessException("Tous les documents obligatoires doivent etre deposes avant la soumission.");
+            throw new BusinessException("All required documents must be uploaded before submission.");
         }
 
         procedure.setStatus(ProcedureStatus.EN_COURS);
@@ -105,10 +105,10 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
         LegalProcedure procedure = getProcedureEntity(id);
 
         if (!procedure.getEntrepreneurId().equals(entrepreneurId)) {
-            throw new BusinessException("Acces non autorise.");
+            throw new BusinessException("Unauthorized access.");
         }
         if (procedure.getStatus() != ProcedureStatus.BROUILLON) {
-            throw new BusinessException("Seul un dossier en BROUILLON peut etre supprime.");
+            throw new BusinessException("Only a DRAFT case can be deleted.");
         }
 
         procedureRepository.delete(procedure);
@@ -129,10 +129,10 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
         LegalProcedure procedure = getProcedureEntity(id);
 
         if (!procedure.getExpertId().equals(expertId)) {
-            throw new BusinessException("Ce dossier ne vous est pas assigne.");
+            throw new BusinessException("This case is not assigned to you.");
         }
         if (procedure.getStatus() != ProcedureStatus.EN_ATTENTE_EXPERT) {
-            throw new BusinessException("Le dossier doit etre EN_ATTENTE_EXPERT pour une decision expert.");
+            throw new BusinessException("The case must be WAITING_FOR_EXPERT_REVIEW before an expert decision can be made.");
         }
 
         procedure.setStatus(request.approved() ? ProcedureStatus.COMPLETE : ProcedureStatus.REFUSE);
@@ -162,7 +162,7 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
         LegalProcedure procedure = getProcedureEntity(id);
 
         if (procedure.getStatus() != ProcedureStatus.EN_COURS) {
-            throw new BusinessException("L'IA ne peut analyser qu'un dossier EN_COURS.");
+            throw new BusinessException("AI can only analyze an IN_PROGRESS case.");
         }
 
         if (approved) {
@@ -184,7 +184,7 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
     private LegalProcedure getProcedureEntity(UUID id) {
         return procedureRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Dossier juridique introuvable avec l'id : " + id));
+                        "Legal case not found with id: " + id));
     }
 
     private void ensureFinalDocumentGenerated(LegalProcedure procedure) {

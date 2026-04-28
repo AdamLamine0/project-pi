@@ -101,7 +101,7 @@ export class LegalProcedureDetailComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Erreur lors du chargement du dossier.';
+        this.errorMessage = err?.error?.message || 'An error occurred while loading the case.';
         this.loading = false;
         this.cdr.detectChanges();
       }
@@ -115,7 +115,7 @@ export class LegalProcedureDetailComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Erreur checklist', err);
+        console.error('Checklist error', err);
         this.cdr.detectChanges();
       }
     });
@@ -128,7 +128,7 @@ export class LegalProcedureDetailComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Erreur lors de la synchronisation du dossier.';
+        this.errorMessage = err?.error?.message || 'An error occurred while syncing the case.';
         this.cdr.detectChanges();
       }
     });
@@ -149,26 +149,26 @@ export class LegalProcedureDetailComponent implements OnInit {
       this.procedure.id, item.code, this.selectedFiles[item.code]
     ).subscribe({
       next: () => {
-        this.successMessage = `"${item.label}" depose avec succes.`;
+        this.successMessage = `"${item.label}" uploaded successfully.`;
         this.uploadingCode = null;
         delete this.selectedFiles[item.code];
         this.loadAll(this.procedure!.id);
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Erreur lors du televersement.';
+        this.errorMessage = err?.error?.message || 'An error occurred while uploading.';
         this.uploadingCode = null;
       }
     });
   }
 
   deleteDocument(documentId: string): void {
-    if (!this.procedure || !confirm('Supprimer ce document ?')) return;
+    if (!this.procedure || !confirm('Delete this document?')) return;
     this.service.deleteDocument(this.procedure.id, documentId).subscribe({
       next: () => {
-        this.successMessage = 'Document supprime.';
+        this.successMessage = 'Document deleted.';
         this.loadAll(this.procedure!.id);
       },
-      error: (err) => this.errorMessage = err?.error?.message || 'Erreur de suppression.'
+      error: (err) => this.errorMessage = err?.error?.message || 'An error occurred while deleting.'
     });
   }
 
@@ -176,10 +176,10 @@ export class LegalProcedureDetailComponent implements OnInit {
     if (!this.procedure) return;
     this.service.submit(this.procedure.id, this.userId).subscribe({
       next: (updated) => {
-        this.successMessage = 'Dossier soumis avec succes. Analyse IA lancee.';
+        this.successMessage = 'Case submitted successfully. AI analysis started.';
         this.loadAll(updated.id);
       },
-      error: (err) => this.errorMessage = err?.error?.message || 'Erreur lors de la soumission.'
+      error: (err) => this.errorMessage = err?.error?.message || 'An error occurred while submitting the case.'
     });
   }
 
@@ -192,12 +192,12 @@ export class LegalProcedureDetailComponent implements OnInit {
     this.service.analyzeWithAi(this.procedure.id).subscribe({
       next: (result) => {
         this.aiResult = result;
-        this.successMessage = `Analyse IA terminee : ${result.decision}.`;
+        this.successMessage = `AI analysis completed: ${result.decision}.`;
         this.analyzingAi = false;
         this.loadAll(result.procedureId);
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || err?.error || 'Erreur lors de l analyse IA.';
+        this.errorMessage = err?.error?.message || err?.error || 'An error occurred during AI analysis.';
         this.analyzingAi = false;
       }
     });
@@ -249,7 +249,7 @@ export class LegalProcedureDetailComponent implements OnInit {
       error: (err) => {
         this.chatMessages.push({
           role: 'assistant',
-          text: err?.error?.message || 'Le chatbot juridique est momentanement indisponible.'
+          text: err?.error?.message || 'The legal chatbot is temporarily unavailable.'
         });
         this.chatSending = false;
       }
@@ -271,15 +271,15 @@ export class LegalProcedureDetailComponent implements OnInit {
     if (!source) {
       return '';
     }
-    const problemIndex = source.indexOf('Problemes detectes:');
+    const problemIndex = source.indexOf('Detected issues:');
     if (problemIndex >= 0) {
       return source.substring(0, problemIndex).trim();
     }
-    const documentsIndex = source.indexOf('Documents a corriger:');
+    const documentsIndex = source.indexOf('Documents to fix:');
     if (documentsIndex >= 0) {
       return source.substring(0, documentsIndex).trim();
     }
-    return this.aiFindingGroups.length ? 'Analyse IA refusee. Corrigez les documents signales puis resoumettez le dossier.' : source;
+    return this.aiFindingGroups.length ? 'AI analysis rejected the case. Fix the flagged documents, then resubmit the case.' : source;
   }
 
   get aiFindingGroups(): Array<{ document: string; findings: string[] }> {
@@ -310,16 +310,18 @@ export class LegalProcedureDetailComponent implements OnInit {
       return [];
     }
 
-    const problemIndex = remark.indexOf('Problemes detectes:');
+    const problemMarker = 'Detected issues:';
+    const problemIndex = remark.indexOf(problemMarker);
     if (problemIndex >= 0) {
       return remark
-        .substring(problemIndex + 'Problemes detectes:'.length)
+        .substring(problemIndex + problemMarker.length)
         .split('|')
         .map(item => item.trim())
         .filter(Boolean);
     }
 
-    const documentsIndex = remark.indexOf('Documents a corriger:');
+    const documentsMarker = 'Documents to fix:';
+    const documentsIndex = remark.indexOf(documentsMarker);
     if (documentsIndex < 0) {
       return [];
     }
@@ -327,7 +329,7 @@ export class LegalProcedureDetailComponent implements OnInit {
     const findings: string[] = [];
     let currentDocument = '';
     remark
-      .substring(documentsIndex + 'Documents a corriger:'.length)
+      .substring(documentsIndex + documentsMarker.length)
       .split(/\r?\n/)
       .map(line => line.trim())
       .filter(Boolean)
@@ -347,20 +349,20 @@ export class LegalProcedureDetailComponent implements OnInit {
     const normalized = finding.trim();
     if (normalized.startsWith('Document appears expired on ')) {
       return normalized
-        .replace('Document appears expired on ', 'Document expire depuis le ')
+        .replace('Document appears expired on ', 'Document appears expired on ')
         .replace('.', '.');
     }
     const dictionary: Record<string, string> = {
-      'Suspicious red or pink watermark overlay detected.': 'Filigrane rouge/rose suspect detecte sur le document.',
-      'Suspicious masked or invalid verification code detected.': 'Code de verification masque ou invalide.',
-      'Inconsistent company legal form detected: SARL and SA/Societe Anonyme appear together.': 'Incoherence de forme juridique : SARL et SA/Societe Anonyme apparaissent ensemble.',
-      'Document issue date appears to be in the future.': 'Date d emission du document dans le futur.',
-      'Document image contains repeated horizontal scan lines; quality is degraded.': 'Image degradee : lignes horizontales repetees detectees.',
-      'Document image appears blurred.': 'Image floue ou qualite insuffisante.',
-      'Suspicious diagonal overlay line detected.': 'Ligne diagonale suspecte detectee sur le document.',
-      'Suspicious fraud marker detected in OCR text (for example FALSIFIE/INVALIDE).': 'Marqueur de fraude detecte dans le texte OCR (ex : FALSIFIE / INVALIDE).',
-      'OCR text is too short for reliable automatic validation.': 'Texte OCR trop court pour valider automatiquement le document.',
-      'No text extracted by OCR.': 'Aucun texte lisible extrait par OCR.'
+      'Suspicious red or pink watermark overlay detected.': 'Suspicious red or pink watermark overlay detected.',
+      'Suspicious masked or invalid verification code detected.': 'Suspicious masked or invalid verification code detected.',
+      'Inconsistent company legal form detected: SARL and SA/Societe Anonyme appear together.': 'Inconsistent company legal form detected: SARL and SA/Societe Anonyme appear together.',
+      'Document issue date appears to be in the future.': 'Document issue date appears to be in the future.',
+      'Document image contains repeated horizontal scan lines; quality is degraded.': 'Document image contains repeated horizontal scan lines; quality is degraded.',
+      'Document image appears blurred.': 'Document image appears blurred.',
+      'Suspicious diagonal overlay line detected.': 'Suspicious diagonal overlay line detected.',
+      'Suspicious fraud marker detected in OCR text (for example FALSIFIE/INVALIDE).': 'Suspicious fraud marker detected in OCR text (for example FALSIFIE/INVALIDE).',
+      'OCR text is too short for reliable automatic validation.': 'OCR text is too short for reliable automatic validation.',
+      'No text extracted by OCR.': 'No text extracted by OCR.'
     };
     return dictionary[normalized] || normalized;
   }
@@ -368,31 +370,31 @@ export class LegalProcedureDetailComponent implements OnInit {
   get chatSuggestions(): string[] {
     const procedureLabel = this.procedure
       ? this.procedureTypeLabels[this.procedure.procedureType]
-      : 'ma procedure';
+      : 'my procedure';
     const missing = this.checklist?.items?.filter(item => item.required && !item.uploaded) || [];
 
     if (missing.length > 0) {
       return [
-        `Quels documents dois-je preparer pour ${procedureLabel} ?`,
-        `Explique-moi comment preparer ${missing[0].label}.`,
-        'Quelle est la prochaine action pour avancer ?',
-        'Pourquoi mon dossier peut etre refuse ?'
+        `What documents should I prepare for ${procedureLabel}?`,
+        `Explain how to prepare ${missing[0].label}.`,
+        'What is the next action to move forward?',
+        'Why could my case be rejected?'
       ];
     }
 
     if (this.procedure?.status === 'COMPLETE') {
       return [
-        'Que puis-je faire avec le document final ?',
-        'Comment imprimer ou presenter cette attestation ?',
-        `Quelles sont les prochaines etapes pour ${procedureLabel} ?`
+        'What can I do with the final document?',
+        'How should I print or present this certificate?',
+        `What are the next steps for ${procedureLabel}?`
       ];
     }
 
     return [
-      `Explique-moi la procedure ${procedureLabel}.`,
-      'Verifie mon dossier et dis-moi quoi faire ensuite.',
-      'Comment eviter un refus par l IA ?',
-      'C quoi POC ?'
+      `Explain the procedure ${procedureLabel}.`,
+      'Review my case and tell me what to do next.',
+      'How can I avoid an AI rejection?',
+      'What is a POC?'
     ];
   }
 

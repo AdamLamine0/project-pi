@@ -2,7 +2,7 @@
 
   <section class="legal-page-head legal-page-head--split">
     <div>
-      <span class="legal-eyebrow">Dossier juridique</span>
+      <span class="legal-eyebrow">Legal case</span>
       <h1>{{ p.projectName }}</h1>
       <p>{{ procedureTypeLabels[p.procedureType] }}</p>
     </div>
@@ -11,7 +11,7 @@
       <span class="legal-status" [ngClass]="getStatusClass(p.status)">
         {{ statusLabels[p.status] }}
       </span>
-      <button class="legal-btn legal-btn--secondary" type="button" (click)="goBack()">Retour</button>
+      <button class="legal-btn legal-btn--secondary" type="button" (click)="goBack()">Back</button>
     </div>
   </section>
 
@@ -20,19 +20,19 @@
 
   <section class="legal-summary-grid">
     <article class="legal-summary-card">
-      <span>ID dossier</span>
+      <span>Case ID</span>
       <strong>{{ p.id }}</strong>
     </article>
     <article class="legal-summary-card">
-      <span>Expert assigne</span>
-      <strong>{{ p.expertId || 'Non assigne' }}</strong>
+      <span>Assigned expert</span>
+      <strong>{{ p.expertId || 'Unassigned' }}</strong>
     </article>
     <article class="legal-summary-card">
-      <span>Creation</span>
+      <span>Created</span>
       <strong>{{ p.createdAt | date:'dd/MM/yyyy HH:mm' }}</strong>
     </article>
     <article class="legal-summary-card">
-      <span>Progression</span>
+      <span>Progress</span>
       <div class="legal-progress legal-progress--wide">
         <div [style.width.%]="p.completionRate"></div>
       </div>
@@ -43,10 +43,10 @@
   <section class="legal-panel legal-ai-panel" *ngIf="p.status === 'EN_COURS' || p.remark || aiResult">
     <div class="legal-panel__head">
       <div>
-        <span class="legal-eyebrow">Controle automatique</span>
-        <h2>Analyse IA</h2>
+        <span class="legal-eyebrow">Automated review</span>
+        <h2>AI Analysis</h2>
         <p *ngIf="p.status === 'EN_COURS' && !p.remark">
-          Le dossier est en attente d'analyse ou l'analyse automatique n'a pas encore mis a jour le statut.
+          The case is waiting for analysis or the automated review has not updated the status yet.
         </p>
         <p *ngIf="aiRemarkSummary">{{ aiRemarkSummary }}</p>
       </div>
@@ -56,7 +56,7 @@
               type="button"
               [disabled]="analyzingAi"
               (click)="runAiAnalysis()">
-        {{ analyzingAi ? 'Analyse...' : 'Relancer IA' }}
+        {{ analyzingAi ? 'Analyzing...' : 'Run AI again' }}
       </button>
     </div>
 
@@ -66,17 +66,17 @@
         <div class="ai-value">{{ aiResult.decision }}</div>
       </div>
       <div class="ai-item">
-        <div class="ai-label">Statut applique</div>
+        <div class="ai-label">Applied status</div>
         <div class="ai-value">{{ statusLabels[aiResult.appliedStatus] }}</div>
       </div>
       <div class="ai-item">
         <div class="ai-label">Gemini</div>
-        <div class="ai-value">{{ aiResult.llmAvailable ? 'Disponible' : 'Indisponible' }}</div>
+        <div class="ai-value">{{ aiResult.llmAvailable ? 'Available' : 'Unavailable' }}</div>
       </div>
     </div>
 
     <div *ngIf="aiFindingGroups.length" class="ai-findings">
-      <div class="ai-findings-title">Documents a corriger</div>
+      <div class="ai-findings-title">Documents to fix</div>
       <div class="ai-finding-card" *ngFor="let group of aiFindingGroups">
         <div class="ai-finding-document">{{ group.document }}</div>
         <ul>
@@ -86,7 +86,7 @@
     </div>
 
     <div *ngIf="aiResult?.llmFindings?.length" class="legal-note-box">
-      <strong>Incoherences detectees</strong>
+      <strong>Detected inconsistencies</strong>
       <ul>
         <li *ngFor="let finding of aiResult!.llmFindings">{{ finding }}</li>
       </ul>
@@ -96,10 +96,10 @@
   <section class="legal-panel">
     <div class="legal-panel__head">
       <div>
-        <span class="legal-eyebrow">Pieces justificatives</span>
-        <h2>Checklist documentaire</h2>
+        <span class="legal-eyebrow">Supporting documents</span>
+        <h2>Document checklist</h2>
         <p *ngIf="checklist">
-          {{ checklist.uploadedCount }} / {{ checklist.requiredCount }} documents obligatoires deposes
+          {{ checklist.uploadedCount }} / {{ checklist.requiredCount }} required documents uploaded
         </p>
       </div>
     </div>
@@ -116,17 +116,17 @@
         <div class="document-check__body">
           <div class="document-check__title-row">
             <h3>{{ item.label }}</h3>
-            <span *ngIf="item.required" class="document-required">Obligatoire</span>
+            <span *ngIf="item.required" class="document-required">Required</span>
           </div>
-          <p>{{ item.description || 'Document requis pour la validation de cette procedure.' }}</p>
+          <p>{{ item.description || 'Document required to validate this procedure.' }}</p>
 
           <div class="document-check__file" *ngIf="item.uploaded && item.fileUrl">
-            <a [href]="item.fileUrl" target="_blank" rel="noopener">Voir le document</a>
+            <a [href]="item.fileUrl" target="_blank" rel="noopener">View document</a>
             <button *ngIf="canEditDocuments && item.documentId"
                     class="legal-link-danger"
                     type="button"
                     (click)="deleteDocument(item.documentId!)">
-              Supprimer
+              Delete
             </button>
           </div>
 
@@ -137,59 +137,59 @@
                     type="button"
                     [disabled]="!selectedFiles[item.code] || uploadingCode === item.code"
                     (click)="uploadDocument(item)">
-              {{ uploadingCode === item.code ? 'Envoi...' : (item.uploaded ? 'Remplacer' : 'Deposer') }}
+              {{ uploadingCode === item.code ? 'Uploading...' : (item.uploaded ? 'Replace' : 'Upload') }}
             </button>
           </div>
         </div>
 
         <span class="document-status" [class.document-status--done]="item.uploaded">
-          {{ item.uploaded ? 'Depose' : 'Manquant' }}
+          {{ item.uploaded ? 'Uploaded' : 'Missing' }}
         </span>
       </article>
     </div>
 
     <ng-template #noChecklist>
       <div class="legal-empty">
-        <strong>Aucune exigence trouvee</strong>
-        <p>Ce type de procedure n'a pas encore de checklist configuree.</p>
+        <strong>No requirements found</strong>
+        <p>This procedure type does not have a configured checklist yet.</p>
       </div>
     </ng-template>
   </section>
 
   <section class="legal-submit-panel" *ngIf="canEditDocuments">
     <div>
-      <span class="legal-eyebrow">Soumission</span>
-      <h2>{{ allRequiredUploaded ? 'Dossier pret a etre soumis' : 'Documents obligatoires manquants' }}</h2>
+      <span class="legal-eyebrow">Submission</span>
+      <h2>{{ allRequiredUploaded ? 'Case ready to submit' : 'Required documents missing' }}</h2>
       <p>
         {{ allRequiredUploaded
-          ? 'Tous les documents obligatoires sont disponibles. Vous pouvez transmettre le dossier pour analyse.'
-          : 'Completez la checklist avant de soumettre le dossier a l analyse et a l expert.' }}
+          ? 'All required documents are available. You can submit the case for analysis.'
+          : 'Complete the checklist before submitting the case for analysis and expert review.' }}
       </p>
     </div>
     <button class="legal-btn legal-btn--success"
             type="button"
             [disabled]="!allRequiredUploaded"
             (click)="submitProcedure()">
-      {{ allRequiredUploaded ? (p.status === 'REFUSE' ? 'Resoumettre le dossier' : 'Soumettre le dossier') : 'Checklist incomplete' }}
+      {{ allRequiredUploaded ? (p.status === 'REFUSE' ? 'Resubmit case' : 'Submit case') : 'Checklist incomplete' }}
     </button>
   </section>
 
   <section class="legal-panel legal-final-panel" *ngIf="p.status === 'COMPLETE'">
     <span class="legal-eyebrow">Validation</span>
-    <h2>Dossier valide</h2>
-    <p>Votre dossier a ete valide par l'expert juridique. Le document final est disponible.</p>
+    <h2>Case approved</h2>
+    <p>Your case has been approved by the legal expert. The final document is available.</p>
     <p *ngIf="p.finalDocumentGeneratedAt">
-      Genere le {{ p.finalDocumentGeneratedAt | date:'dd/MM/yyyy HH:mm' }}
+      Generated on {{ p.finalDocumentGeneratedAt | date:'dd/MM/yyyy HH:mm' }}
     </p>
     <a *ngIf="p.finalDocumentUrl; else finalPending"
        class="legal-btn legal-btn--primary"
        [href]="p.finalDocumentUrl"
        target="_blank"
        rel="noopener">
-      Visualiser le document final
+      View final document
     </a>
     <ng-template #finalPending>
-      <div class="legal-alert legal-alert--info">Le document final est en cours de generation.</div>
+      <div class="legal-alert legal-alert--info">The final document is being generated.</div>
     </ng-template>
   </section>
 
@@ -197,41 +197,41 @@
           type="button"
           [class.chat-launcher-open]="chatOpen"
           (click)="toggleChat()">
-    <span>Chat juridique</span>
+    <span>Legal chat</span>
     <strong *ngIf="!chatOpen && chatMessages.length">{{ chatMessages.length }}</strong>
   </button>
 
   <aside class="chat-popup" *ngIf="chatOpen">
     <div class="chat-popup-header">
       <div>
-        <h2>Assistant juridique</h2>
+        <h2>Legal assistant</h2>
         <p>{{ procedureTypeLabels[p.procedureType] }} - {{ statusLabels[p.status] }}</p>
       </div>
       <button type="button" class="chat-close" (click)="closeChat()">x</button>
     </div>
 
     <div class="chat-context">
-      <span>{{ checklist?.uploadedCount || 0 }}/{{ checklist?.requiredCount || 0 }} documents obligatoires</span>
+      <span>{{ checklist?.uploadedCount || 0 }}/{{ checklist?.requiredCount || 0 }} required documents</span>
       <span>{{ statusLabels[p.status] }}</span>
       <span>{{ p.projectName }}</span>
     </div>
 
     <div class="chat-brief">
       <div>
-        <strong>Manquants</strong>
+        <strong>Missings</strong>
         <span *ngIf="chatMissingDocuments.length; else noMissing">
           {{ chatMissingDocuments[0].label }}{{ chatMissingDocuments.length > 1 ? ' +' + (chatMissingDocuments.length - 1) : '' }}
         </span>
-        <ng-template #noMissing><span>Aucun document obligatoire</span></ng-template>
+        <ng-template #noMissing><span>No required document</span></ng-template>
       </div>
       <div>
-        <strong>Deposes</strong>
+        <strong>Uploadeds</strong>
         <span>{{ chatUploadedDocuments.length }}</span>
       </div>
     </div>
 
     <div class="chat-suggestions">
-      <span>Questions rapides</span>
+      <span>Quick questions</span>
       <div>
         <button type="button"
                 *ngFor="let suggestion of chatSuggestions"
@@ -243,22 +243,22 @@
 
     <div class="chat-box">
       <div *ngIf="chatMessages.length === 0" class="chat-empty">
-        <strong>Je peux analyser le contexte de ce dossier.</strong>
-        <p>Posez une question sur les documents, le statut, les corrections a faire ou les prochaines etapes.</p>
+        <strong>I can analyze this case context.</strong>
+        <p>Ask about documents, status, corrections to make, or next steps.</p>
       </div>
 
       <div *ngFor="let message of chatMessages"
            class="chat-message"
            [class.chat-user]="message.role === 'user'"
            [class.chat-assistant]="message.role === 'assistant'">
-        <span class="chat-message-role">{{ message.role === 'user' ? 'Vous' : 'Assistant' }}</span>
+        <span class="chat-message-role">{{ message.role === 'user' ? 'You' : 'Assistant' }}</span>
         <div>{{ message.text }}</div>
         <small *ngIf="message.disclaimer">{{ message.disclaimer }}</small>
       </div>
 
       <div *ngIf="chatSending" class="chat-message chat-assistant">
         <span class="chat-message-role">Assistant</span>
-        <div>Analyse du dossier en cours...</div>
+        <div>Analyzing the case...</div>
       </div>
     </div>
 
@@ -266,11 +266,11 @@
       <textarea name="chatQuestion"
                 rows="2"
                 [(ngModel)]="chatQuestion"
-                placeholder="Ex: Que dois-je corriger avant de resoumettre ?"></textarea>
+                placeholder="Example: What should I fix before resubmitting?"></textarea>
       <button class="legal-btn legal-btn--primary"
               type="submit"
               [disabled]="chatSending || !chatQuestion.trim()">
-        Envoyer
+        Send
       </button>
     </form>
   </aside>
@@ -279,7 +279,7 @@
 
 <ng-template #loadingTpl>
   <div class="legal-loading">
-    <div *ngIf="loading">Chargement en cours...</div>
+    <div *ngIf="loading">Loading...</div>
     <div *ngIf="errorMessage" class="legal-alert legal-alert--error">{{ errorMessage }}</div>
   </div>
 </ng-template>

@@ -1,10 +1,10 @@
 <div class="page-container">
   <div class="page-header d-flex justify-content-between align-items-start mb-4">
     <div>
-      <h1 class="page-title">Créer un dossier juridique</h1>
-      <p class="page-subtitle">Renseignez les informations pour ouvrir votre dossier.</p>
+      <h1 class="page-title">Create a legal case</h1>
+      <p class="page-subtitle">Enter the required information to open your case.</p>
     </div>
-    <button class="btn btn-outline-secondary" type="button" (click)="goBack()">Retour</button>
+    <button class="btn btn-outline-secondary" type="button" (click)="goBack()">Back</button>
   </div>
 
   <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
@@ -15,45 +15,42 @@
       <form [formGroup]="form" (ngSubmit)="submit()">
         <div class="row g-4">
 
-          <!-- Nom du projet -->
           <div class="col-md-6">
-            <label class="form-label fw-semibold">Nom du projet *</label>
+            <label class="form-label fw-semibold">Project name *</label>
             <input class="form-control input-modern"
                    formControlName="projectName"
-                   placeholder="Ex: Startup FinTech Tunis" />
+                   placeholder="Example: FinTech startup Tunis" />
             <div *ngIf="form.get('projectName')?.invalid && form.get('projectName')?.touched"
                  class="text-danger small mt-1">
-              Le nom du projet est obligatoire.
+              Project name is required.
             </div>
           </div>
 
-          <!-- Type de procédure -->
           <div class="col-md-6">
-            <label class="form-label fw-semibold">Type de procédure *</label>
+            <label class="form-label fw-semibold">Procedure type *</label>
             <select class="form-select select-modern" formControlName="procedureType">
-              <option value="">Sélectionner</option>
+              <option value="">Select</option>
               <option *ngFor="let type of procedureTypes" [value]="type">
                 {{ procedureTypeLabels[type] }}
               </option>
             </select>
             <div *ngIf="form.get('procedureType')?.invalid && form.get('procedureType')?.touched"
                  class="text-danger small mt-1">
-              Veuillez choisir un type de procédure.
+              Please choose a procedure type.
             </div>
           </div>
 
-          <!-- Choix de l'expert (liste statique) -->
           <div class="col-md-12">
-            <label class="form-label fw-semibold">Expert juridique *</label>
+            <label class="form-label fw-semibold">Legal expert *</label>
             <select class="form-select select-modern" formControlName="expertId">
-              <option value="">Sélectionner un expert</option>
+              <option value="">Select an expert</option>
               <option *ngFor="let expert of experts" [value]="expert.id">
-                {{ expert.fullName }} — {{ expert.email }}
+                {{ expert.fullName }} - {{ expert.email }}
               </option>
             </select>
             <div *ngIf="form.get('expertId')?.invalid && form.get('expertId')?.touched"
                  class="text-danger small mt-1">
-              Veuillez choisir un expert.
+              Please choose an expert.
             </div>
           </div>
 
@@ -61,10 +58,10 @@
 
         <div class="d-flex gap-2 mt-4">
           <button class="btn btn-primary-custom" type="submit" [disabled]="loading">
-            {{ loading ? 'Création...' : 'Créer le dossier' }}
+            {{ loading ? 'Creating...' : 'Create case' }}
           </button>
           <button class="btn btn-outline-secondary" type="button" (click)="goBack()">
-            Annuler
+            Cancel
           </button>
         </div>
       </form>

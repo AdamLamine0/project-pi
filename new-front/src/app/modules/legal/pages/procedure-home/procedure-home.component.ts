@@ -28,10 +28,10 @@ export class ProcedureHomeComponent implements OnInit {
   readonly labels = PROCEDURE_TYPE_LABELS;
   readonly descriptions = PROCEDURE_TYPE_DESCRIPTIONS;
   readonly advisorSuggestions = [
-    'Je veux creer une societe seul.',
-    'Je veux proteger une marque ou une idee.',
-    'Je veux demander le label startup.',
-    'Je dois verifier la conformite de mes documents.',
+    'I want to create a company as a solo founder.',
+    'I want to protect a brand or an idea.',
+    'I want to apply for the Startup Label.',
+    'I need to check whether my documents are compliant.',
   ];
 
   advisorQuestion = '';
@@ -72,7 +72,7 @@ export class ProcedureHomeComponent implements OnInit {
 
     this.legalService.askLegalChat({
       question: value,
-      projectName: 'Orientation procedure juridique',
+      projectName: 'Legal procedure guidance',
       requiredDocuments: [],
       uploadedDocuments: [],
       missingDocuments: [],
@@ -83,7 +83,7 @@ export class ProcedureHomeComponent implements OnInit {
         this.advisorSending = false;
       },
       error: (err) => {
-        this.advisorError = err?.error?.message || 'Assistant momentanement indisponible.';
+        this.advisorError = err?.error?.message || 'The assistant is temporarily unavailable.';
         this.advisorSending = false;
       },
     });

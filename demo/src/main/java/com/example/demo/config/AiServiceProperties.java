@@ -10,6 +10,6 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "app.ai-service")
 public class AiServiceProperties {
-    private String baseUrl = "http://localhost:8091";
+    private String baseUrl = "http://localhost:8092";
     private int timeoutSeconds = 90;
 }

@@ -103,7 +103,7 @@ public class LegalAiAnalysisService {
     public LegalAiAnalysisResponse reviewResponse(LegalAiAnalysisRequest request, String finding) {
         List<String> findings = List.of(finding);
         GeminiLegalReasoningService.LlmVerdict llmVerdict =
-                GeminiLegalReasoningService.LlmVerdict.unavailable("Analyse LLM ignoree: " + finding);
+                GeminiLegalReasoningService.LlmVerdict.unavailable("LLM analysis skipped: " + finding);
         return new LegalAiAnalysisResponse(
                 request == null ? null : request.procedureId(),
                 AiDecision.REVIEW,
@@ -247,8 +247,8 @@ public class LegalAiAnalysisService {
         StringBuilder remark = new StringBuilder();
         if (decision == AiDecision.REJECTED && !technicalFindings.isEmpty()) {
             Map<String, List<String>> groupedFindings = groupFindingsByDocument(technicalFindings);
-            remark.append("Analyse IA refusee. Corrigez les documents signales puis resoumettez le dossier.");
-            remark.append("\n\nDocuments a corriger:");
+            remark.append("AI analysis rejected the case. Fix the flagged documents, then resubmit the case.");
+            remark.append("\n\nDocuments to fix:");
             groupedFindings.forEach((document, findings) -> {
                 remark.append("\n- ").append(document).append(":");
                 findings.forEach(finding -> remark.append("\n  - ").append(toUserFacingFinding(finding)));
@@ -273,34 +273,34 @@ public class LegalAiAnalysisService {
 
     private String toUserFacingFinding(String finding) {
         if (finding == null || finding.isBlank()) {
-            return "Erreur non precisee.";
+            return "Unspecified error.";
         }
         if (finding.startsWith("Document appears expired on ")) {
             return finding
-                    .replace("Document appears expired on ", "Document expire depuis le ")
+                    .replace("Document appears expired on ", "Document appears expired on ")
                     .replace(".", ".");
         }
         return switch (finding) {
             case "Suspicious red or pink watermark overlay detected." ->
-                    "Filigrane rouge/rose suspect detecte sur le document.";
+                    "Suspicious red or pink watermark overlay detected.";
             case "Suspicious masked or invalid verification code detected." ->
                     "Code de verification masque ou invalide.";
             case "Inconsistent company legal form detected: SARL and SA/Societe Anonyme appear together." ->
-                    "Incoherence de forme juridique: SARL et SA/Societe Anonyme apparaissent ensemble.";
+                    "Inconsistent company legal form detected: SARL and SA/Societe Anonyme appear together.";
             case "Document issue date appears to be in the future." ->
-                    "Date d'emission du document dans le futur.";
+                    "Document issue date appears to be in the future.";
             case "Document image contains repeated horizontal scan lines; quality is degraded." ->
-                    "Image degradee: lignes horizontales repetees detectees.";
+                    "Document image contains repeated horizontal scan lines; quality is degraded.";
             case "Document image appears blurred." ->
                     "Image floue ou qualite insuffisante.";
             case "Suspicious diagonal overlay line detected." ->
-                    "Ligne diagonale suspecte detectee sur le document.";
+                    "Suspicious diagonal overlay line detected.";
             case "Suspicious fraud marker detected in OCR text (for example FALSIFIE/INVALIDE)." ->
-                    "Marqueur de fraude detecte dans le texte OCR (ex: FALSIFIE/INVALIDE).";
+                    "Suspicious fraud marker detected in OCR text (for example FALSIFIE/INVALIDE).";
             case "OCR text is too short for reliable automatic validation." ->
-                    "Texte OCR trop court pour valider automatiquement le document.";
+                    "OCR text is too short for reliable automatic validation.";
             case "No text extracted by OCR." ->
-                    "Aucun texte lisible extrait par OCR.";
+                    "No text extracted by OCR.";
             default -> finding;
         };
     }

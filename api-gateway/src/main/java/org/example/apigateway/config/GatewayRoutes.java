@@ -67,6 +67,29 @@ public class GatewayRoutes {
     }
 
     @Bean
+    public RouterFunction<ServerResponse> legalProcedureServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/legal-procedures/**"), HandlerFunctions.http())
+                .filter(lb("legal-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> procedureTypeServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/procedure-types/**"), HandlerFunctions.http())
+                .filter(lb("legal-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> legalFileServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/files/**"), HandlerFunctions.http())
+                .filter(lb("legal-pi"));
+    }
+
+    @Bean
     public RouterFunction<ServerResponse> meetingServiceRoute() {
         return RouterFunctions
                 .route(path("/api/meeting-invitations/**"), HandlerFunctions.http())

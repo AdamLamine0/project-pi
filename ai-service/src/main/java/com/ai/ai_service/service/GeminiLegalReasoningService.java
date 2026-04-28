@@ -71,7 +71,7 @@ public class GeminiLegalReasoningService {
 
                 JsonNode verdict = objectMapper.readTree(extractJsonObject(raw));
                 AiDecision decision = parseDecision(verdict.path("decision").asText("REVIEW"));
-                String remark = verdict.path("remark").asText("Analyse Gemini terminee.");
+                String remark = verdict.path("remark").asText("Gemini analysis completed.");
                 List<String> findings = readFindings(verdict.path("incoherences"));
                 return new LlmVerdict(true, decision, remark, findings, null);
             } catch (WebClientResponseException e) {
@@ -147,20 +147,20 @@ public class GeminiLegalReasoningService {
     ) {
         StringBuilder builder = new StringBuilder();
         builder.append("""
-                Tu es un assistant juridique cloud pour un module d'accompagnement juridique.
-                Analyse le dossier complet a partir des textes OCR locaux et des alertes techniques OpenCV/regles.
-                Ne valide jamais un document expire. Si la qualite OCR ou image est insuffisante, choisis REVIEW.
-                Retourne uniquement un JSON strict:
+                You are a cloud legal assistant for a legal support module.
+                Analyze the full case using local OCR text and OpenCV/rule-based technical alerts.
+                Never validate an expired document. If OCR or image quality is insufficient, choose REVIEW.
+                Return strict JSON only:
                 {"decision":"VALID|REJECTED|REVIEW","remark":"explication courte","incoherences":["..."]}
 
-                Dossier:
+                Case:
                 """);
         builder.append("procedureType=").append(request.procedureType()).append('\n');
         builder.append("projectName=").append(request.projectName()).append('\n');
 
         builder.append("\nAlertes techniques:\n");
         if (technicalFindings.isEmpty()) {
-            builder.append("- Aucune alerte technique.\n");
+            builder.append("- No technical alerts.\n");
         } else {
             technicalFindings.forEach(finding -> builder.append("- ").append(finding).append('\n'));
         }
@@ -262,9 +262,9 @@ public class GeminiLegalReasoningService {
 
         private static String userSafeUnavailableRemark(String error) {
             if (error != null && (error.contains("API key") || error.contains("403") || error.contains("401"))) {
-                return "Analyse Gemini indisponible car la configuration de l'API doit etre verifiee. Le dossier est transmis a l'expert pour controle manuel.";
+                return "Gemini analysis is unavailable because the API configuration must be checked. The case is sent to the expert for manual review.";
             }
-            return "Analyse Gemini temporairement indisponible. Les controles OCR/OpenCV ont ete effectues et le dossier est transmis a l'expert pour controle manuel.";
+            return "Gemini analysis is temporarily unavailable. OCR/OpenCV checks were completed and the case is sent to the expert for manual review.";
         }
     }
 }

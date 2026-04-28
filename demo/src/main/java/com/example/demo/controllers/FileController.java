@@ -23,7 +23,7 @@ public class FileController {
         String dir = uploadProperties.getUpload() != null ? uploadProperties.getUpload().getDir() : null;
 
         if (dir == null || dir.isBlank()) {
-            throw new IllegalStateException("La propriété app.upload.dir est absente ou vide.");
+            throw new IllegalStateException("The app.upload.dir property is missing or empty.");
         }
 
         this.uploadPath = Paths.get(dir).toAbsolutePath().normalize();

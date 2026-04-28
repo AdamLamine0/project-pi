@@ -45,7 +45,7 @@ public class LegalProcedure {
     @Column(nullable = false, length = 50)
     private ProcedureStatus status;
 
-    // Remarque ajoutée par l'IA ou l'expert (optionnelle)
+    // Optional note added by AI or the expert.
     @Column(columnDefinition = "TEXT")
     private String remark;
 

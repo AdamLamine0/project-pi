@@ -33,7 +33,7 @@ public class ProcedureTypeServiceImpl implements ProcedureTypeService {
             Map<String, Object> item = new HashMap<>();
             item.put("procedureType", type);
             item.put("title", type.name());
-            item.put("description", "Procédure " + type.name());
+            item.put("description", "Procedure " + type.name());
             item.put("requiredDocuments", requirements.stream().map(r -> r.getLabel()).toList());
             item.put("procedureCount", count);
 

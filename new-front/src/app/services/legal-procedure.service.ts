@@ -16,8 +16,8 @@ import {
 @Injectable({ providedIn: 'root' })
 export class LegalProcedureService {
 
-  private readonly base      = 'http://localhost:8090/api/legal-procedures';
-  private readonly usersBase = 'http://localhost:8090/api/users';
+  private readonly base      = 'http://localhost:8091/api/legal-procedures';
+  private readonly usersBase = 'http://localhost:8091/api/users';
 
   constructor(private readonly http: HttpClient) {}
 
@@ -62,8 +62,8 @@ export class LegalProcedureService {
   }
 
   /**
-   * Dépose un fichier pour un item de la checklist.
-   * expiresAt a été supprimé — ni le back ni le front ne l'utilisent plus.
+   * Uploads a file for a checklist item.
+   * expiresAt was removed; neither the backend nor the frontend uses it anymore.
    */
   uploadDocument(
     procedureId: string,
