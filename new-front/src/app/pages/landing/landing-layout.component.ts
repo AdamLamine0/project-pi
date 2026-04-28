@@ -153,7 +153,7 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
     this.badgeTimer = setTimeout(() => this.showBadge.set(false), 5000);
 
     const userId = this.authService.getUserId()?.toString();
-    if (userId) {
+    if (this.authService.isLoggedIn() && userId) {
       this.notificationService.init(userId);
     }
   }
