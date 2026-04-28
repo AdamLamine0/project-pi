@@ -1,0 +1,29 @@
+<div class="page">
+  <div class="header">
+    <h2>Startups</h2>
+    <p class="sub">Liste de demonstration avec un bouton de demande d investissement.</p>
+  </div>
+
+  <div class="grid">
+    <mat-card class="card" *ngFor="let s of startups">
+      <mat-card-header>
+        <mat-card-title>{{ s.name }}</mat-card-title>
+        <mat-card-subtitle>{{ s.tagline }}</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="meta">
+          <span class="pill">{{ s.sector }}</span>
+          <span class="pill subtle">{{ s.stage }}</span>
+          <span class="pill subtle">{{ s.location }}</span>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions align="end">
+        <button mat-raised-button color="primary" (click)="requestInvestment(s)">
+          Demande d investissement
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

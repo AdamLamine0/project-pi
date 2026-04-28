@@ -1,0 +1,45 @@
+<mat-card class="nda-card">
+  <mat-card-header>
+    <div class="nda-badge">
+      <ng-icon name="lucideShield" size="16"></ng-icon>
+      Confidentiality required
+    </div>
+    <mat-card-title>Confidentiality agreement</mat-card-title>
+    <mat-card-subtitle>Data Room access requires a signed NDA before any document review.</mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    <p class="lead">
+      By signing, you agree to keep all Data Room documents confidential and use them only to
+      evaluate a potential investment.
+    </p>
+
+    <div class="nda-points">
+      <div class="point">
+        <ng-icon name="lucideBadgeCheck" size="18"></ng-icon>
+        <span>Protection for financial, legal, and product information.</span>
+      </div>
+      <div class="point">
+        <ng-icon name="lucideEye" size="18"></ng-icon>
+        <span>Document views may be logged for compliance.</span>
+      </div>
+      <div class="point">
+        <ng-icon name="lucideBan" size="18"></ng-icon>
+        <span>No sharing or copying without prior written authorization.</span>
+      </div>
+    </div>
+  </mat-card-content>
+
+  <mat-card-actions align="end">
+    <button
+      mat-raised-button
+      color="primary"
+      type="button"
+      [disabled]="busy"
+      (click)="sign.emit()"
+    >
+      <ng-icon name="lucidePenLine" size="17"></ng-icon>
+      {{ busy ? 'Signing...' : 'Sign NDA' }}
+    </button>
+  </mat-card-actions>
+</mat-card>

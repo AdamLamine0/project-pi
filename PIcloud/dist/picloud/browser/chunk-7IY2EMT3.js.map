@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/services/certificate.service.ts"],
-  "sourcesContent": ["import { Injectable } from '@angular/core';\r\nimport { HttpClient } from '@angular/common/http';\r\nimport { Observable } from 'rxjs';\r\nimport { Certificate, VerificationResponse } from '../models/certificate';\r\n\r\n@Injectable({ providedIn: 'root' })\r\nexport class CertificateService {\r\n\r\n  private api = 'http://localhost:8090/api/certificates';\r\n\r\n  constructor(private http: HttpClient) {}\r\n\r\n  getMyCertificates(): Observable<Certificate[]> {\r\n    return this.http.get<Certificate[]>(`${this.api}/me`);\r\n  }\r\n\r\n  downloadCertificate(id: number): Observable<Blob> {\r\n    return this.http.get(`${this.api}/${id}/download`, {\r\n      responseType: 'blob'\r\n    });\r\n  }\r\n\r\n  verify(token: string): Observable<VerificationResponse> {\r\n    return this.http.get<VerificationResponse>(\r\n      `http://localhost:8090/api/verify/${token}`\r\n    );\r\n  }\r\n}"],
-  "mappings": ";;;;;;;AAMM,IAAO,qBAAP,MAAO,oBAAkB;EAIT;EAFZ,MAAM;EAEd,YAAoB,MAAgB;AAAhB,SAAA,OAAA;EAAmB;EAEvC,oBAAiB;AACf,WAAO,KAAK,KAAK,IAAmB,GAAG,KAAK,GAAG,KAAK;EACtD;EAEA,oBAAoB,IAAU;AAC5B,WAAO,KAAK,KAAK,IAAI,GAAG,KAAK,GAAG,IAAI,EAAE,aAAa;MACjD,cAAc;KACf;EACH;EAEA,OAAO,OAAa;AAClB,WAAO,KAAK,KAAK,IACf,oCAAoC,KAAK,EAAE;EAE/C;;qCApBW,qBAAkB,mBAAA,UAAA,CAAA;EAAA;4EAAlB,qBAAkB,SAAlB,oBAAkB,WAAA,YADL,OAAM,CAAA;;",
-  "names": []
-}

@@ -9,7 +9,6 @@ import { LoginComponent } from './pages/auth/login.component';
 import { SignupComponent } from './pages/auth/signup.component';
 import { HomeComponent } from './pages/home/home.component';
 import { ProjectsComponent } from './pages/projects/projects.component';
-import { InvestmentsComponent } from './pages/investments/investments.component';
 import { MentoringComponent } from './pages/mentoring/mentoring.component';
 import { RoadmapsComponent } from './pages/roadmaps/roadmaps.component';
 import { PartnershipsComponent } from './pages/partnerships/partnerships.component';
@@ -29,6 +28,7 @@ export const routes: Routes = [
       { path: 'events', component: EventsComponent, canActivate: [loginGuard] },
       { path: 'community', loadChildren: () => import('./modules/community/community.module').then(m => m.CommunityModule), canActivate: [loginGuard] },
       { path: 'procedures', loadChildren: () => import('./modules/legal/legal.module').then(m => m.LegalModule) },
+      { path: 'investment', loadChildren: () => import('./modules/investment-module/investment/investment-module').then(m => m.InvestmentModule), canActivate: [loginGuard] },
       // Profile accessible to any authenticated user (including USER role)
       { path: 'profile', component: ProfileComponent, canActivate: [loginGuard] },
     ],
@@ -53,7 +53,7 @@ export const routes: Routes = [
       { path: 'projects', component: ProjectsComponent },
       { path: 'community', loadChildren: () => import('./modules/community/community.module').then(m => m.CommunityModule) },
       { path: 'legal', loadChildren: () => import('./modules/legal/legal.module').then(m => m.LegalModule), canActivate: [authGuard], data: { role: 'ADMIN' } },
-      { path: 'investments', component: InvestmentsComponent },
+      { path: 'investments', redirectTo: '/investment', pathMatch: 'full' },
       { path: 'mentoring', component: MentoringComponent },
       { path: 'roadmaps', component: RoadmapsComponent },
       { path: 'partnerships', component: PartnershipsComponent },

@@ -1,0 +1,183 @@
+<section class="marketplace-page">
+  <div class="marketplace-shell">
+    <header class="marketplace-hero">
+      <div>
+        <div class="eyebrow">Investor marketplace</div>
+        <h1>Find investors aligned with your startup</h1>
+        <p>
+          Browse active investor profiles, understand their funding preferences, and identify
+          the best matches.
+        </p>
+      </div>
+
+      <div class="hero-metrics" aria-label="Investor marketplace metrics">
+        <article>
+          <span>Active investors</span>
+          <strong>{{ activeCount }}</strong>
+        </article>
+        <article>
+          <span>Visible matches</span>
+          <strong>{{ visibleProfiles.length }}</strong>
+        </article>
+      </div>
+    </header>
+
+    <section class="filter-panel" aria-label="Investor filters">
+      <label class="search-box">
+        <span>Search</span>
+        <div class="field-shell">
+          <ng-icon name="lucideSearch" size="17"></ng-icon>
+          <input
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="applyFilters()"
+            placeholder="Investor, sector, stage, location"
+          />
+        </div>
+      </label>
+
+      <label>
+        <span>Sector</span>
+        <select [(ngModel)]="selectedSector" (ngModelChange)="applyFilters()">
+          <option value="ALL">All sectors</option>
+          <option *ngFor="let sector of sectors" [value]="sector">{{ sector }}</option>
+        </select>
+      </label>
+
+      <label>
+        <span>Budget</span>
+        <select [(ngModel)]="selectedBudget" (ngModelChange)="applyFilters()">
+          <option value="ALL">Tous les budgets</option>
+          <option value="UNDER_100K">Moins de 10 000 TND</option>
+          <option value="100K_500K">10 000 TND - 50 000 TND</option>
+          <option value="500K_2M">50 000 TND - 100 000 TND</option>
+          <option value="OVER_2M">Plus de 100 000 TND</option>
+        </select>
+      </label>
+
+      <button class="reset-btn" type="button" (click)="resetFilters()">
+        <ng-icon name="lucideSlidersHorizontal" size="16"></ng-icon>
+        Reset
+      </button>
+    </section>
+
+    <div class="state-panel" *ngIf="loading">
+      <div class="loader"></div>
+      <p>Loading investor profiles...</p>
+    </div>
+
+    <div class="state-panel error" *ngIf="!loading && error">
+      <strong>{{ error }}</strong>
+      <button type="button" (click)="resetFilters()">Try again</button>
+    </div>
+
+    <div class="state-panel" *ngIf="!loading && !error && visibleProfiles.length === 0">
+      <ng-icon name="lucideBriefcase" size="26"></ng-icon>
+      <strong>No investor matches found</strong>
+      <p>Adjust your search, sector, or budget filters to discover more profiles.</p>
+    </div>
+
+    <section class="profile-grid" *ngIf="!loading && !error && visibleProfiles.length > 0">
+      <article class="investor-card" *ngFor="let profile of visibleProfiles; trackBy: trackProfile">
+        <div class="card-head">
+          <div class="avatar">
+            <ng-icon name="lucideBuilding2" size="22"></ng-icon>
+          </div>
+          <div>
+            <h2>{{ profile.name || 'Investor profile' }}</h2>
+          </div>
+        </div>
+
+        <div class="fit-pill">
+          <ng-icon name="lucideBadgeCheck" size="15"></ng-icon>
+          {{ compatibilityLabel(profile) }}
+        </div>
+
+        <div class="detail-grid">
+          <div>
+            <span>Budget</span>
+            <strong>{{ budgetLabel(profile) }}</strong>
+          </div>
+          <div>
+            <span>Location</span>
+            <strong>{{ profile.location || 'Flexible' }}</strong>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <span class="section-label">Targeted sectors</span>
+          <div class="chip-list">
+            <span class="chip" *ngFor="let sector of profile.sectors">{{ sector }}</span>
+            <span class="muted" *ngIf="profile.sectors.length === 0">Not specified</span>
+          </div>
+        </div>
+
+        <div class="section-block">
+          <span class="section-label">Preferred stages</span>
+          <div class="chip-list">
+            <span class="chip stage" *ngFor="let stage of profile.stages">{{ stage }}</span>
+            <span class="muted" *ngIf="profile.stages.length === 0">Not specified</span>
+          </div>
+        </div>
+
+        <button class="profile-btn" type="button" (click)="viewProfile(profile)">
+          View Full Profile
+          <ng-icon name="lucideArrowRight" size="16"></ng-icon>
+        </button>
+      </article>
+    </section>
+  </div>
+
+  <aside class="profile-drawer" *ngIf="selectedProfile as profile" aria-label="Investor profile details">
+    <div class="drawer-panel">
+      <button class="drawer-close" type="button" (click)="closeProfile()" aria-label="Close investor profile">
+        <ng-icon name="lucideX" size="18"></ng-icon>
+      </button>
+
+      <div class="drawer-head">
+        <div class="avatar large">
+          <ng-icon name="lucideBuilding2" size="26"></ng-icon>
+        </div>
+        <div>
+          <div class="eyebrow">Full investor profile</div>
+          <h2>{{ profile.name || 'Investor profile' }}</h2>
+          <p>{{ profile.investorId }}</p>
+        </div>
+      </div>
+
+      <div class="drawer-facts">
+        <article>
+          <ng-icon name="lucideWallet" size="18"></ng-icon>
+          <span>Investment range</span>
+          <strong>{{ budgetLabel(profile) }}</strong>
+        </article>
+        <article>
+          <ng-icon name="lucideMapPin" size="18"></ng-icon>
+          <span>Preferred location</span>
+          <strong>{{ profile.location || 'Flexible' }}</strong>
+        </article>
+      </div>
+
+      <div class="drawer-section">
+        <span>Targeted sectors</span>
+        <div class="chip-list">
+          <span class="chip" *ngFor="let sector of profile.sectors">{{ sector }}</span>
+          <span class="muted" *ngIf="profile.sectors.length === 0">Not specified</span>
+        </div>
+      </div>
+
+      <div class="drawer-section">
+        <span>Preferred startup stages</span>
+        <div class="chip-list">
+          <span class="chip stage" *ngFor="let stage of profile.stages">{{ stage }}</span>
+          <span class="muted" *ngIf="profile.stages.length === 0">Not specified</span>
+        </div>
+      </div>
+
+      <a class="pdf-link" *ngIf="profile.presentationPdfUrl" [href]="profile.presentationPdfUrl" target="_blank" rel="noopener">
+        <ng-icon name="lucideFileText" size="17"></ng-icon>
+        Open investor presentation
+      </a>
+
+    </div>
+  </aside>
+</section>
