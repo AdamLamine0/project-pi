@@ -13,6 +13,7 @@ export interface PredictionInput {
   program_slots_count: number;
   sector_count: number;
   stage_count: number;
+  description_length: number;
   day_of_week: number;
   month: number;
   hour_of_day: number;
@@ -140,6 +141,7 @@ export class PredictionService {
       program_slots_count: Number(input.programSlotsCount ?? 0),
       sector_count: Number(input.sectorCount ?? 0),
       stage_count: Number(input.stageCount ?? 0),
+      description_length: 0,
       day_of_week: dayOfWeek,
       month: start.getMonth() + 1,
       hour_of_day: start.getHours(),
