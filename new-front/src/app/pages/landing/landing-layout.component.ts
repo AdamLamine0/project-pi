@@ -119,7 +119,7 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
 
   protected readonly isLoggedIn         = computed(() => this.authService.isLoggedIn());
   protected readonly canAccessDashboard = computed(() =>
-      this.authService.hasRole('ADMIN', 'MENTOR', 'PARTNER')
+      this.authService.hasRole('ADMIN', 'MENTOR', 'PARTNER', 'PARTENAIRE' as any)
   );
   protected readonly userInitial = computed(() => {
     const e = this.authService.getEmail();
