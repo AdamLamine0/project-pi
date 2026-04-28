@@ -40,7 +40,7 @@ export class LegalProcedureListComponent implements OnInit {
   constructor(
     private readonly service: LegalProcedureService,
     private readonly router: Router,
-    private readonly auth: AuthService,
+    public readonly auth: AuthService,
     private readonly cdr: ChangeDetectorRef
   ) {
     this.userId = this.auth.getUserId();
@@ -82,7 +82,7 @@ export class LegalProcedureListComponent implements OnInit {
   }
 
   openCreate(): void {
-    this.router.navigate(['/app/legal/new']);
+    this.router.navigate([this.auth.isAdmin() ? '/app/legal/new' : '/procedures/new']);
   }
 
   submit(id: string): void {
