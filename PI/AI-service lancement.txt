@@ -1,0 +1,2 @@
+$env:GEMINI_API_KEY="AIzaSyBurEaTNGvwawJnnH7Usr6nB0vcJGu9L_s"
+mvn spring-boot:run

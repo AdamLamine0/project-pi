@@ -62,7 +62,7 @@ public class PredictionController {
                 .programSlotsCount(request.getProgramSlotsCount())
                 .sectorCount(request.getSectorCount())
                 .stageCount(request.getStageCount())
-                .descriptionLength(request.getDescriptionLength())
+                .descriptionLength(request.getDescriptionLength() != null ? request.getDescriptionLength() : 0)
                 .dayOfWeek(request.getDayOfWeek())
                 .month(request.getMonth())
                 .hourOfDay(request.getHourOfDay())
