@@ -119,7 +119,7 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
 
   protected readonly isLoggedIn         = computed(() => this.authService.isLoggedIn());
   protected readonly canAccessDashboard = computed(() =>
-    this.authService.hasRole('ADMIN', 'MENTOR', 'PARTNER', 'PARTENAIRE')
+      this.authService.hasRole('ADMIN', 'MENTOR', 'PARTNER', 'PARTENAIRE' as any)
   );
   protected readonly userInitial = computed(() => {
     const e = this.authService.getEmail();
@@ -152,9 +152,9 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
     setTimeout(() => this.showBadge.set(true), 950);
     this.badgeTimer = setTimeout(() => this.showBadge.set(false), 5000);
 
-    const userId = this.authService.getUserId()?.toString();
-    if (userId) {
-      this.notificationService.init(userId);
+    const userId = this.authService.getUserId();
+    if (this.authService.isLoggedIn() && userId > 0) {
+      this.notificationService.init(String(userId));
     }
   }
 

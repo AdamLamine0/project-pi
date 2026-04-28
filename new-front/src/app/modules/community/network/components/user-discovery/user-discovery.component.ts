@@ -395,10 +395,7 @@ import {
     /* Role Colors */
     .role-mentor { background: #F3E8FF; color: #6B21A8; }
     .role-admin { background: #FEE2E2; color: #991B1B; }
-    .role-partenaire { background: #FEF3C7; color: #B45309; }
-    .role-entrepreneur { background: #DBEAFE; color: #1E40AF; }
-    .role-investisseur { background: #D1FAE5; color: #065F46; }
-    .role-etudiant { background: #FCE7F3; color: #9D174D; }
+      .role-entrepreneur { background: #DBEAFE; color: #1E40AF; }
     .role-user { background: #F3F4F6; color: #374151; }
     
     .user-info h3 {
@@ -573,7 +570,7 @@ export class UserDiscoveryComponent implements OnInit {
   loading = false;
   currentUserId = '';
   connectionStatus: { [key: number]: 'CONNECTED' | 'PENDING' | null } = {};
-  roles = ['USER', 'ADMIN', 'MENTOR', 'PARTENAIRE', 'ENTREPRENEUR', 'INVESTISSEUR', 'ETUDIANT'];
+  roles = ['USER', 'ENTREPRENEUR', 'EXPERT', 'MENTOR', 'INVESTOR', 'PARTNER', 'ADMIN'];
 
   constructor(
     private router: Router,

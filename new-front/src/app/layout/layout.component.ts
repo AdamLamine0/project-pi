@@ -19,7 +19,7 @@ import { AuthService } from '../core/services/auth.service';
 import { CommunityNotificationService } from '../modules/community/shared/services/notification.service';
 import { CommunityNotification, NotificationType } from '../modules/community/shared/models/notification.model';
 
-interface NavItem { icon: string; label: string; route: string; }
+interface NavItem { icon: string; label: string; route: string; roles?: string[]; }
 interface Notification { id: number; title: string; body: string; time: string; read: boolean; type: 'alert' | 'info' | 'success'; }
 
 @Component({
@@ -86,7 +86,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
 
         <!-- Nav items -->
         <nav class="flex flex-col gap-0.5 py-3 flex-1" style="padding-inline:10px; overflow:hidden;">
-          @for (item of navItems; track item.route) {
+          @for (item of visibleNavItems(); track item.route) {
             <a
               [routerLink]="item.route"
               routerLinkActive="active-nav"
@@ -893,10 +893,10 @@ export class LayoutComponent {
   }
 
   protected readonly navItems: NavItem[] = [
-    { icon: 'lucideLayoutDashboard', label: 'Dashboard',    route: '/app/dashboard'    },
+    { icon: 'lucideLayoutDashboard', label: 'Dashboard',    route: '/app/dashboard', roles: ['ADMIN'] },
     { icon: 'lucideRocket',          label: 'Projects',     route: '/app/projects'     },
     { icon: 'lucideUsers',           label: 'Community',    route: '/app/community'    },
-    { icon: 'lucideScale',           label: 'Procedures',   route: '/app/legal'        },
+    { icon: 'lucideScale',           label: 'Procedures',   route: '/app/legal', roles: ['ADMIN'] },
     { icon: 'lucideTrendingUp',      label: 'Investments',  route: '/app/investments'  },
     { icon: 'lucideGraduationCap',   label: 'Mentoring',    route: '/app/mentoring'    },
     { icon: 'lucideMap',             label: 'Roadmaps',     route: '/app/roadmaps'     },
@@ -904,6 +904,10 @@ export class LayoutComponent {
     { icon: 'lucideCalendar',        label: 'Events',       route: '/app/events'       },
     { icon: 'lucideClipboardList',   label: 'Registrations', route: '/app/registrations' },
   ];
+
+  protected readonly visibleNavItems = computed(() =>
+    this.navItems.filter(item => !item.roles || item.roles.includes(this.authService.getRole()))
+  );
 
   private readonly url = toSignal(
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)),
@@ -913,7 +917,7 @@ export class LayoutComponent {
   protected readonly currentPageTitle = computed(() => {
     this.url();
     const cleanUrl = this.router.url.split('?')[0];
-    return this.navItems.find((item) => cleanUrl.startsWith(item.route))?.label ?? 'FoundersLab';
+    return this.visibleNavItems().find((item) => cleanUrl.startsWith(item.route))?.label ?? 'FoundersLab';
   });
 
   protected readonly userDisplayName = computed(() => {
@@ -929,10 +933,6 @@ export class LayoutComponent {
     const role = this.authService.getRole();
     if (!role) {
       return 'Member';
-    }
-
-    if (role === 'PARTENAIRE') {
-      return 'Partner';
     }
 
     return role.charAt(0) + role.slice(1).toLowerCase();

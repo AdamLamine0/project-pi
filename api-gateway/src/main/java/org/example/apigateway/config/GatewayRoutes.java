@@ -30,8 +30,7 @@ public class GatewayRoutes {
     public RouterFunction<ServerResponse> userAuthRoute() {
         return RouterFunctions
                 .route(path("/api/auth/**"), HandlerFunctions.http())
-                .filter(lb("user-pi"))
-                .filter(authFilter.jwtFilter());
+                .filter(lb("user-pi"));
     }
 
     @Bean

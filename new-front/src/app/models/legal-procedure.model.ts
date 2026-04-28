@@ -36,6 +36,17 @@ export interface LegalProcedureResponse {
   documents: LegalDocumentResponse[];
 }
 
+export interface LegalProcedureStatsResponse {
+  total: number;
+  drafts: number;
+  inProgress: number;
+  waitingExpert: number;
+  completed: number;
+  rejected: number;
+  averageCompletion: number;
+  byType: Record<string, number>;
+}
+
 export interface CreateLegalProcedureRequest {
   projectName: string;
   procedureType: ProcedureType;

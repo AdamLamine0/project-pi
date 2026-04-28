@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { NgIconComponent } from '@ng-icons/core';
 import { LegalRoutingModule } from './legal-routing.module';
 
 import { LegalProcedureListComponent }   from './pages/legal-procedure-list/legal-procedure-list.component';
@@ -22,6 +23,7 @@ import { ExpertProceduresComponent }     from './pages/expert-procedures/expert-
     CommonModule,
     ReactiveFormsModule,
     FormsModule,
+    NgIconComponent,
     RouterModule,
     LegalRoutingModule,
   ]
