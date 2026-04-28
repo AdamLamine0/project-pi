@@ -1,3 +1,4 @@
+// mon-organisation.component.ts
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -6,7 +7,8 @@ import { PartenaireService } from '../../../services/partenaire.service';
 import {
   OrganisationPartenaire,
   ContactInfoRequest,
-  TypePartenaire
+  PartnerType,
+  PartnerStatus
 } from '../../../models/partenaire';
 
 @Component({
@@ -18,7 +20,7 @@ export class MonOrganisationComponent implements OnInit {
 
   org: OrganisationPartenaire | null = null;
   form!: FormGroup;
-  types = Object.values(TypePartenaire);
+  types = Object.values(PartnerType);
 
   viewOnly   = false;
   isUser     = false;
@@ -29,6 +31,8 @@ export class MonOrganisationComponent implements OnInit {
   isSubmitting = false;
   errorMessage  = '';
   successMessage = '';
+
+  PartnerStatus = PartnerStatus; // expose to template
 
   constructor(
     private fb: FormBuilder,
@@ -70,6 +74,23 @@ export class MonOrganisationComponent implements OnInit {
 
   get f() { return this.form.controls; }
 
+  /**
+   * Is this partner's own org editable?
+   * NOT editable when SUSPENDED or TERMINATED.
+   */
+  get canEdit(): boolean {
+    if (!this.org || this.viewOnly) return false;
+    return this.org.statut === PartnerStatus.ACTIVE;
+  }
+
+  get isSuspended(): boolean {
+    return this.org?.statut === PartnerStatus.SUSPENDED;
+  }
+
+  get isTerminated(): boolean {
+    return this.org?.statut === PartnerStatus.TERMINATED;
+  }
+
   // PARTNER: find their org by matching userId from all orgs
   async loadMyOrg(): Promise<void> {
     this.isLoading = true;
@@ -80,14 +101,14 @@ export class MonOrganisationComponent implements OnInit {
       const myOrg    = allOrgs.find(o => Number(o.userId) === myUserId) ?? null;
 
       if (!myOrg) {
-        this.errorMessage = 'Aucune organisation trouvée pour votre compte. Contactez un administrateur.';
+        this.errorMessage = 'No organisation found for your account. Please contact an administrator.';
         return;
       }
 
       this.org = myOrg;
       this.patchForm(this.org);
     } catch {
-      this.errorMessage = 'Impossible de charger votre organisation.';
+      this.errorMessage = 'Unable to load your organisation.';
     } finally {
       this.isLoading = false;
     }
@@ -100,7 +121,7 @@ export class MonOrganisationComponent implements OnInit {
       this.org = await this.partenaireService.getById(id);
       this.patchForm(this.org);
     } catch {
-      this.errorMessage = 'Impossible de charger cette organisation.';
+      this.errorMessage = 'Unable to load this organisation.';
     } finally {
       this.isLoading = false;
     }
@@ -127,6 +148,7 @@ export class MonOrganisationComponent implements OnInit {
   }
 
   enableEdit(): void {
+    if (!this.canEdit) return;
     this.isEditing = true;
     this.form.enable();
     this.successMessage = '';
@@ -161,9 +183,9 @@ export class MonOrganisationComponent implements OnInit {
       this.org = { ...this.org, ...updated };
       this.isEditing = false;
       this.form.disable();
-      this.successMessage = 'Informations de contact mises à jour !';
+      this.successMessage = 'Contact information updated successfully!';
     } catch (err: any) {
-      this.errorMessage = err?.error?.message || 'Échec de la mise à jour.';
+      this.errorMessage = err?.error?.message || 'Update failed. Please try again.';
     } finally {
       this.isSubmitting = false;
     }

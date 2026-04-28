@@ -1,241 +1,381 @@
-# Services and Controllers Explained (Simple Guide)
+# Full Project Classes Explained
 
-This file explains, in simple terms, what your `controller` and `service` classes do.
+This document explains **every class** in `src/main/java/org/example/partenariatpi` in simple words.
 
-## Quick idea: Controller vs Service
+## Architecture in one line
 
-- **Controller** = receives HTTP requests (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`), reads headers/body, and returns HTTP response.
-- **Service** = contains business logic (rules, validation, workflow, integration with repository/Zoom/mail).
+`Controller -> Service -> Repository/Feign -> Database or External API`
 
-Request flow in your project:
-
-`Frontend -> Controller -> Service -> Repository/External API -> Controller -> Frontend`
+- `Controller`: HTTP entry points.
+- `Service`: business rules and workflows.
+- `Repository`: data access with Spring Data JPA.
+- `Feign`: calls another microservice (`user-pi`).
+- `DTO`: API input/output objects.
+- `Model`: JPA entities stored in database.
+- `Enum`: controlled value sets.
+- `Config`: Spring/Security setup.
 
 ---
 
-## Controllers (`src/main/java/org/example/partenariatpi/controller`)
+## Application Entry Class
 
-## `ConventionController`
+## `PartenariatPiApplication`
+
+- Main Spring Boot launcher (`main` method).
+- Enables:
+  - service discovery (`@EnableDiscoveryClient`),
+  - Feign clients (`@EnableFeignClients`),
+  - method security (`@EnableMethodSecurity`).
+
+---
+
+## Config Package
+
+## `config/SecurityConfig`
+
+- Defines `SecurityFilterChain` bean.
+- Disables CSRF and keeps app stateless (`SessionCreationPolicy.STATELESS`).
+- Allows all requests because JWT is already validated at API Gateway level.
+
+---
+
+## Controller Package
+
+## `controller/ConventionController`
 
 **Base URL:** `/api/conventions`
 
-Main role: manage convention lifecycle (create, read, update, confirm, renew, cancel, delete) and PDF download.
+Main API for convention lifecycle and PDF download.
 
-Key endpoints/functions:
+Important methods:
 
-- `getAll` -> admin gets all conventions.
-- `getById` -> one convention by id (with ownership check).
-- `downloadPdf` -> generate/download convention PDF.
-- `getByUser` -> conventions of one user.
-- `getByOrganisation` -> conventions of one organisation.
-- `getByUserAndOrganisation` -> filtered conventions.
-- `getPendingRenewal` -> conventions waiting for renewal decision.
-- `create` -> create convention (with role checks).
-- `update` -> update convention dates/terms.
-- `updateStatut` -> set status manually.
-- `confirmer` -> one party confirms convention (optionally with signature image).
-- `demanderRenouvellement` -> request renewal.
-- `accepterRenouvellement` -> accept renewal and create new convention terms.
-- `annuler` -> cancel/expire convention.
-- `delete` -> delete convention.
+- `getAll`: admin list all conventions.
+- `getById`: get one convention (ownership checked).
+- `downloadPdf`: returns generated PDF bytes.
+- `getByUser`: conventions of one user.
+- `getByOrganisation`: conventions of one organisation.
+- `getByUserAndOrganisation`: combined filter.
+- `getPendingRenewal`: list pending renewals.
+- `create`: create convention.
+- `update`: update convention dates/terms.
+- `updateStatut`: manual status update.
+- `confirmer`: confirm convention (optionally with signature).
+- `demanderRenouvellement`: request renewal.
+- `accepterRenouvellement`: accept renewal and create new terms.
+- `annuler`: cancel/expire convention.
+- `delete`: delete convention.
 
----
-
-## `ObjectifController`
+## `controller/ObjectifController`
 
 **Base URL:** `/api/objectifs`
 
-Main role: manage objectives attached to conventions.
+API for convention objectives.
 
-Key endpoints/functions:
+Important methods:
 
-- `getByConvention` -> objectives for a convention.
-- `getByConventionAndStatut` -> filter objectives by status.
-- `getByConventionAndResponsable` -> filter by responsible party.
-- `getById` -> get one objective.
-- `create` -> create objective.
-- `update` -> update objective data.
-- `updateStatut` -> update objective progress status.
-- `delete` -> delete objective.
+- `getByConvention`, `getByConventionAndStatut`, `getByConventionAndResponsable`, `getById`.
+- `create`, `update`, `updateStatut`, `delete`.
 
----
-
-## `OrganisationPartenaireController`
+## `controller/OrganisationPartenaireController`
 
 **Base URL:** `/api/organisations`
 
-Main role: CRUD and dashboard for partner organisations.
+API for partner organisations.
 
-Key endpoints/functions:
+Important methods:
 
-- `getAll` -> list all organisations.
-- `getById` -> one organisation.
-- `getByStatut` -> organisations by status (`EN_ATTENTE`, `ACTIF`, etc.).
-- `getMyDashboard` -> partner sees own organisation profile.
-- `updateContactInfo` -> partner updates own contact data.
-- `create` -> admin creates organisation.
-- `update` -> admin updates organisation.
-- `updateStatut` -> admin changes partner status.
-- `assignUser` -> admin links user account to organisation.
-- `delete` -> admin deletes organisation.
+- `getAll`, `getById`, `getByStatut`.
+- `getMyDashboard`: partner reads own org profile.
+- `updateContactInfo`: partner updates own contact data.
+- `create`, `update`, `updateStatut`, `assignUser`, `delete` (admin actions).
 
----
-
-## `MeetingInvitationController`
+## `controller/MeetingInvitationController`
 
 **Base URL:** `/api/meeting-invitations`
 
-Main role: send meeting request to partner and trigger Zoom meeting creation.
+API for requesting/sending meeting invitations.
 
-Key endpoint/function:
+Important method:
 
-- `sendToPartenaire` (`POST /partenaire/{partenaireId}`)
-  - validates role (`ROLE_ADMIN` or `ROLE_USER`),
-  - reads request data (subject/date/duration/note/requester),
-  - calls service to create Zoom meeting + send email,
-  - returns meeting credentials/metadata.
+- `sendToPartenaire` (`POST /partenaire/{partenaireId}`):
+  - checks role,
+  - reads request,
+  - delegates to `MeetingInvitationService`,
+  - returns meeting + email send result.
 
----
-
-## `ZoomSignatureController`
+## `controller/ZoomSignatureController`
 
 **Base URL:** `/api/zoom`
 
-Main role: generate Meeting SDK signature for embedded Zoom in web app.
+API for embedded Zoom Meeting SDK signature.
 
-Key endpoint/function:
+Important method:
 
-- `generateSignature` (`POST /signature`)
-  - checks role,
-  - generates JWT signature using SDK key/secret,
-  - returns `signature` + `sdkKey` for frontend `@zoom/meetingsdk` join.
-
----
-
-## Services (`src/main/java/org/example/partenariatpi/service`)
-
-## `ConventionService`
-
-Main role: business logic for conventions.
-
-Important functions:
-
-- `getAll`, `getById`, `getByUserId`, `getByOrganisationId`, `getByUserAndOrganisation`, `getPendingRenewal` -> read operations.
-- `create` -> validates dates, maps request to entity, sets initial flags/status, creates convention number.
-- `confirmer` -> confirmation rules between user/partner, stores signature data, activates when both confirm.
-- `update` -> updates dates and resets confirmations.
-- `resetConfirmationsAfterObjectifChange` -> called when objective changes.
-- `updateStatut` -> change status.
-- `demanderRenouvellement` / `accepterRenouvellement` -> renewal workflow.
-- `annuler` -> mark convention expired.
-- `delete` -> delete with ownership/security checks.
-- `checkIsParty`, `checkOwnership` -> authorization logic.
-- `validateDates` -> start date must be at least tomorrow, end date at least +3 months.
+- `generateSignature` (`POST /signature`):
+  - validates role,
+  - generates SDK JWT signature,
+  - returns `{ signature, sdkKey }` for frontend join.
 
 ---
 
-## `ConventionPdfService`
+## Service Package
 
-Main role: build a PDF file for a convention using iText.
+## `service/ConventionService`
 
-Important function:
+Business logic for conventions.
 
-- `generateConventionPdf(conventionId)`
+Important responsibilities:
+
+- read/filter conventions,
+- create convention + generate `numeroConvention`,
+- confirmation rules (`confirmer`) between user and partner,
+- reset confirmations after changes,
+- status transitions,
+- renewal request/accept flow,
+- ownership checks (`checkIsParty`, `checkOwnership`),
+- cancel/delete,
+- date validation (`validateDates`).
+
+## `service/ConventionPdfService`
+
+Generates convention PDF with iText.
+
+Important method:
+
+- `generateConventionPdf(conventionId)`:
   - loads convention,
-  - builds structured PDF sections (header, dates, parties, objectives, signatures),
-  - returns byte array for download endpoint.
+  - writes sections (header, parties, objectives, signatures),
+  - returns `byte[]` for download.
+
+## `service/ObjectifService`
+
+Business logic for objectives.
+
+Important responsibilities:
+
+- read/filter objectives,
+- create/update objective with convention party checks,
+- validates deadline against convention end date,
+- status updates only when convention is `ACTIVE`,
+- delete objective and reset convention confirmations.
+
+## `service/OrganisationPartenaireService`
+
+Business logic for partner organisations.
+
+Important responsibilities:
+
+- CRUD and filtering by status,
+- partner dashboard by `userId`,
+- partner self-contact update,
+- assign user to organisation,
+- helper lookups (`findById`, `findByUserId`),
+- verifies user existence through `UserClient`.
+
+## `service/MeetingInvitationService`
+
+Orchestrates meeting request flow.
+
+Important responsibilities:
+
+- resolve partner and requester name,
+- create Zoom meeting via `ZoomMeetingService`,
+- send email via `JavaMailSender`,
+- build response with Zoom meeting credentials,
+- build email body and sender display details.
+
+## `service/ZoomMeetingService`
+
+Integrates with Zoom Server-to-Server OAuth and Meeting APIs.
+
+Important responsibilities:
+
+- `fetchAccessToken`: obtains access token from Zoom OAuth endpoint,
+- `createMeeting`: calls Zoom API to create meeting and returns details.
+
+Nested record:
+
+- `ZoomMeetingData`: small immutable holder for `meetingId`, `joinUrl`, `startUrl`, `password`.
+
+## `service/ZoomSignatureService`
+
+Generates Zoom Meeting SDK JWT signatures.
+
+Important responsibilities:
+
+- validate SDK credentials (`zoom.sdk-key`, `zoom.sdk-secret`),
+- generate JWT claims (`iss`, `exp`, `iat`, `tpc`, `role_type`),
+- sign JWT with HS256.
 
 ---
 
-## `ObjectifService`
+## Repository Package
 
-Main role: business logic for objectives.
+## `repository/ConventionRepository`
 
-Important functions:
+JPA repository for `Convention`.
 
-- `getByConvention`, `getByConventionAndStatut`, `getByConventionAndResponsable`, `getById` -> read.
-- `create` -> validates party ownership and deadline within convention end date.
-- `update` -> updates objective details + validates deadline.
-- `updateStatut` -> progress update, only allowed if convention is `ACTIVE`.
-- `delete` -> deletes objective and resets convention confirmations.
+Custom query methods:
 
----
+- `findByUserId`
+- `findByOrganisationPartenaireId`
+- `findByUserIdAndOrganisationPartenaireId`
+- `findByRenouvellementDemandeParRoleIsNotNull`
 
-## `OrganisationPartenaireService`
+## `repository/ObjectifRepository`
 
-Main role: partner organisation management.
+JPA repository for `Objectif`.
 
-Important functions:
+Custom query methods:
 
-- `getAll`, `getById`, `getByStatut`, `getMyDashboard` -> read.
-- `create` -> optional user existence check then save.
-- `update` -> admin full update.
-- `updateContactInfo` -> partner updates only own organisation.
-- `updateStatut` -> admin status update.
-- `assignUser` -> link user to organisation.
-- `delete` -> remove organisation.
-- `findByUserId`, `findById` -> reusable lookup helpers.
+- `findByConventionId`
+- `findByConventionIdAndStatut`
+- `findByConventionIdAndResponsable`
 
----
+## `repository/OrganisationPartenaireRepository`
 
-## `MeetingInvitationService`
+JPA repository for `OrganisationPartenaire`.
 
-Main role: orchestrates meeting request flow.
+Custom query methods:
 
-Important function:
-
-- `sendMeetingInvitation(partenaireId, request, senderRole, senderUserId)`
-  - loads partner organisation,
-  - resolves requester display name,
-  - creates Zoom meeting via `ZoomMeetingService`,
-  - sends notification email via `JavaMailSender`,
-  - returns response with meeting info (`zoomMeetingId`, `zoomJoinUrl`, `zoomPassword`, etc.).
-
-Helper functions:
-
-- `buildMailBody` -> creates email text (requester name, date, note).
-- `resolveRequesterName` -> uses request name or fetches user via `UserClient`.
+- `findByUserId`
+- `findByStatut`
 
 ---
 
-## `ZoomMeetingService`
+## Model Package
 
-Main role: Zoom OAuth + meeting creation API integration.
+## `model/Convention`
 
-Important functions:
+Entity representing a convention between one user and one partner organisation.
 
-- `fetchAccessToken` -> gets Zoom access token with account credentials.
-- `createMeeting` -> calls Zoom API `/v2/users/{userId}/meetings` and returns meeting metadata.
+Main fields:
 
-Returns record:
+- party fields: `userId`, `organisationPartenaire`,
+- dates: `dateDebut`, `dateFin`,
+- status: `statut`,
+- objective list: `objectifs`,
+- signature fields: `signatureUser`, `signaturePartenaire`,
+- renewal and confirmation tracking fields.
 
-- `ZoomMeetingData(meetingId, joinUrl, startUrl, password)`.
+## `model/Objectif`
+
+Entity representing one objective under a convention.
+
+Main fields:
+
+- relation: `convention`,
+- content: `titre`, `description`,
+- owner: `responsable`,
+- progress: `statut`, `commentaire`,
+- timing: `dateEcheance`, `dateCreation`.
+
+## `model/OrganisationPartenaire`
+
+Entity representing partner organisation details.
+
+Main fields:
+
+- identity: `nom`, `type`,
+- contact: `contactNom`, `contactEmail`,
+- profile: `description`, `siteWeb`, `region`,
+- linked user account id: `userId`,
+- partner status: `statut`.
 
 ---
 
-## `ZoomSignatureService`
+## DTO Package
 
-Main role: create JWT signature used by Zoom Meeting SDK in frontend.
+DTOs are simple objects used by API inputs/outputs and mapping.
 
-Important function:
+## Convention DTO classes
 
-- `generateSignature(meetingNumber, role)`
-  - validates SDK credentials,
-  - builds JWT claims (`iss`, `exp`, `iat`, `tpc`, `role_type`),
-  - signs with `HS256`.
+- `dto/ConventionRequest`: payload to create/update convention (`organisationPartenaireId`, `userId`, dates).
+- `dto/ConventionResponse`: payload returned to frontend with convention details, objectives, statuses, signatures.
+- `dto/ConventionMapper`: maps between `Convention` entity and request/response DTOs.
 
-Used by `ZoomSignatureController` for embedded meeting join in Angular.
+## Objectif DTO classes
+
+- `dto/ObjectifRequest`: payload to create/update objective.
+- `dto/ObjectifResponse`: payload returned with objective details.
+- `dto/ObjectifMapper`: maps between `Objectif` entity and request/response DTOs.
+
+## Organisation DTO classes
+
+- `dto/OrganisationPartenaireRequest`: payload for create/update organisation with validation.
+- `dto/OrganisationPartenaireResponse`: returned organisation view model.
+- `dto/OrganisationPartenaireMapper`: maps `OrganisationPartenaire` entity to/from DTOs.
+
+## Meeting Invitation DTO classes
+
+- `dto/MeetingInvitationRequest`: payload for meeting request (`requesterName`, subject, suggested date/time, duration, note).
+- `dto/MeetingInvitationResponse`: returned meeting invitation + Zoom data (`zoomMeetingId`, `zoomJoinUrl`, `zoomPassword`, etc.).
+
+## Zoom Signature DTO classes
+
+- `dto/ZoomSignatureRequest`: payload containing `meetingNumber` and `role`.
+- `dto/ZoomSignatureResponse`: returns generated `signature` and `sdkKey`.
 
 ---
 
-## Final Notes
+## Enums Package
 
-- Controllers are the API entry points.
-- Services hold the real business rules.
-- Meeting flow currently combines:
-  - Zoom meeting creation (`ZoomMeetingService`)
-  - email sending (`MeetingInvitationService`)
-  - SDK join signature (`ZoomSignatureService`).
+## `enums/ResponsableObjectif`
 
-If you want, I can also create a second file with the same explanation in French (`SERVICES_CONTROLLERS_EXPLAINED_FR.md`).
+Defines who is responsible for an objective:
+
+- `USER`, `PARTENAIRE`, `LES_DEUX`.
+
+## `enums/StatutConvention`
+
+Convention lifecycle status:
+
+- `BROUILLON`, `SIGNEE`, `ACTIVE`, `EXPIREE`.
+
+## `enums/StatutObjectif`
+
+Objective progress status:
+
+- `EN_COURS`, `ATTEINT`, `EN_RETARD`, `ANNULE`.
+
+## `enums/StatutPartenaire`
+
+Partner organisation status:
+
+- `EN_ATTENTE`, `ACTIF`, `SUSPENDU`, `RESILIER`.
+
+## `enums/TypePartenaire`
+
+Partner organisation type:
+
+- `ACADEMIQUE`, `INCUBATEUR`, `PUBLIC`, `ENTREPRISE`, `ASSOCIATIF`.
+
+---
+
+## Feign Package
+
+## `feign/UserClient`
+
+Feign interface to call `user-pi` service (`GET /api/users/{id}`).
+
+## `feign/UserDto`
+
+DTO holding user fields fetched from `user-pi` (`id`, `name`, `prenom`, `email`).
+
+## `feign/FeignAuthInterceptor`
+
+Copies incoming `Authorization` header from current request and forwards it in Feign calls.
+
+---
+
+## Final Summary
+
+You now have a complete, layered microservice structure:
+
+- controllers expose APIs,
+- services apply rules and workflows,
+- repositories read/write database,
+- feign classes connect to user service,
+- zoom services handle OAuth meeting creation + SDK signature,
+- dto/model/enum classes define data contracts and allowed values.
 

@@ -62,6 +62,14 @@ public class GatewayRoutes {
     }
 
     @Bean
+    public RouterFunction<ServerResponse> zoomSignatureRoute() {
+        return RouterFunctions
+                .route(path("/api/zoom/**"), HandlerFunctions.http())
+                .filter(lb("partenariat-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
     public RouterFunction<ServerResponse> organisationServiceRoute() {
         return RouterFunctions
                 .route(path("/api/organisations/**"), HandlerFunctions.http())
@@ -93,6 +101,13 @@ public class GatewayRoutes {
                 });
     }
 
+    @Bean
+    public RouterFunction<ServerResponse> transcriptionServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/transcripts/**"), HandlerFunctions.http())
+                .filter(lb("partenariat-pi"))           // ← Vers votre backend Spring Boot
+                .filter(authFilter.jwtFilter());         // ← Auth JWT requise
+    }
 
     @Bean
     public RouterFunction<ServerResponse> speakerServiceRoute() {

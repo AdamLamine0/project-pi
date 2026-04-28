@@ -1,13 +1,9 @@
+// partenaire.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../core/services/auth.service';
-import {
-  OrganisationPartenaire,
-  OrganisationPartenaireRequest,
-  ContactInfoRequest,
-  StatutPartenaire
-} from '../models/partenaire';
+import {OrganisationPartenaire, OrganisationPartenaireRequest, ContactInfoRequest, PartnerStatus} from '../models/partenaire';
 
 @Injectable({ providedIn: 'root' })
 export class PartenaireService {
@@ -42,28 +38,24 @@ export class PartenaireService {
     );
   }
 
-  getByStatut(statut: StatutPartenaire): Promise<OrganisationPartenaire[]> {
+  getByStatut(statut: PartnerStatus): Promise<OrganisationPartenaire[]> {
     return firstValueFrom(
       this.http.get<OrganisationPartenaire[]>(`${this.apiUrl}/statut/${statut}`, { headers: this.headers() })
     );
   }
 
   // ── PARTNER: find own organisation by scanning all orgs ──────────────────
-  // We match by userId because /my-dashboard is not reliable.
-  // GET /api/organisations has no role restriction — always works.
-
   async getMyDashboard(): Promise<OrganisationPartenaire> {
     const myUserId = Number(this.auth.getUserId());
     const all = await this.getAll();
     const mine = all.find(o => Number(o.userId) === myUserId);
     if (!mine) {
-      throw new Error('Aucune organisation trouvée pour votre compte. Contactez un administrateur.');
+      throw new Error('No organisation found for your account. Please contact an administrator.');
     }
     return mine;
   }
 
   // ── PARTNER: update contact info ──────────────────────────────────────────
-
   updateContactInfo(id: number, request: ContactInfoRequest): Promise<OrganisationPartenaire> {
     return firstValueFrom(
       this.http.put<OrganisationPartenaire>(
@@ -86,7 +78,7 @@ export class PartenaireService {
     );
   }
 
-  updateStatut(id: number, statut: StatutPartenaire): Promise<OrganisationPartenaire> {
+  updateStatut(id: number, statut: PartnerStatus): Promise<OrganisationPartenaire> {
     return firstValueFrom(
       this.http.patch<OrganisationPartenaire>(
         `${this.apiUrl}/${id}/statut`,

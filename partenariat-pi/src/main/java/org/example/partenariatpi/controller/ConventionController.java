@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -150,7 +151,10 @@ public class ConventionController {
         return ResponseEntity.ok(conventionService.updateStatut(id, statut));
     }
 
-    // ── CONFIRMER (avec signature) ────────────────────────────────────────────
+    // ── CONFIRMER (avec dates + signature) ────────────────────────────────────
+    // Body: { "dateDebut": "2026-06-01", "dateFin": "2027-06-01", "signature": "data:image/png;base64,..." }
+    // Dates are REQUIRED for the first party that confirms.
+    // Second party may omit dates (they were already locked by the first confirmer).
     @PostMapping("/{id}/confirmer")
     public ResponseEntity<ConventionResponse> confirmer(
             @PathVariable Integer id,
@@ -160,8 +164,16 @@ public class ConventionController {
         String r = cleanRole(role);
         Integer userId = Integer.parseInt(userIdRaw.split(",")[0].trim());
         conventionService.checkOwnership(id, r, userId);
-        String signature = (body != null) ? body.get("signature") : null;
-        return ResponseEntity.ok(conventionService.confirmer(id, r, signature));
+
+        String signature  = (body != null) ? body.get("signature")  : null;
+        LocalDate dateDebut = null;
+        LocalDate dateFin   = null;
+        if (body != null) {
+            if (body.get("dateDebut") != null) dateDebut = LocalDate.parse(body.get("dateDebut"));
+            if (body.get("dateFin")   != null) dateFin   = LocalDate.parse(body.get("dateFin"));
+        }
+
+        return ResponseEntity.ok(conventionService.confirmer(id, r, signature, dateDebut, dateFin));
     }
 
     // ── DEMANDER RENOUVELLEMENT ───────────────────────────────────────────────
@@ -199,11 +211,7 @@ public class ConventionController {
         return ResponseEntity.noContent().build();
     }
 
-    // ── HELPER ────────────────────────────────────────────────────────────────
-    private void checkAdmin(String role) {
-        if (!"ROLE_ADMIN".equals(role))
-            throw new RuntimeException("Access denied: ADMIN role required");
-    }
+    // ── ANNULER ───────────────────────────────────────────────────────────────
     @PostMapping("/{id}/annuler")
     public ResponseEntity<ConventionResponse> annuler(
             @PathVariable Integer id,
@@ -212,5 +220,11 @@ public class ConventionController {
         String r = cleanRole(role);
         Integer userId = Integer.parseInt(userIdRaw.split(",")[0].trim());
         return ResponseEntity.ok(conventionService.annuler(id, r, userId));
+    }
+
+    // ── HELPER ────────────────────────────────────────────────────────────────
+    private void checkAdmin(String role) {
+        if (!"ROLE_ADMIN".equals(role))
+            throw new RuntimeException("Access denied: ADMIN role required");
     }
 }

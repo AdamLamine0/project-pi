@@ -1,8 +1,9 @@
 package org.example.partenariatpi.enums;
 
 public enum StatutConvention {
-    BROUILLON,
-    SIGNEE,
+    DRAFT,        // was BROUILLON
+    SIGNED,       // was SIGNEE
     ACTIVE,
-    EXPIREE
+    COMPLETED,    // new — all objectives reached
+    EXPIRED
 }

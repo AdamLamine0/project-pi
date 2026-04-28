@@ -1,64 +1,36 @@
-// ── Enums ─────────────────────────────────────────────────────────────────────
+
 
 export enum StatutConvention {
-  BROUILLON = 'BROUILLON',
-  SIGNEE    = 'SIGNEE',
-  ACTIVE    = 'ACTIVE',
-  EXPIREE   = 'EXPIREE'
+  DRAFT      = 'DRAFT',
+  SIGNED     = 'SIGNED',
+  ACTIVE     = 'ACTIVE',
+  COMPLETED  = 'COMPLETED',
+  EXPIRED    = 'EXPIRED'
 }
 
 export enum StatutObjectif {
-  EN_COURS = 'EN_COURS',
-  ATTEINT  = 'ATTEINT',
-  EN_RETARD = 'EN_RETARD',
-  ANNULE   = 'ANNULE'
+  IN_PROGRESS = 'IN_PROGRESS',
+  FINISHED    = 'FINISHED',
+  LATE        = 'LATE',
+  CANCELLED   = 'CANCELLED'
 }
 
 export enum ResponsableObjectif {
-  USER      = 'USER',
+  USER       = 'USER',
   PARTENAIRE = 'PARTENAIRE',
-  LES_DEUX  = 'LES_DEUX'
+  LES_DEUX   = 'LES_DEUX'
 }
-
-// ── DTOs ──────────────────────────────────────────────────────────────────────
 
 export interface ObjectifResponse {
   id: number;
   conventionId: number;
   titre: string;
-  description: string;
+  description?: string;
   responsable: ResponsableObjectif;
-  dateEcheance: string;
+  // dateEcheance REMOVED
   statut: StatutObjectif;
-  commentaire: string;
-  dateCreation: string;
-}
-
-export interface ConventionResponse {
-  id: number;
-  numeroConvention: string;
-  userId: number;
-  organisationPartenaireId: number;
-  organisationPartenaireNom: string;
-  dateDebut: string;
-  dateFin: string;
-  objectifs: ObjectifResponse[];
-  statut: StatutConvention;
-  documentUrl: string;
-  signedAt: string;
-  renouvellementDemandeParRole: string | null;
-  confirmeParUser: boolean;
-  confirmeParPartenaire: boolean;
-  modifieParRole: string | null;
-  signatureUser: string | null;        // ← ajouter
-  signaturePartenaire: string | null;  // ← ajouter
-}
-
-export interface ConventionRequest {
-  organisationPartenaireId: number;
-  userId: number;
-  dateDebut: string;
-  dateFin: string;
+  commentaire?: string;
+  dateCreation?: string;
 }
 
 export interface ObjectifRequest {
@@ -66,15 +38,39 @@ export interface ObjectifRequest {
   titre: string;
   description?: string;
   responsable: ResponsableObjectif;
-  dateEcheance?: string;
+  // dateEcheance REMOVED
   commentaire?: string;
 }
 
-// ── Local form model (UI-only, flattened) ────────────────────────────────────
-// Used in form-convention to collect objectifs before sending to API
+export interface ConventionResponse {
+  id: number;
+  numeroConvention?: string;
+  userId: number;
+  organisationPartenaireId: number;
+  organisationPartenaireNom: string;
 
-export interface ObjectifFormItem {
-  titre: string;
-  description: string;
-  dateEcheance: string;
+  // Dates are null until the first party confirms (they are set at signature time)
+  dateDebut?: string;
+  dateFin?: string;
+
+  objectifs: ObjectifResponse[];
+  statut: StatutConvention;
+  documentUrl?: string;
+  signedAt?: string;
+
+  confirmeParUser: boolean;
+  confirmeParPartenaire: boolean;
+  modifieParRole?: string;
+  renouvellementDemandeParRole?: string;
+
+  signatureUser?: string;
+  signaturePartenaire?: string;
+}
+
+export interface ConventionRequest {
+  organisationPartenaireId: number;
+  userId: number;
+  // Dates are optional — set at confirmation time, not at creation
+  dateDebut?: string;
+  dateFin?: string;
 }

@@ -10,6 +10,8 @@ import { RouterModule } from '@angular/router';
 import { HomeComponent } from './modules/home/home.component';
 import { PartenaireModule } from './modules/partenaire/partenaire.module';
 import { VerifyCertificateComponent } from './pages/verify-certificate/verify-certificate.component';
+import { FloatingZoomMeetingComponent } from './core/components/floating-zoom-meeting/floating-zoom-meeting.component';
+
 
 @NgModule({
   declarations: [
@@ -17,12 +19,13 @@ import { VerifyCertificateComponent } from './pages/verify-certificate/verify-ce
     NavbarComponent,
     HomeComponent,
     VerifyCertificateComponent,
-    
+    FloatingZoomMeetingComponent
   ],
   imports: [
     BrowserModule,       // ← includes CommonModule (*ngIf, *ngFor)
     AppRoutingModule,
     RouterModule,
+    
     FormsModule,
     
   ],

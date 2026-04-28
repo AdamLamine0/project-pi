@@ -23,8 +23,6 @@ export class ConventionService {
   ) {}
 
   // ── Headers ───────────────────────────────────────────────────────────────
-  // Backend checks exact strings: "ROLE_USER", "ROLE_PARTNER", "ROLE_ADMIN"
-  // These MUST be sent on every request or the backend throws 500/403.
 
   private headers(): HttpHeaders {
     return new HttpHeaders({
@@ -59,13 +57,14 @@ export class ConventionService {
     );
   }
 
-  create(req: ConventionRequest): Promise<ConventionResponse> {
+  // Dates are optional — sent only if the caller wants to propose them up front.
+  create(req: Partial<ConventionRequest>): Promise<ConventionResponse> {
     return firstValueFrom(
       this.http.post<ConventionResponse>(this.base, req, { headers: this.headers() })
     );
   }
 
-  update(id: number, req: ConventionRequest): Promise<ConventionResponse> {
+  update(id: number, req: Partial<ConventionRequest>): Promise<ConventionResponse> {
     return firstValueFrom(
       this.http.put<ConventionResponse>(`${this.base}/${id}`, req, { headers: this.headers() })
     );
@@ -85,26 +84,37 @@ export class ConventionService {
     );
   }
 
-  // ── Confirm ───────────────────────────────────────────────────────────────
+  // ── Confirm (with optional dates) ────────────────────────────────────────
+  // dateDebut + dateFin are required only for the FIRST party to confirm.
+  // The second party omits them (backend ignores them anyway).
 
-  confirmer(id: number, signature?: string): Promise<ConventionResponse> {
-  return firstValueFrom(
-    this.http.post<ConventionResponse>(
-      `${this.base}/${id}/confirmer`,
-      signature ? { signature } : {},
-      { headers: this.headers() }
-    )
-  );
+  confirmer(
+    id: number,
+    signature?: string,
+    dateDebut?: string,
+    dateFin?: string
+  ): Promise<ConventionResponse> {
+    const body: Record<string, string> = {};
+    if (signature)  body['signature']  = signature;
+    if (dateDebut)  body['dateDebut']  = dateDebut;
+    if (dateFin)    body['dateFin']    = dateFin;
+
+    return firstValueFrom(
+      this.http.post<ConventionResponse>(
+        `${this.base}/${id}/confirmer`,
+        body,
+        { headers: this.headers() }
+      )
+    );
   }
-  
-  annuler(id: number): Promise<ConventionResponse> {
-  return firstValueFrom(
-    this.http.post<ConventionResponse>(
-      `${this.base}/${id}/annuler`, {}, { headers: this.headers() }
-    )
-  );
-}
 
+  annuler(id: number): Promise<ConventionResponse> {
+    return firstValueFrom(
+      this.http.post<ConventionResponse>(
+        `${this.base}/${id}/annuler`, {}, { headers: this.headers() }
+      )
+    );
+  }
 
   // ── Renewal ───────────────────────────────────────────────────────────────
 
@@ -116,7 +126,7 @@ export class ConventionService {
     );
   }
 
-  accepterRenouvellement(id: number, newTerms: ConventionRequest): Promise<ConventionResponse> {
+  accepterRenouvellement(id: number, newTerms: Partial<ConventionRequest>): Promise<ConventionResponse> {
     return firstValueFrom(
       this.http.post<ConventionResponse>(
         `${this.base}/${id}/renouvellement/accepter`, newTerms, { headers: this.headers() }
@@ -128,10 +138,13 @@ export class ConventionService {
 
   getObjectifs(conventionId: number): Promise<ObjectifResponse[]> {
     return firstValueFrom(
-      this.http.get<ObjectifResponse[]>(`${this.objBase}/convention/${conventionId}`, { headers: this.headers() })
+      this.http.get<ObjectifResponse[]>(
+        `${this.objBase}/convention/${conventionId}`, { headers: this.headers() }
+      )
     );
   }
 
+  // No dateEcheance in ObjectifRequest anymore
   createObjectif(req: ObjectifRequest): Promise<ObjectifResponse> {
     return firstValueFrom(
       this.http.post<ObjectifResponse>(this.objBase, req, { headers: this.headers() })
@@ -157,20 +170,21 @@ export class ConventionService {
       this.http.delete<void>(`${this.objBase}/${id}`, { headers: this.headers() })
     );
   }
+
   downloadConventionPdf(id: number): void {
-  this.http.get(`${this.base}/${id}/pdf`, {
-    headers: this.headers(), // ← utilise les mêmes headers que tous les autres appels
-    responseType: 'blob'
-  }).subscribe({
-    next: (blob) => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `convention-${id}.pdf`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-    },
-    error: (err) => console.error('Erreur téléchargement PDF', err)
-  });
-}
+    this.http.get(`${this.base}/${id}/pdf`, {
+      headers: this.headers(),
+      responseType: 'blob'
+    }).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `convention-${id}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => console.error('Erreur téléchargement PDF', err)
+    });
+  }
 }

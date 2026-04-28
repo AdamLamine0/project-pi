@@ -32,15 +32,26 @@ export class FormConventionComponent implements OnInit {
   isSubmitting  = false;
   errorMessage  = '';
   successMessage = '';
-
-  // ── Signature modal ───────────────────────────────────────────────────────
+  pendingStatutChanges = new Map<number, string>();
+  // ── Signature + Date modal ────────────────────────────────────────────────
   showSignatureModal = false;
   signatureIsEmpty   = true;
   private sigCanvas!: HTMLCanvasElement;
   private sigCtx!:    CanvasRenderingContext2D;
   private sigDrawing  = false;
-  minDateDebut: string = '';
-  minDateFin: string = '';;
+
+  // Date fields live INSIDE the modal (set at signature time)
+  modalDateDebut = '';
+  modalDateFin   = '';
+  minDateDebut   = '';
+  minDateFin     = '';
+  modalDateError = '';
+
+  // Whether this party is the first to confirm (so dates are required)
+  get isFirstConfirmer(): boolean {
+    if (!this.existing) return true;
+    return !this.existing.confirmeParUser && !this.existing.confirmeParPartenaire;
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -59,11 +70,13 @@ export class FormConventionComponent implements OnInit {
     this.isPartner = role === 'PARTNER';
     this.isAdmin   = role === 'ADMIN';
 
-    this.buildForm();
+    // Compute minDateDebut (tomorrow)
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     this.minDateDebut = tomorrow.toISOString().split('T')[0];
-    
+
+    this.buildForm();
+
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
       this.conventionId = +idParam;
@@ -80,10 +93,9 @@ export class FormConventionComponent implements OnInit {
   }
 
   buildForm(): void {
+    // No date fields here — dates are collected at confirmation time in the modal.
     this.form = this.fb.group({
       organisationPartenaireId: [null, Validators.required],
-      dateDebut: ['', Validators.required],
-      dateFin:   ['', Validators.required],
       objectifs: this.fb.array([])
     });
   }
@@ -92,13 +104,13 @@ export class FormConventionComponent implements OnInit {
 
   objectifGroup(): FormGroup {
     return this.fb.group({
-      titre:        ['', Validators.required],
-      description:  [''],
-      dateEcheance: ['']
+      titre:       ['', Validators.required],
+      description: ['']
+      // dateEcheance REMOVED
     });
   }
 
-  addObjectif():            void { this.objectifsArray.push(this.objectifGroup()); }
+  addObjectif():             void { this.objectifsArray.push(this.objectifGroup()); }
   removeObjectif(i: number): void { this.objectifsArray.removeAt(i); }
 
   async loadOrganisations(): Promise<void> {
@@ -111,10 +123,12 @@ export class FormConventionComponent implements OnInit {
     try {
       this.existing = await this.conventionService.getById(id);
       this.form.patchValue({
-        organisationPartenaireId: this.existing.organisationPartenaireId,
-        dateDebut: this.existing.dateDebut,
-        dateFin:   this.existing.dateFin
+        organisationPartenaireId: this.existing.organisationPartenaireId
       });
+
+      // Pre-fill modal dates if already locked (second confirmer scenario)
+      if (this.existing.dateDebut) this.modalDateDebut = String(this.existing.dateDebut);
+      if (this.existing.dateFin)   this.modalDateFin   = String(this.existing.dateFin);
 
       const myObjectifs = this.existing.objectifs.filter(o =>
         this.isUser ? o.responsable === ResponsableObjectif.PARTENAIRE
@@ -124,10 +138,10 @@ export class FormConventionComponent implements OnInit {
       this.objectifsArray.clear();
       myObjectifs.forEach(o => {
         this.objectifsArray.push(this.fb.group({
-          id:           [o.id],
-          titre:        [o.titre, Validators.required],
-          description:  [o.description],
-          dateEcheance: [o.dateEcheance]
+          id:          [o.id],
+          titre:       [o.titre, Validators.required],
+          description: [o.description]
+          // dateEcheance REMOVED
         }));
       });
 
@@ -147,28 +161,22 @@ export class FormConventionComponent implements OnInit {
     );
   }
 
-  get myWrittenObjectifs(): ObjectifResponse[] {
-    if (!this.existing) return [];
-    return this.existing.objectifs.filter(o =>
-      this.isUser ? o.responsable === ResponsableObjectif.PARTENAIRE
-                  : o.responsable === ResponsableObjectif.USER
-    );
-  }
-
   get myResponsable(): ResponsableObjectif {
     return this.isUser ? ResponsableObjectif.PARTENAIRE : ResponsableObjectif.USER;
   }
 
   isEditable(): boolean {
-    if (!this.existing) return true;
-    return this.existing.statut !== StatutConvention.ACTIVE
-        && this.existing.statut !== StatutConvention.EXPIREE;
-  }
+  if (!this.existing) return true;
+  return this.existing.statut !== StatutConvention.ACTIVE
+      && this.existing.statut !== StatutConvention.COMPLETED
+      && this.existing.statut !== StatutConvention.EXPIRED;
+}
 
   canConfirm(): boolean {
     if (!this.existing) return false;
     if (this.existing.statut === StatutConvention.ACTIVE)  return false;
-    if (this.existing.statut === StatutConvention.EXPIREE) return false;
+    if (this.existing.statut === StatutConvention.EXPIRED) return false;
+    if (this.existing.statut === StatutConvention.COMPLETED) return false;
     if (this.isUser    && this.existing.confirmeParUser)       return false;
     if (this.isPartner && this.existing.confirmeParPartenaire) return false;
     if (this.existing.modifieParRole === this.myRole) {
@@ -178,6 +186,13 @@ export class FormConventionComponent implements OnInit {
       return !!otherConfirmed;
     }
     return true;
+  }
+
+  canAnnuler(): boolean {
+    if (!this.existing) return false;
+    return this.existing.statut === StatutConvention.ACTIVE
+        || this.existing.statut === StatutConvention.SIGNED
+        || this.existing.statut === StatutConvention.DRAFT;
   }
 
   get confirmationStatusMessage(): string {
@@ -206,7 +221,7 @@ export class FormConventionComponent implements OnInit {
     return '';
   }
 
-  // ── Submit ────────────────────────────────────────────────────────────────
+  // ── Submit (save objectifs only — no dates) ───────────────────────────────
 
   async onSubmit(): Promise<void> {
     this.form.markAllAsTouched();
@@ -216,16 +231,15 @@ export class FormConventionComponent implements OnInit {
     try {
       const conventionPayload = {
         organisationPartenaireId: this.form.value.organisationPartenaireId,
-        userId:    this.myUserId,
-        dateDebut: this.form.value.dateDebut,
-        dateFin:   this.form.value.dateFin
+        userId: this.myUserId
+        // dateDebut / dateFin intentionally omitted — set at signature time
       };
 
       let convention: ConventionResponse;
       if (this.conventionId) {
-        convention = await this.conventionService.update(this.conventionId, conventionPayload);
+        convention = await this.conventionService.update(this.conventionId, conventionPayload as any);
       } else {
-        convention = await this.conventionService.create(conventionPayload);
+        convention = await this.conventionService.create(conventionPayload as any);
       }
 
       for (const o of this.objectifsArray.value as any[]) {
@@ -233,8 +247,8 @@ export class FormConventionComponent implements OnInit {
           conventionId: convention.id,
           titre:        o.titre,
           description:  o.description || undefined,
-          responsable:  this.myResponsable,
-          dateEcheance: o.dateEcheance || undefined
+          responsable:  this.myResponsable
+          // dateEcheance REMOVED
         };
         if (o.id) await this.conventionService.updateObjectif(o.id, payload);
         else      await this.conventionService.createObjectif(payload);
@@ -251,10 +265,11 @@ export class FormConventionComponent implements OnInit {
     }
   }
 
-  // ── Signature modal ───────────────────────────────────────────────────────
+  // ── Signature + Date modal ────────────────────────────────────────────────
 
   openSignatureModal(): void {
     if (!this.existing) return;
+    this.modalDateError    = '';
     this.showSignatureModal = true;
     this.signatureIsEmpty   = true;
     setTimeout(() => {
@@ -265,6 +280,17 @@ export class FormConventionComponent implements OnInit {
       this.sigCtx.lineCap     = 'round';
       this.sigCtx.lineJoin    = 'round';
     }, 50);
+  }
+
+  onModalDateDebutChange(): void {
+    if (this.modalDateDebut) {
+      const minFin = new Date(this.modalDateDebut);
+      minFin.setMonth(minFin.getMonth() + 3);
+      this.minDateFin = minFin.toISOString().split('T')[0];
+      if (this.modalDateFin && this.modalDateFin < this.minDateFin) {
+        this.modalDateFin = '';
+      }
+    }
   }
 
   startDraw(e: MouseEvent): void {
@@ -298,19 +324,35 @@ export class FormConventionComponent implements OnInit {
   }
 
   async confirmSignature(): Promise<void> {
+    this.modalDateError = '';
+
+    // Dates are only required when this party is the FIRST to confirm
+    if (this.isFirstConfirmer) {
+      if (!this.modalDateDebut || !this.modalDateFin) {
+        this.modalDateError = 'Veuillez renseigner les deux dates avant de confirmer.';
+        return;
+      }
+    }
+
     const dataUrl = this.sigCanvas.toDataURL('image/png');
     this.showSignatureModal = false;
-    await this.confirmer(dataUrl);
+    await this.confirmer(
+      dataUrl,
+      this.isFirstConfirmer ? this.modalDateDebut : undefined,
+      this.isFirstConfirmer ? this.modalDateFin   : undefined
+    );
   }
 
   onCancelSignature(): void { this.showSignatureModal = false; }
 
-  async confirmer(signature: string): Promise<void> {
+  async confirmer(signature: string, dateDebut?: string, dateFin?: string): Promise<void> {
     if (!this.existing) return;
     this.isSubmitting = true;
     this.errorMessage = '';
     try {
-      const updated = await this.conventionService.confirmer(this.existing.id, signature);
+      const updated = await this.conventionService.confirmer(
+        this.existing.id, signature, dateDebut, dateFin
+      );
       this.existing = updated;
       if (updated.statut === StatutConvention.ACTIVE) {
         this.successMessage = '✅ Convention activée ! Les deux parties ont confirmé.';
@@ -326,53 +368,60 @@ export class FormConventionComponent implements OnInit {
     }
   }
 
-  downloadPdf(): void {
+  async annulerConvention(): Promise<void> {
     if (!this.existing) return;
-    this.conventionService.downloadConventionPdf(this.existing.id);
-  }
-  onDateDebutChange(): void {
-  const dateDebut = this.form.value.dateDebut;
-  if (dateDebut) {
-    const minFin = new Date(dateDebut);
-    minFin.setMonth(minFin.getMonth() + 3);
-    this.minDateFin = minFin.toISOString().split('T')[0];
-    // Reset dateFin si elle ne respecte plus la contrainte
-    const currentFin = this.form.value.dateFin;
-    if (currentFin && currentFin < this.minDateFin) {
-      this.form.patchValue({ dateFin: '' });
+    if (!confirm('Êtes-vous sûr de vouloir annuler cette convention ? Cette action est irréversible.')) return;
+    this.isSubmitting = true;
+    this.errorMessage = '';
+    try {
+      const updated = await this.conventionService.annuler(this.existing.id);
+      this.existing = updated;
+      this.successMessage = '✅ Convention annulée.';
+    } catch (err: any) {
+      this.errorMessage = err?.error?.message || 'Échec de l\'annulation.';
+    } finally {
+      this.isSubmitting = false;
     }
+  }
+
+  // Called when user selects a new statut — just queues the change locally
+onObjectifStatutChange(objectifId: number, statut: string): void {
+  this.pendingStatutChanges.set(objectifId, statut);
+  // Update the local display immediately so the select reflects the choice
+  if (this.existing) {
+    const obj = this.existing.objectifs.find(o => o.id === objectifId);
+    if (obj) obj.statut = statut as any;
   }
 }
 
-// Ajouter la méthode annuler
-async annulerConvention(): Promise<void> {
-  if (!this.existing) return;
-  if (!confirm('Êtes-vous sûr de vouloir annuler cette convention ? Cette action est irréversible.')) return;
+// Called when user clicks "Confirmer les modifications" — sends all queued changes
+async confirmStatutChanges(): Promise<void> {
+  if (this.pendingStatutChanges.size === 0) return;
   this.isSubmitting = true;
   this.errorMessage = '';
   try {
-    const updated = await this.conventionService.annuler(this.existing.id);
-    this.existing = updated;
-    this.successMessage = '✅ Convention annulée.';
+    const promises = Array.from(this.pendingStatutChanges.entries()).map(
+      ([id, statut]) => this.conventionService.updateObjectifStatut(id, statut as any)
+    );
+    await Promise.all(promises);
+    this.pendingStatutChanges.clear();
+    // Reload to get the definitive server state
+    if (this.existing) {
+      this.existing = await this.conventionService.getById(this.existing.id);
+    }
+    this.successMessage = '✅ Statuts des objectifs mis à jour.';
+    setTimeout(() => (this.successMessage = ''), 3000);
   } catch (err: any) {
-    this.errorMessage = err?.error?.message || 'Échec de l\'annulation.';
+    this.errorMessage = err?.error?.message || 'Échec de la mise à jour des statuts.';
   } finally {
     this.isSubmitting = false;
   }
 }
 
-// Ajouter getter pour savoir si on peut annuler
-canAnnuler(): boolean {
-  if (!this.existing) return false;
-  return this.existing.statut === StatutConvention.ACTIVE
-      || this.existing.statut === StatutConvention.SIGNEE
-      || this.existing.statut === StatutConvention.BROUILLON;
-}
-
+// Keep this for backward compatibility but it's no longer called from template
 async updateObjectifStatut(objectifId: number, statut: string): Promise<void> {
   try {
     await this.conventionService.updateObjectifStatut(objectifId, statut as any);
-    // Recharger pour avoir les statuts à jour
     if (this.existing) {
       this.existing = await this.conventionService.getById(this.existing.id);
     }
@@ -380,6 +429,12 @@ async updateObjectifStatut(objectifId: number, statut: string): Promise<void> {
     this.errorMessage = err?.error?.message || 'Échec de la mise à jour du statut.';
   }
 }
+
+  downloadPdf(): void {
+    if (!this.existing) return;
+    this.conventionService.downloadConventionPdf(this.existing.id);
+  }
+  
 
   goBack(): void { this.router.navigate(['/partenariat/conventions']); }
 }

@@ -6,6 +6,8 @@ import { FormOrganisationComponent } from './form-organisation/form-organisation
 import { MonOrganisationComponent } from './mon-organisation/mon-organisation.component';
 import { ConventionListComponent } from './convention-list/convention-list.component';
 import { FormConventionComponent } from './form-convention/form-convention.component';
+import { RequestMeetingComponent } from './request-meeting/request-meeting.component';
+import { MeetingsComponent } from './meetings/meetings.component';
 
 
 const routes: Routes = [
@@ -17,6 +19,8 @@ const routes: Routes = [
   { path: 'conventions',           component: ConventionListComponent,    canActivate: [authGuard] },
   { path: 'conventions/form',      component: FormConventionComponent,    canActivate: [authGuard] },
   { path: 'conventions/form/:id',  component: FormConventionComponent,    canActivate: [authGuard] },
+  { path: 'meetings',              component: MeetingsComponent,          canActivate: [authGuard] },
+  { path: 'meetings/request/:id',  component: RequestMeetingComponent,    canActivate: [authGuard] },
 ];
 
 @NgModule({

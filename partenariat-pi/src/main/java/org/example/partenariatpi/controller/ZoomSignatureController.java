@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.partenariatpi.dto.ZoomSignatureRequest;
 import org.example.partenariatpi.dto.ZoomSignatureResponse;
 import org.example.partenariatpi.service.ZoomSignatureService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +15,9 @@ import org.springframework.web.bind.annotation.*;
 public class ZoomSignatureController {
 
     private final ZoomSignatureService zoomSignatureService;
+
+    @Value("${zoom.sdk-key:}")
+    private String sdkKey;
 
     /**
      * Generate a JWT signature for joining a Zoom meeting.
@@ -28,8 +32,8 @@ public class ZoomSignatureController {
             @RequestHeader("X-User-Role") String role
     ) {
         String cleanRole = cleanRole(role);
-        if (!"ROLE_USER".equals(cleanRole) && !"ROLE_ADMIN".equals(cleanRole)) {
-            throw new RuntimeException("Access denied: USER or ADMIN role required");
+        if (!"ROLE_USER".equals(cleanRole) && !"ROLE_ADMIN".equals(cleanRole) && !"ROLE_PARTNER".equals(cleanRole)) {
+            throw new RuntimeException("Access denied: USER, ADMIN, or PARTNER role required");
         }
 
         String signature = zoomSignatureService.generateSignature(
@@ -39,8 +43,7 @@ public class ZoomSignatureController {
 
         ZoomSignatureResponse response = new ZoomSignatureResponse();
         response.setSignature(signature);
-        // Frontend needs the SDK key to initialize
-        response.setSdkKey(extractSdkKey());
+        response.setSdkKey(sdkKey);
 
         return ResponseEntity.ok(response);
     }
@@ -50,16 +53,6 @@ public class ZoomSignatureController {
             return "";
         }
         return role.split(",")[0].trim();
-    }
-
-    /**
-     * Placeholder to extract SDK key from config at runtime.
-     * In production, you'd inject it or fetch it safely.
-     */
-    private String extractSdkKey() {
-        // This would be injected in a real implementation
-        // For now, return empty — frontend will have a fallback
-        return "";
     }
 }
 

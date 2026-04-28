@@ -1,7 +1,10 @@
-import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
-import { MeetingService, MeetingRequest } from '../../../services/meeting.service';
+import { FloatingMeetingService } from '../../../services/floating-meeting.service';
+import { MeetingService, MeetingRequest, MeetingResponse } from '../../../services/meeting.service';
 import { OrganisationPartenaire } from '../../../models/partenaire';
+import { PartenaireService } from '../../../services/partenaire.service';
 
 @Component({
   selector: 'app-request-meeting',
@@ -9,8 +12,9 @@ import { OrganisationPartenaire } from '../../../models/partenaire';
   styleUrls: ['./request-meeting.component.css']
 })
 export class RequestMeetingComponent implements OnInit {
-  @Input() partner!: OrganisationPartenaire;
-  @Output() closed = new EventEmitter<boolean>();
+  partner: OrganisationPartenaire | null = null;
+  isPartnerLoading = false;
+  partnerLoadError = '';
 
   requesterName = '';
   subject = '';
@@ -23,43 +27,48 @@ export class RequestMeetingComponent implements OnInit {
   successMessage = '';
   isSuccess = false;
 
-  // For success state
-  meetingResponse: any = null;
+  meetingResponse: MeetingResponse | null = null;
 
   private readonly authService = inject(AuthService);
   private readonly meetingService = inject(MeetingService);
+  private readonly partenaireService = inject(PartenaireService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly floatingMeetingService = inject(FloatingMeetingService);
 
   ngOnInit(): void {
     const userId = this.authService.getUserId();
     this.requesterName = `User ${userId}`;
+    this.loadPartner();
+  }
+
+  async loadPartner(): Promise<void> {
+    const partnerId = Number(this.route.snapshot.paramMap.get('id'));
+    if (!partnerId) {
+      this.partnerLoadError = 'Partner identifier is missing.';
+      return;
+    }
+    this.isPartnerLoading = true;
+    this.partnerLoadError = '';
+    try {
+      this.partner = await this.partenaireService.getById(partnerId);
+    } catch (error) {
+      this.partnerLoadError = 'Could not load the selected partner.';
+    } finally {
+      this.isPartnerLoading = false;
+    }
   }
 
   async submit(): Promise<void> {
-    // Validation
-    if (!this.requesterName.trim()) {
-      this.errorMessage = 'Le nom du demandeur est requis.';
-      return;
-    }
-    if (!this.subject.trim()) {
-      this.errorMessage = 'Le sujet est requis.';
-      return;
-    }
-    if (!this.suggestedDateTime) {
-      this.errorMessage = 'La date/heure suggérée est requise.';
-      return;
-    }
-    if (this.durationMinutes <= 0) {
-      this.errorMessage = 'La durée doit être positive.';
-      return;
-    }
+    if (!this.requesterName.trim()) { this.errorMessage = 'Requester name is required.'; return; }
+    if (!this.subject.trim()) { this.errorMessage = 'Subject is required.'; return; }
+    if (!this.suggestedDateTime) { this.errorMessage = 'A date/time is required.'; return; }
+    if (this.durationMinutes <= 0) { this.errorMessage = 'Duration must be positive.'; return; }
 
-    // Check if date is in the future
     const selectedDate = new Date(this.suggestedDateTime);
-    const now = new Date();
-    if (selectedDate <= now) {
-      this.errorMessage = 'Veuillez choisir une date/heure dans le futur.';
-      return;
-    }
+    if (selectedDate <= new Date()) { this.errorMessage = 'Please choose a future date/time.'; return; }
+
+    if (!this.partner) { this.errorMessage = 'Partner must be loaded before creating a request.'; return; }
 
     this.isLoading = true;
     this.errorMessage = '';
@@ -75,21 +84,30 @@ export class RequestMeetingComponent implements OnInit {
 
       const response = await this.meetingService.requestMeeting(this.partner.id, request);
       this.meetingResponse = response;
-      this.successMessage = 'Invitation de réunion envoyée avec succès !';
+      this.successMessage = 'Meeting request sent successfully!';
       this.isSuccess = true;
     } catch (error: any) {
-      console.error('Error requesting meeting:', error);
-      this.errorMessage = error?.error?.message || 'Erreur lors de la demande de réunion.';
+      this.errorMessage = error?.error?.message || 'Error sending the meeting request.';
     } finally {
       this.isLoading = false;
     }
   }
 
-  close(): void {
-    this.closed.emit(this.isSuccess);
-  }
+  close(): void { this.router.navigate(['/partenariat/list']); }
 
-  closeSuccess(): void {
-    this.closed.emit(true);
+  closeSuccess(): void { this.router.navigate(['/partenariat/meetings']); }
+
+  /**
+   * Only available once the partner has ACCEPTED (meetingStatus === 'ACCEPTED').
+   * At that point zoomMeetingId is populated.
+   */
+  openZoomMeeting(): void {
+    if (!this.meetingResponse?.zoomMeetingId) return;
+    this.floatingMeetingService.openMeeting({
+      meetingNumber: this.meetingResponse.zoomMeetingId,
+      meetingPassword: this.meetingResponse.zoomPassword,
+      role: 0,
+      title: 'Zoom Meeting'
+    });
   }
 }

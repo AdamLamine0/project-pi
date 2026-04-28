@@ -210,7 +210,7 @@
   background: #fee2e2;
   border-color: #f87171;
 }
-
+.badge-completed { background: #d1fae5; color: #065f46; }
 /* ── Empty state ──────────────────────────────────────────────────────── */
 .empty-state {
   grid-column: 1 / -1;

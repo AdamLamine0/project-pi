@@ -1,8 +1,13 @@
+// partenarie-list.component.ts
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
-import { TypePartenaire, OrganisationPartenaire, StatutPartenaire } from '../../../models/partenaire';
 import { PartenaireService } from '../../../services/partenaire.service';
+import {
+  OrganisationPartenaire,
+  PartnerType,
+  PartnerStatus
+} from '../../../models/partenaire';
 
 @Component({
   selector: 'app-partenarie-list',
@@ -12,26 +17,35 @@ import { PartenaireService } from '../../../services/partenaire.service';
 export class PartenarieListComponent implements OnInit {
 
   organisations: OrganisationPartenaire[] = [];
-  filtered: OrganisationPartenaire[] = [];
+  filtered:      OrganisationPartenaire[] = [];
+  paginated:     OrganisationPartenaire[] = [];
 
-  searchTerm = '';
-  selectedType = '';
+  searchTerm    = '';
+  selectedType  = '';
   selectedStatut = '';
 
   isLoading = false;
-  errorMessage = '';
+  errorMessage  = '';
   successMessage = '';
 
-  isAdmin = false;
-
-  types = Object.values(TypePartenaire);
-  statuts = Object.values(StatutPartenaire);
+  // Only ACTIVE and SUSPENDED (no PENDING) + TERMINATED for admin visibility
+  types   = Object.values(PartnerType);
+  statuts = Object.values(PartnerStatus);
 
   currentPage = 1;
-  pageSize = 9;
+  pageSize    = 9;
+  totalPages  = 1;
+  pageNumbers: number[] = [];
 
-  isMeetingModalOpen = false;
-  selectedPartnerForMeeting: OrganisationPartenaire | null = null;
+  isAdmin = false;
+  // Partners and regular users can request meetings
+  canRequestMeeting = false;
+
+  // Track in-progress status changes to prevent double-clicks
+  changingStatus = new Set<number>();
+  confirmTerminate: number | null = null; // id awaiting terminate confirm
+
+  PartnerStatus = PartnerStatus; // expose enum to template
 
   constructor(
     private partenaireService: PartenaireService,
@@ -41,6 +55,8 @@ export class PartenarieListComponent implements OnInit {
 
   ngOnInit(): void {
     this.isAdmin = this.authService.isAdmin();
+    const role = this.authService.getRole();
+    this.canRequestMeeting = role === 'USER' || role === 'MENTOR';
     this.load();
   }
 
@@ -48,45 +64,72 @@ export class PartenarieListComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
     try {
-      this.organisations = await this.partenaireService.getAll();
+      const all = await this.partenaireService.getAll();
+
+      if (this.isAdmin) {
+        // Admin sees everything — ACTIVE, SUSPENDED, TERMINATED
+        this.organisations = all;
+      } else {
+        // Non-admins only see ACTIVE organisations
+        this.organisations = all.filter(o => o.statut === PartnerStatus.ACTIVE);
+      }
+
       this.applyFilter();
     } catch {
-      this.errorMessage = 'Impossible de charger les organisations.';
+      this.errorMessage = 'Failed to load organisations.';
     } finally {
       this.isLoading = false;
     }
   }
 
   applyFilter(): void {
-    const t = this.searchTerm.toLowerCase();
-    this.filtered = this.organisations.filter(o => {
-      const matchText =
-        o.nom.toLowerCase().includes(t) ||
-        o.contactEmail.toLowerCase().includes(t) ||
-        (o.region ?? '').toLowerCase().includes(t);
-      const matchType = !this.selectedType || o.type === this.selectedType;
-      const matchStatut = !this.selectedStatut || o.statut === this.selectedStatut;
-      return matchText && matchType && matchStatut;
-    });
+    let data = [...this.organisations];
+
+    if (this.searchTerm.trim()) {
+      const q = this.searchTerm.toLowerCase();
+      data = data.filter(o =>
+        o.nom.toLowerCase().includes(q) ||
+        o.contactEmail.toLowerCase().includes(q) ||
+        (o.region || '').toLowerCase().includes(q)
+      );
+    }
+
+    if (this.selectedType) {
+      data = data.filter(o => o.type === this.selectedType);
+    }
+
+    if (this.selectedStatut) {
+      data = data.filter(o => o.statut === this.selectedStatut);
+    }
+
+    this.filtered    = data;
     this.currentPage = 1;
+    this.totalPages  = Math.max(1, Math.ceil(this.filtered.length / this.pageSize));
+    this.pageNumbers = Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    this.updatePage();
   }
 
-  get paginated(): OrganisationPartenaire[] {
+  updatePage(): void {
     const start = (this.currentPage - 1) * this.pageSize;
-    return this.filtered.slice(start, start + this.pageSize);
+    this.paginated = this.filtered.slice(start, start + this.pageSize);
   }
 
-  get totalPages(): number {
-    return Math.ceil(this.filtered.length / this.pageSize);
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.updatePage();
   }
 
-  get pageNumbers(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  statutClass(statut: PartnerStatus): string {
+    switch (statut) {
+      case PartnerStatus.ACTIVE:     return 'badge-active';
+      case PartnerStatus.SUSPENDED:  return 'badge-suspended';
+      case PartnerStatus.TERMINATED: return 'badge-terminated';
+      default: return '';
+    }
   }
 
-  goToPage(p: number): void {
-    this.currentPage = p;
-  }
+  // ── Admin actions ─────────────────────────────────────────────────────────
 
   goToCreate(): void {
     this.router.navigate(['/partenariat/form']);
@@ -100,54 +143,95 @@ export class PartenarieListComponent implements OnInit {
     this.router.navigate(['/partenariat/mon-organisation', id]);
   }
 
-  async delete(id: number): Promise<void> {
-    if (!confirm('Supprimer cette organisation ?')) return;
+  goToMeetingRequest(id: number): void {
+    this.router.navigate(['/partenariat/meetings/request', id]);
+  }
+
+  /**
+   * Toggle between SUSPENDED ↔ ACTIVE.
+   * If currently ACTIVE → set SUSPENDED.
+   * If currently SUSPENDED → set ACTIVE.
+   */
+  async toggleSuspend(org: OrganisationPartenaire): Promise<void> {
+    if (this.changingStatus.has(org.id)) return;
+    this.changingStatus.add(org.id);
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    const newStatus = org.statut === PartnerStatus.SUSPENDED
+      ? PartnerStatus.ACTIVE
+      : PartnerStatus.SUSPENDED;
+
     try {
-      await this.partenaireService.delete(id);
-      this.organisations = this.organisations.filter(o => o.id !== id);
+      const updated = await this.partenaireService.updateStatut(org.id, newStatus);
+      const idx = this.organisations.findIndex(o => o.id === org.id);
+      if (idx !== -1) this.organisations[idx] = updated;
       this.applyFilter();
-      this.flash('Organisation supprimee avec succes.');
+      this.successMessage = newStatus === PartnerStatus.SUSPENDED
+        ? `${org.nom} has been suspended.`
+        : `${org.nom} is now active again.`;
     } catch {
-      this.errorMessage = 'Echec de la suppression.';
+      this.errorMessage = 'Failed to update status. Please try again.';
+    } finally {
+      this.changingStatus.delete(org.id);
     }
   }
 
-  flash(msg: string): void {
-    this.successMessage = msg;
-    setTimeout(() => (this.successMessage = ''), 4000);
+  /**
+   * Set status to TERMINATED.
+   * Shows an inline confirmation first.
+   */
+  requestTerminate(org: OrganisationPartenaire): void {
+    this.confirmTerminate = org.id;
   }
 
-  statutClass(statut: StatutPartenaire): string {
-    const map: Record<string, string> = {
-      ACTIF: 'badge-actif',
-      EN_ATTENTE: 'badge-attente',
-      SUSPENDU: 'badge-suspendu',
-      RESILIER: 'badge-resilier'
-    };
-    return map[statut] ?? 'badge-attente';
+  cancelTerminate(): void {
+    this.confirmTerminate = null;
   }
 
-  typeIcon(type: TypePartenaire): string {
-    const map: Record<string, string> = {
-      ACADEMIQUE: 'A',
-      INCUBATEUR: 'I',
-      PUBLIC: 'P',
-      ENTREPRISE: 'E',
-      ASSOCIATIF: 'S'
-    };
-    return map[type] ?? 'E';
-  }
+  async confirmTerminateAction(org: OrganisationPartenaire): Promise<void> {
+    if (this.changingStatus.has(org.id)) return;
+    this.changingStatus.add(org.id);
+    this.confirmTerminate = null;
+    this.errorMessage = '';
+    this.successMessage = '';
 
-  openMeetingRequestDialog(partner: OrganisationPartenaire): void {
-    this.selectedPartnerForMeeting = partner;
-    this.isMeetingModalOpen = true;
-  }
-
-  closeMeetingModal(sent: boolean = false): void {
-    this.isMeetingModalOpen = false;
-    this.selectedPartnerForMeeting = null;
-    if (sent) {
-      this.flash('Invitation de reunion envoyee avec succes.');
+    try {
+      const updated = await this.partenaireService.updateStatut(org.id, PartnerStatus.TERMINATED);
+      const idx = this.organisations.findIndex(o => o.id === org.id);
+      if (idx !== -1) this.organisations[idx] = updated;
+      this.applyFilter();
+      this.successMessage = `${org.nom} has been terminated.`;
+    } catch {
+      this.errorMessage = 'Failed to terminate organisation. Please try again.';
+    } finally {
+      this.changingStatus.delete(org.id);
     }
+  }
+
+  /**
+   * Delete — only allowed when org is TERMINATED.
+   */
+  async delete(org: OrganisationPartenaire): Promise<void> {
+    if (org.statut !== PartnerStatus.TERMINATED) {
+      this.errorMessage = 'Only terminated organisations can be deleted.';
+      return;
+    }
+    if (!confirm(`Permanently delete "${org.nom}"? This cannot be undone.`)) return;
+
+    this.errorMessage = '';
+    this.successMessage = '';
+    try {
+      await this.partenaireService.delete(org.id);
+      this.organisations = this.organisations.filter(o => o.id !== org.id);
+      this.applyFilter();
+      this.successMessage = `"${org.nom}" has been deleted.`;
+    } catch {
+      this.errorMessage = 'Failed to delete organisation.';
+    }
+  }
+
+  isChanging(id: number): boolean {
+    return this.changingStatus.has(id);
   }
 }

@@ -40,18 +40,16 @@ export class ConventionListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const role    = this.authService.getRole(); // 'USER' | 'PARTNER' | 'ADMIN'
-    this.myUserId = Number(this.authService.getUserId()); // force Number
+    const role    = this.authService.getRole();
+    this.myUserId = Number(this.authService.getUserId());
     this.isUser    = role === 'USER';
     this.isPartner = role === 'PARTNER';
     this.isAdmin   = role === 'ADMIN';
-
-    console.log('Role:', role, 'UserId:', this.myUserId);
     this.load();
   }
 
   async load(): Promise<void> {
-    this.isLoading = true;
+    this.isLoading    = true;
     this.errorMessage = '';
 
     try {
@@ -62,44 +60,35 @@ export class ConventionListComponent implements OnInit {
         this.conventions = await this.conventionService.getByUser(this.myUserId);
 
       } else if (this.isPartner) {
-        // Step 1: get all orgs and find mine by userId
         const allOrgs = await this.partenaireService.getAll();
-        console.log('All orgs:', allOrgs);
-        console.log('Looking for userId:', this.myUserId);
-
-        // Force Number on both sides — API might return string or number
-        const myOrg = allOrgs.find(o => Number(o.userId) === Number(this.myUserId));
-        console.log('Found org:', myOrg);
+        const myOrg   = allOrgs.find(o => Number(o.userId) === Number(this.myUserId));
 
         if (!myOrg) {
           this.errorMessage = 'Aucune organisation trouvée pour votre compte. Contactez un administrateur.';
-          this.conventions = [];
-          this.filtered = [];
+          this.conventions  = [];
+          this.filtered     = [];
           this.applyFilter();
           return;
         }
 
         this.myOrgId = Number(myOrg.id);
-        console.log('myOrgId:', this.myOrgId);
 
         if (!this.myOrgId || isNaN(this.myOrgId)) {
           this.errorMessage = 'ID organisation invalide.';
           return;
         }
 
-        // Step 2: get conventions of that org
         this.conventions = await this.conventionService.getByOrganisation(this.myOrgId);
       }
 
       this.applyFilter();
 
     } catch (err: any) {
-      console.error('Load error:', err);
       const msg = err?.error?.message || err?.message || '';
       if (msg.toLowerCase().includes('not found')) {
         this.errorMessage = 'Aucune organisation trouvée pour votre compte.';
-        this.conventions = [];
-        this.filtered = [];
+        this.conventions  = [];
+        this.filtered     = [];
       } else {
         this.errorMessage = 'Impossible de charger les conventions. ' + (err?.error?.message || '');
       }
@@ -109,51 +98,64 @@ export class ConventionListComponent implements OnInit {
   }
 
   applyFilter(): void {
-    const t = this.searchTerm.toLowerCase();
-    this.filtered = this.conventions.filter(c => {
+  const t = this.searchTerm.toLowerCase();
+
+  this.filtered = this.conventions
+    .filter(c => {
       const matchText =
         (c.numeroConvention ?? '').toLowerCase().includes(t) ||
         (c.organisationPartenaireNom ?? '').toLowerCase().includes(t);
       const matchStatut = !this.selectedStatut || c.statut === this.selectedStatut;
       return matchText && matchStatut;
-    });
-    this.currentPage = 1;
-  }
+    })
+    .sort((a, b) => b.id - a.id);
+
+  this.currentPage = 1;
+}
 
   get paginated(): ConventionResponse[] {
     const start = (this.currentPage - 1) * this.pageSize;
     return this.filtered.slice(start, start + this.pageSize);
   }
-  get totalPages(): number { return Math.ceil(this.filtered.length / this.pageSize); }
-  get pageNumbers(): number[] { return Array.from({ length: this.totalPages }, (_, i) => i + 1); }
+
+  get totalPages(): number {
+    return Math.ceil(this.filtered.length / this.pageSize);
+  }
+
+  get pageNumbers(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
   goToPage(p: number): void { this.currentPage = p; }
 
   statutClass(s: StatutConvention): string {
-    const map: Record<string, string> = {
-      BROUILLON: 'badge-brouillon',
-      SIGNEE:    'badge-signee',
-      ACTIVE:    'badge-active',
-      EXPIREE:   'badge-expiree'
-    };
-    return map[s] ?? 'badge-brouillon';
-  }
-
-  statutLabel(s: StatutConvention): string {
-    const map: Record<string, string> = {
-      BROUILLON: 'Brouillon',
-      SIGNEE:    'Signée',
-      ACTIVE:    'Active',
-      EXPIREE:   'Expirée'
-    };
-    return map[s] ?? s;
-  }
-
-  isPendingMyAction(c: ConventionResponse): boolean {
-  return c.statut === StatutConvention.BROUILLON || c.statut === StatutConvention.SIGNEE;
+  const map: Record<string, string> = {
+    DRAFT:     'badge-brouillon',
+    SIGNED:    'badge-signee',
+    ACTIVE:    'badge-active',
+    COMPLETED: 'badge-completed',   // add CSS class
+    EXPIRED:   'badge-expiree'
+  };
+  return map[s] ?? 'badge-brouillon';
 }
 
-  canEdit(c: ConventionResponse): boolean {
-  return c.statut === StatutConvention.BROUILLON || c.statut === StatutConvention.SIGNEE;
+statutLabel(s: StatutConvention): string {
+  const map: Record<string, string> = {
+    DRAFT:     'Draft',
+    SIGNED:    'Signed',
+    ACTIVE:    'Active',
+    COMPLETED: 'Completed',
+    EXPIRED:   'Expired'
+  };
+  return map[s] ?? s;
+}
+
+  isPendingMyAction(c: ConventionResponse): boolean {
+  return c.statut === StatutConvention.DRAFT || c.statut === StatutConvention.SIGNED;
+}
+
+canEdit(c: ConventionResponse): boolean {
+  return c.statut === StatutConvention.DRAFT || c.statut === StatutConvention.SIGNED;
 }
 
   goToCreate(): void { this.router.navigate(['/partenariat/conventions/form']); }
@@ -178,11 +180,11 @@ export class ConventionListComponent implements OnInit {
   }
 
   objectifsEnCours(c: ConventionResponse): number {
-    return (c.objectifs ?? []).filter(o => o.statut === 'EN_COURS').length;
+    return (c.objectifs ?? []).filter(o => o.statut === 'IN_PROGRESS').length;
   }
 
   downloadPdf(id: number, event: MouseEvent): void {
-  event.stopPropagation(); // empêche la navigation vers la convention
-  this.conventionService.downloadConventionPdf(id);
-}
+    event.stopPropagation();
+    this.conventionService.downloadConventionPdf(id);
+  }
 }

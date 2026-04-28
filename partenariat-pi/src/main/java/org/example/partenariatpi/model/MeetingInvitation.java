@@ -3,6 +3,7 @@ package org.example.partenariatpi.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.partenariatpi.enums.MeetingPriority;
+import org.example.partenariatpi.enums.MeetingStatus;
 
 import java.time.LocalDateTime;
 
@@ -41,16 +42,30 @@ public class MeetingInvitation {
     @Enumerated(EnumType.STRING)
     private MeetingPriority priority = MeetingPriority.NORMAL;
 
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private MeetingStatus meetingStatus = MeetingStatus.PENDING;
+
+    // Reason given by the partner when rejecting or suggesting a new time
+    @Column(length = 1000)
+    private String partnerComment;
+
+    // Alternative date/time suggested by the partner (only set when meetingStatus = TIME_SUGGESTED)
+    private LocalDateTime suggestedDateTimeByPartner;
 
     private String recipientEmail;
     private String recipientName;
 
+    // Only populated once the partner ACCEPTS (Zoom meeting created at that point)
     private String zoomMeetingId;
+
+    @Column(columnDefinition = "TEXT")
     private String zoomJoinUrl;
+
+    @Column(columnDefinition = "TEXT")
     private String zoomStartUrl;
+
     private String zoomPassword;
 
     private LocalDateTime createdAt;
+    private LocalDateTime respondedAt;
 }
-
