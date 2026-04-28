@@ -184,6 +184,29 @@ interface Notification { id: number; title: string; body: string; time: string; 
           </div>
 
           <div class="ml-auto flex items-center gap-2 sm:gap-3">
+            @if (canUseInvestmentNav()) {
+              <div class="investment-shortcuts hidden sm:flex items-center gap-2">
+                <a
+                  routerLink="/investment/startups"
+                  routerLinkActive="investment-shortcut-active"
+                  class="investment-shortcut"
+                  aria-label="Open investment startups"
+                >
+                  <ng-icon name="lucideRocket" [size]="'15'" />
+                  <span>Startups</span>
+                </a>
+                <a
+                  routerLink="/investment/kanban"
+                  routerLinkActive="investment-shortcut-active"
+                  class="investment-shortcut"
+                  aria-label="Open investment deals"
+                >
+                  <ng-icon name="lucideBriefcase" [size]="'15'" />
+                  <span>Deals</span>
+                </a>
+              </div>
+            }
+
             <!-- Notifications bell -->
             <div class="relative">
               <button
@@ -741,6 +764,39 @@ interface Notification { id: number; title: string; body: string; time: string; 
 
     </div>
   `,
+  styles: [`
+    .investment-shortcut {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 34px;
+      padding: 0 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface-subtle);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1;
+      text-decoration: none;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .investment-shortcut:hover,
+    .investment-shortcut-active {
+      background: #EEF2FF;
+      border-color: #1C4FC3;
+      color: #1C4FC3;
+    }
+
+    :host-context(.dark) .investment-shortcut:hover,
+    :host-context(.dark) .investment-shortcut-active {
+      background: rgba(28, 79, 195, 0.16);
+      border-color: rgba(147, 197, 253, 0.45);
+      color: #93C5FD;
+    }
+  `],
 })
 export class LayoutComponent {
   private readonly router = inject(Router);
@@ -897,7 +953,7 @@ export class LayoutComponent {
     { icon: 'lucideRocket',          label: 'Projects',     route: '/app/projects'     },
     { icon: 'lucideUsers',           label: 'Community',    route: '/app/community'    },
     { icon: 'lucideScale',           label: 'Procedures',   route: '/app/legal', roles: ['ADMIN'] },
-    { icon: 'lucideTrendingUp',      label: 'Investments',  route: '/investment'       },
+    { icon: 'lucideTrendingUp',      label: 'Investments',  route: '/investment/demandes', roles: ['INVESTOR', 'ENTREPRENEUR'] },
     { icon: 'lucideGraduationCap',   label: 'Mentoring',    route: '/app/mentoring'    },
     { icon: 'lucideMap',             label: 'Roadmaps',     route: '/app/roadmaps'     },
     { icon: 'lucideHandshake',       label: 'Partnerships', route: '/app/partnerships' },
@@ -908,6 +964,10 @@ export class LayoutComponent {
   protected readonly visibleNavItems = computed(() =>
     this.navItems.filter(item => !item.roles || item.roles.includes(this.authService.getRole()))
   );
+
+  protected canUseInvestmentNav(): boolean {
+    return this.authService.hasRole('INVESTOR', 'ENTREPRENEUR');
+  }
 
   private readonly url = toSignal(
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)),

@@ -31,6 +31,15 @@ import { NotificationType, CommunityNotification } from '../../modules/community
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 
+interface LandingNavLink {
+  id: string;
+  label: string;
+  route?: string;
+  anchor?: string;
+  type: 'route' | 'anchor';
+  roles?: string[];
+}
+
 @Component({
   selector: 'app-landing-layout',
   standalone: false,
@@ -121,6 +130,9 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
   protected readonly canAccessDashboard = computed(() =>
       this.authService.hasRole('ADMIN', 'MENTOR', 'PARTNER', 'PARTENAIRE' as any)
   );
+  protected readonly canAccessInvestment = computed(() =>
+      this.authService.hasRole('INVESTOR', 'ENTREPRENEUR')
+  );
   protected readonly userInitial = computed(() => {
     const e = this.authService.getEmail();
     return e ? e[0].toUpperCase() : '?';
@@ -136,15 +148,20 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
 
   private badgeTimer?: ReturnType<typeof setTimeout>;
 
-  protected readonly navLinks = [
+  protected readonly navLinks: LandingNavLink[] = [
     { id: 'home',      label: 'Home',      route: '/',          type: 'route' },
     { id: 'events',    label: 'Events',    route: '/events',    type: 'route' },
     { id: 'community', label: 'Community', route: '/community', type: 'route' },
     { id: 'procedures', label: 'Procedures', route: '/procedures', type: 'route' },
+    { id: 'investment', label: 'Investments', route: '/investment/demandes', type: 'route', roles: ['INVESTOR', 'ENTREPRENEUR'] },
     { id: 'services',  label: 'Services',  anchor: 'services',  type: 'anchor' },
     { id: 'about',     label: 'About',     anchor: 'about',     type: 'anchor' },
     { id: 'contact',   label: 'Contact',   anchor: 'contact',   type: 'anchor' },
   ];
+
+  protected readonly visibleNavLinks = computed(() =>
+    this.navLinks.filter(link => !link.roles || link.roles.some(role => this.authService.hasRole(role as any)))
+  );
 
   ngOnInit(): void {
     setTimeout(() => this.pillState.set('visible'), 60);

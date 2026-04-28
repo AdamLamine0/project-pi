@@ -26,3 +26,24 @@ spring:
               - Path=/api/community/**
             filters:
               - StripPrefix=0
+
+          - id: investment-service
+            uri: lb://investment-pi
+            predicates:
+              - Path=/api/data-room/**, /api/dataroom/**, /api/deals/**, /api/invest-criteria/**, /api/invest-request/**, /api/investments/**, /api/admin/investments/holding/**
+            filters:
+              - StripPrefix=0
+
+          - id: legal-service
+            uri: lb://legal-pi
+            predicates:
+              - Path=/api/legal-procedures/**
+            filters:
+              - StripPrefix=0
+
+          - id: ai-service
+            uri: lb://ai-service
+            predicates:
+              - Path=/api/ai/**
+            filters:
+              - StripPrefix=0

@@ -15,7 +15,7 @@
 
     <!-- ── Center pill: Navigation links ── -->
     <nav class="pill pill-nav" [@pillCenter]="pillState()" aria-label="Primary navigation">
-      @for (link of navLinks; track link.id) {
+      @for (link of visibleNavLinks(); track link.id) {
       @if (link.type === 'route') {
       <a class="nav-link" [routerLink]="link.route" [class.active]="activeLink() === link.id"
         (click)="setActive(link.id)">
@@ -31,6 +31,17 @@
 
     <!-- ── Right pill: CTA — auth-aware ── -->
     <div class="pill pill-cta" [@pillRight]="pillState()">
+
+      @if (canAccessInvestment()) {
+      <a routerLink="/investment/startups" class="cta-ghost dashboard-link investment-top-action">
+        <ng-icon name="lucideRocket" size="14" />
+        Startups
+      </a>
+      <a routerLink="/investment/kanban" class="cta-ghost dashboard-link investment-top-action">
+        <ng-icon name="lucideBriefcase" size="14" />
+        Deals
+      </a>
+      }
 
       <!-- Notifications bell -->
       @if (isLoggedIn()) {
@@ -157,7 +168,7 @@
   <!-- ── Mobile menu overlay ── -->
   @if (mobileMenu()) {
   <div class="mobile-menu" [@mobileOverlay] role="dialog" aria-modal="true">
-    @for (link of navLinks; track link.id) {
+    @for (link of visibleNavLinks(); track link.id) {
     @if (link.type === 'route') {
     <a class="mobile-link" [routerLink]="link.route" (click)="mobileMenu.set(false); setActive(link.id)">
       {{ link.label }}
@@ -175,6 +186,10 @@
       (click)="mobileMenu.set(false)">Settings</a>
     <a routerLink="/profile" [queryParams]="{tab:'tickets'}" class="mobile-link" (click)="mobileMenu.set(false)">My
       Reservations</a>
+    @if (canAccessInvestment()) {
+    <a routerLink="/investment/startups" class="mobile-link" (click)="mobileMenu.set(false)">Startups</a>
+    <a routerLink="/investment/kanban" class="mobile-link" (click)="mobileMenu.set(false)">Deals</a>
+    }
     @if (canAccessDashboard()) {
     <a routerLink="/app/dashboard" class="mobile-link" (click)="mobileMenu.set(false)">Dashboard</a>
     }
