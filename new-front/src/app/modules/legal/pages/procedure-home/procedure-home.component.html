@@ -2,11 +2,11 @@
 
   <section class="legal-hero">
     <div class="legal-hero__content">
-      <span class="legal-eyebrow">Legal Module</span>
-      <h1>Legal Procedures Portal</h1>
+      <span class="legal-eyebrow">Legal procedures</span>
+      <h1>Start the right legal process</h1>
       <p>
-        Centralize your cases, track required documents, upload supporting files,
-        and move forward to expert validation.
+        Choose the procedure that matches your project, prepare the required documents,
+        and follow each case through expert validation.
       </p>
 
       <div class="legal-actions">
@@ -20,37 +20,33 @@
         </ng-container>
 
         <ng-container *ngIf="!auth.isEntrepreneur() && !auth.isExpert()">
-          <span class="legal-note">Sign in with an entrepreneur role to open a case.</span>
+          <span class="legal-note">Sign in as an entrepreneur to open a case.</span>
         </ng-container>
       </div>
     </div>
 
-    <div class="legal-hero__panel">
+    <div class="legal-hero__panel" aria-label="Procedure steps">
       <div class="legal-mini-step">
-        <span>01</span>
+        <span>1</span>
         <strong>Choose</strong>
-        <small>Select the right procedure.</small>
       </div>
       <div class="legal-mini-step">
-        <span>02</span>
+        <span>2</span>
         <strong>Upload</strong>
-        <small>Complete the document checklist.</small>
       </div>
       <div class="legal-mini-step">
-        <span>03</span>
+        <span>3</span>
         <strong>Validate</strong>
-        <small>Submit the case to the expert.</small>
       </div>
     </div>
   </section>
 
   <section class="procedure-advisor">
     <div class="procedure-advisor__copy">
-      <span class="legal-eyebrow">Guidance Assistant</span>
-      <h2>Not sure which procedure to choose?</h2>
+      <span class="legal-eyebrow">Quick orientation</span>
+      <h2>Need help choosing?</h2>
       <p>
-        Describe your situation in a few words. The assistant will suggest the most suitable path
-        and the first documents to prepare.
+        Describe your situation briefly and get a practical suggestion for the next step.
       </p>
 
       <div class="procedure-advisor__chips">
@@ -86,7 +82,7 @@
     <div>
       <span class="legal-eyebrow">Catalog</span>
       <h2>Available procedures</h2>
-      <p>Choose a path based on your administrative or legal need.</p>
+      <p>Common legal workflows for company creation, compliance, tax support, and intellectual property.</p>
     </div>
   </section>
 
