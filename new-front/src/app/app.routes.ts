@@ -9,7 +9,6 @@ import { LoginComponent } from './pages/auth/login.component';
 import { SignupComponent } from './pages/auth/signup.component';
 import { HomeComponent } from './pages/home/home.component';
 import { ProjectsComponent } from './pages/projects/projects.component';
-import { LegalComponent } from './pages/legal/legal.component';
 import { InvestmentsComponent } from './pages/investments/investments.component';
 import { MentoringComponent } from './pages/mentoring/mentoring.component';
 import { RoadmapsComponent } from './pages/roadmaps/roadmaps.component';
@@ -29,6 +28,8 @@ export const routes: Routes = [
       // The routes below require the user to be signed in
       { path: 'events', component: EventsComponent, canActivate: [loginGuard] },
       { path: 'community', loadChildren: () => import('./modules/community/community.module').then(m => m.CommunityModule), canActivate: [loginGuard] },
+      { path: 'procedures', loadChildren: () => import('./modules/legal/legal.module').then(m => m.LegalModule) },
+      // Profile accessible to any authenticated user (including USER role)
       { path: 'profile', component: ProfileComponent, canActivate: [loginGuard] },
     ],
   },
@@ -51,7 +52,7 @@ export const routes: Routes = [
       { path: 'dashboard', component: HomeComponent },
       { path: 'projects', component: ProjectsComponent },
       { path: 'community', loadChildren: () => import('./modules/community/community.module').then(m => m.CommunityModule) },
-      { path: 'legal', component: LegalComponent },
+      { path: 'legal', loadChildren: () => import('./modules/legal/legal.module').then(m => m.LegalModule) },
       { path: 'investments', component: InvestmentsComponent },
       { path: 'mentoring', component: MentoringComponent },
       { path: 'roadmaps', component: RoadmapsComponent },

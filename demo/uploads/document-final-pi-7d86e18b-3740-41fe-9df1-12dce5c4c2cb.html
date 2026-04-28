@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Attestation de synthese - Propriete Intellectuelle</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #eef2f7; color: #111827; font-family: Arial, Helvetica, sans-serif; line-height: 1.55; }
+    .print-toolbar { position: sticky; top: 0; z-index: 10; display: flex; justify-content: center; padding: 14px; background: rgba(238, 242, 247, .94); border-bottom: 1px solid #d1d5db; }
+    .print-button { border: 0; border-radius: 6px; padding: 10px 18px; background: #111827; color: #fff; font-weight: 700; cursor: pointer; }
+    .print-button:hover { background: #374151; }
+    .page { width: 210mm; min-height: 297mm; margin: 24px auto; padding: 24mm 22mm; background: #fff; box-shadow: 0 10px 30px rgba(15, 23, 42, .12); }
+    .topline { display: flex; justify-content: space-between; gap: 24px; border-bottom: 2px solid #111827; padding-bottom: 18px; margin-bottom: 28px; }
+    .brand { text-transform: uppercase; font-size: 13px; font-weight: 700; letter-spacing: .04em; }
+    .authority { margin-top: 6px; color: #4b5563; font-size: 13px; }
+    .reference { text-align: right; font-size: 12px; color: #4b5563; }
+    h1 { margin: 34px 0 8px; text-align: center; font-size: 25px; text-transform: uppercase; letter-spacing: .03em; }
+    .subtitle { text-align: center; color: #374151; margin-bottom: 32px; font-weight: 700; }
+    .section-title { margin: 28px 0 10px; font-size: 14px; text-transform: uppercase; border-bottom: 1px solid #d1d5db; padding-bottom: 6px; }
+    .grid { display: grid; grid-template-columns: 70mm 1fr; border: 1px solid #d1d5db; margin: 18px 0 24px; }
+    .grid div { padding: 9px 12px; border-bottom: 1px solid #e5e7eb; }
+    .grid div:nth-child(odd) { background: #f9fafb; font-weight: 700; color: #374151; border-right: 1px solid #e5e7eb; }
+    .grid div:nth-last-child(-n+2) { border-bottom: 0; }
+    p { margin: 0 0 13px; text-align: justify; }
+    .decision { border-left: 4px solid #2563eb; padding: 14px 16px; background: #f8fafc; margin-top: 12px; }
+    .footer { margin-top: 42px; display: grid; grid-template-columns: 1fr 70mm; gap: 24px; align-items: end; }
+    .signature-box { border-top: 1px solid #111827; padding-top: 10px; text-align: center; }
+    .signature-title { font-weight: 700; }
+    .hash { margin-top: 18px; padding: 10px; border: 1px solid #d1d5db; background: #f9fafb; font-family: Consolas, monospace; font-size: 11px; word-break: break-all; }
+    .notice { color: #4b5563; font-size: 12px; margin-top: 16px; }
+    @page { size: A4; margin: 0; }
+    @media print {
+      body { background: #fff; }
+      .print-toolbar { display: none; }
+      .page { width: auto; min-height: auto; margin: 0; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-toolbar">
+    <button class="print-button" type="button" onclick="window.print()">Imprimer le document</button>
+  </div>
+  <main class="page">
+    <header class="topline">
+      <div>
+        <div class="brand">Plateforme d'accompagnement juridique</div>
+        <div class="authority">Service juridique - Propriete intellectuelle</div>
+      </div>
+      <div class="reference">
+        <div>Reference : DOC-PI-9386E386</div>
+        <div>Generation : 26/04/2026 18:19</div>
+        <div>Version : ADMIN_V3_PRINT</div>
+      </div>
+    </header>
+
+    <h1>Attestation de synthese - Propriete Intellectuelle</h1>
+    <div class="subtitle">Accompagnement en propriete intellectuelle</div>
+
+    <section>
+      <div class="section-title">Identification du dossier</div>
+      <div class="grid">
+        <div>Entrepreneur</div><div>Zaineb t</div>
+        <div>Projet / dossier</div><div>26/04 1</div>
+        <div>Procedure</div><div>Propriete intellectuelle</div>
+        <div>Date de validation</div><div>26/04/2026</div>
+        <div>Expert validateur</div><div>Mohamed Mohamed</div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">Constatations</div>
+      <p>Atteste que les elements transmis pour la procedure de propriete intellectuelle ont ete examines et consolides.</p>
+      <p>Le controle a porte notamment sur l'identification du porteur de projet, la description de l'actif, les preuves disponibles, les supports transmis et les informations utiles a la protection.</p>
+    </section>
+
+    <section>
+      <div class="section-title">Decision administrative</div>
+      <div class="decision">
+        <p>En consequence, le dossier est declare exploitable pour la preparation des demarches de protection indiquees.</p>
+        <p>Le dossier peut servir de base a la preparation d'un depot, d'une declaration ou d'une consultation specialisee selon la nature de l'actif protege.</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">Reserve et portee</div>
+      <p>La presente synthese ne remplace pas l'avis d'un conseil specialise ni la decision d'un office de propriete intellectuelle.</p>
+    </section>
+
+    <footer class="footer">
+      <div>
+        <p>Document etabli electroniquement le 26/04/2026 18:19.</p>
+        <p class="notice">La signature numerique ci-dessous permet d'identifier le dossier, la date de generation et l'expert validateur.</p>
+      </div>
+      <div class="signature-box">
+        <div class="signature-title">Mohamed Mohamed</div>
+        <div>Expert validateur</div>
+      </div>
+    </footer>
+
+    <div class="hash">SIGNATURE NUMERIQUE : SIG-06E1FAC8AEC337088F4123F1E65952BE09C0CE4218F52CD0867350EC2FED6C38</div>
+  </main>
+</body>
+</html>

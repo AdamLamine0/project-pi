@@ -38,7 +38,7 @@ PIcloud is a professional community platform built as a microservices architectu
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                      API GATEWAY                                  │
-│              Spring Cloud Gateway (port 8090)                   │
+│              Spring Cloud Gateway (port 8091)                   │
 │         Routes: /api/community/* → community-service (8082)    │
 │                  /api/user/* → user-service (8081)             │
 │                  /api/auth/* → user-service (8081)              │
@@ -229,7 +229,7 @@ PENDING → ACCEPTED
 
 ## API Endpoints
 
-### Gateway Routes (Port 8090)
+### Gateway Routes (Port 8091)
 
 ```
 /api/auth/*           → user-service (Authentication)
@@ -597,7 +597,7 @@ XP Actions:
 | Service | Port |
 |---------|------|
 | Frontend (Angular) | 4200 |
-| API Gateway | 8090 |
+| API Gateway | 8091 |
 | Community Service | 8082 |
 | User Service | 8081 |
 | Eureka Server | 8761 |
@@ -643,7 +643,7 @@ Laast PI/
 │       └── config/                # WebSocket, Swagger, Seeder
 │
 ├── user-service/                    # User management (port 8081)
-├── api-gateway/                     # Spring Cloud Gateway (port 8090)
+├── api-gateway/                     # Spring Cloud Gateway (port 8091)
 └── eureka-server/                  # Service discovery (port 8761)
 ```
 
