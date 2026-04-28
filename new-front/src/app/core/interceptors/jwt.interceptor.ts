@@ -9,8 +9,10 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const token = authService.getToken();
   const isPublicExpertList = req.url.includes('/api/users/experts');
+  const isAuthEndpoint = req.url.includes('/api/auth/');
+  const isPublicRequest = isPublicExpertList || isAuthEndpoint;
 
-  const authReq = token && !isPublicExpertList
+  const authReq = token && !isPublicRequest
     ? req.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`,
@@ -20,7 +22,7 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && !isPublicExpertList) {
+      if (error.status === 401 && !isPublicRequest) {
         authService.logout();
         router.navigate(['/auth/login']);
       }

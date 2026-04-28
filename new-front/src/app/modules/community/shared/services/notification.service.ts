@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../../../../../environments/environment';
 import { CommunityNotification } from '../models/notification.model';
 import { ChatService } from '../../messaging/services/chat.service';
@@ -52,8 +52,8 @@ export class CommunityNotificationService {
   }
 
   refreshNotifications(userId: string) {
-    this.getNotifications(userId).subscribe();
-    this.getUnreadCount(userId).subscribe();
+    this.getNotifications(userId).pipe(catchError(() => EMPTY)).subscribe();
+    this.getUnreadCount(userId).pipe(catchError(() => EMPTY)).subscribe();
   }
 
   getNotifications(userId: string): Observable<CommunityNotification[]> {

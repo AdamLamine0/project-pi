@@ -92,7 +92,7 @@ export class SignupComponent {
       const trimmed = (fullName as string).trim();
       const spaceIdx = trimmed.indexOf(' ');
       const name = spaceIdx >= 0 ? trimmed.slice(0, spaceIdx) : trimmed;
-      const prenom = spaceIdx >= 0 ? trimmed.slice(spaceIdx + 1) : '';
+      const prenom = spaceIdx >= 0 ? trimmed.slice(spaceIdx + 1).trim() : name;
 
       await this.authService.register({ name, prenom, email, role, password });
       await this.router.navigateByUrl(this.authService.getPostAuthRedirectPath());
