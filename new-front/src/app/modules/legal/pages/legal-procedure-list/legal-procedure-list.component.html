@@ -1,0 +1,111 @@
+<div class="legal-shell">
+  <section class="legal-page-head">
+    <div>
+      <span class="legal-eyebrow">Entrepreneur</span>
+      <h1>My Legal Cases</h1>
+      <p>Track progress, complete drafts, and open validated cases.</p>
+    </div>
+    <button class="legal-btn legal-btn--primary" type="button" (click)="openCreate()">New case</button>
+  </section>
+
+  <section class="legal-toolbar">
+    <label class="legal-toolbar__search">
+      <span>Search by case name</span>
+      <input type="search"
+             [(ngModel)]="searchTerm"
+             (input)="applyFilter()"
+             placeholder="Case name" />
+    </label>
+
+    <label>
+      <span>Filter by status</span>
+      <select [(ngModel)]="selectedStatus" (change)="applyFilter()">
+        <option value="">All statuses</option>
+        <option *ngFor="let s of statuses" [value]="s">{{ statusLabels[s] }}</option>
+      </select>
+    </label>
+
+    <label>
+      <span>Filter by procedure</span>
+      <select [(ngModel)]="selectedType" (change)="applyFilter()">
+        <option value="">All types</option>
+        <option *ngFor="let type of procedureTypes" [value]="type">
+          {{ procedureTypeLabels[type] }}
+        </option>
+      </select>
+    </label>
+
+    <div class="legal-toolbar__meta">
+      <strong>{{ filteredProcedures.length }}</strong>
+      <span>case{{ filteredProcedures.length > 1 ? 's' : '' }} displayed</span>
+    </div>
+  </section>
+
+  <div *ngIf="errorMessage" class="legal-alert legal-alert--error">{{ errorMessage }}</div>
+  <div *ngIf="loading && !filteredProcedures.length" class="legal-alert legal-alert--info">Loading cases...</div>
+
+  <section class="legal-table-card" *ngIf="filteredProcedures.length || !loading">
+    <table class="legal-table" *ngIf="filteredProcedures.length; else emptyList">
+      <thead>
+        <tr>
+          <th>Project</th>
+          <th>Procedure</th>
+          <th>Status</th>
+          <th>Progress</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of filteredProcedures">
+          <td>
+            <div class="legal-table__title">{{ p.projectName }}</div>
+            <div class="legal-table__muted">Case #{{ p.id }}</div>
+          </td>
+          <td>{{ procedureTypeLabels[p.procedureType] }}</td>
+          <td>
+            <span class="legal-status" [ngClass]="getStatusClass(p.status)">
+              {{ statusLabels[p.status] }}
+            </span>
+          </td>
+          <td>
+            <div class="legal-progress">
+              <div [style.width.%]="p.completionRate"></div>
+            </div>
+            <small>{{ p.completionRate }}%</small>
+          </td>
+          <td>{{ p.createdAt | date:'dd/MM/yyyy' }}</td>
+          <td>
+            <div class="legal-row-actions">
+              <a class="legal-btn legal-btn--secondary legal-btn--sm"
+                 [routerLink]="['/app/legal', p.id]"
+                 [state]="{ procedure: p }">
+                Details
+              </a>
+              <button class="legal-btn legal-btn--primary legal-btn--sm"
+                      *ngIf="p.status === 'BROUILLON'"
+                      type="button"
+                      (click)="submit(p.id)">
+                Submit
+              </button>
+              <button class="legal-btn legal-btn--danger legal-btn--sm"
+                      *ngIf="p.status === 'BROUILLON'"
+                      type="button"
+                      (click)="deleteDraft(p.id)">
+                Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <ng-template #emptyList>
+      <div class="legal-empty">
+        <strong>No cases found</strong>
+        <p>Open a new case to start a procedure.</p>
+        <button class="legal-btn legal-btn--primary" type="button" (click)="openCreate()">Create a case</button>
+      </div>
+    </ng-template>
+  </section>
+</div>

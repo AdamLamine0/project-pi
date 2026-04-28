@@ -11,6 +11,7 @@
         <option value="$PROJECT_DIR$/event-pi/pom.xml" />
         <option value="$PROJECT_DIR$/partenariat-pi/pom.xml" />
         <option value="$PROJECT_DIR$/userPI/pom.xml" />
+        <option value="$PROJECT_DIR$/ai-service/pom.xml" />
       </list>
     </option>
   </component>

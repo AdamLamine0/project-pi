@@ -45,7 +45,7 @@ public class LegalProcedure {
     @Column(nullable = false, length = 50)
     private ProcedureStatus status;
 
-    // Remarque ajoutée par l'IA ou l'expert (optionnelle)
+    // Optional note added by AI or the expert.
     @Column(columnDefinition = "TEXT")
     private String remark;
 
@@ -60,6 +60,15 @@ public class LegalProcedure {
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
+
+    @Column(name = "final_document_url")
+    private String finalDocumentUrl;
+
+    @Column(name = "final_document_generated_at")
+    private LocalDateTime finalDocumentGeneratedAt;
+
+    @Column(name = "final_document_template_version")
+    private String finalDocumentTemplateVersion;
 
     @OneToMany(mappedBy = "procedure", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

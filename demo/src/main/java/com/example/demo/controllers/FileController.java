@@ -23,7 +23,7 @@ public class FileController {
         String dir = uploadProperties.getUpload() != null ? uploadProperties.getUpload().getDir() : null;
 
         if (dir == null || dir.isBlank()) {
-            throw new IllegalStateException("La propriété app.upload.dir est absente ou vide.");
+            throw new IllegalStateException("The app.upload.dir property is missing or empty.");
         }
 
         this.uploadPath = Paths.get(dir).toAbsolutePath().normalize();
@@ -40,9 +40,14 @@ public class FileController {
                 return ResponseEntity.notFound().build();
             }
 
+            String contentType = Files.probeContentType(filePath);
+            if (contentType == null || contentType.isBlank()) {
+                contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+            }
+
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .contentType(MediaType.parseMediaType(contentType))
                     .body(resource);
 
         } catch (Exception e) {

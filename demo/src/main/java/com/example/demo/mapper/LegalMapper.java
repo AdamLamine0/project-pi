@@ -10,12 +10,12 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface LegalMapper {
 
-    // requirementCode existe dans LegalDocument → mappé automatiquement ✅
+    // requirementCode exists in LegalDocument and is mapped automatically.
     LegalDocumentResponse toDocumentResponse(LegalDocument document);
 
-    // notes (entité) → description (record) : mapping explicite nécessaire
+    // notes (entity) to description (record): explicit mapping required.
     @Mapping(source = "description", target = "description")
-    // documents (List<LegalDocument>) → documents (List<LegalDocumentResponse>)
-    // MapStruct utilise toDocumentResponse() automatiquement car il est dans le même mapper ✅
+    // documents (List<LegalDocument>) to documents (List<LegalDocumentResponse>)
+    // MapStruct uses toDocumentResponse() automatically because it is in the same mapper.
     LegalProcedureResponse toProcedureResponse(LegalProcedure procedure);
 }

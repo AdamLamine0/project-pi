@@ -156,7 +156,7 @@ Here's what I found in your workspace:
 | Service | Port | Status |
 |---------|------|--------|
 | **Eureka Server** | 8761 | ✅ Running |
-| **API Gateway** | 8090 | ✅ Running |
+| **API Gateway** | 8091 | ✅ Running |
 | **Community Service** | (default) | ✅ Running |
 | **User Service (userPI)** | — | ✅ Running |
 | **Angular Frontend (PIcloud)** | 4200 | ✅ Running |
@@ -420,7 +420,7 @@ All 3 fixes are done. Here's the summary:
 
 The running instance still has the old config. You need to stop and restart it for MongoDB to connect, Eureka to register, and CORS to work. After restarting, verify at:
 - `http://localhost:8761` → community-service should show up
-- `http://localhost:8090/api/community/forums` → should return `[]` (empty list, no error)
+- `http://localhost:8091/api/community/forums` → should return `[]` (empty list, no error)
 
 ### User Input
 
