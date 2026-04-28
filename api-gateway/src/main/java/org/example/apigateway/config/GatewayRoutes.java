@@ -165,4 +165,23 @@ public class GatewayRoutes {
 
 
 
+<<<<<<< HEAD
 }
+=======
+    @Bean
+    public RouterFunction<ServerResponse> investmentServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/invest-request/**")
+                        .or(path("/api/invest-criteria/**"))
+                        .or(path("/api/investments/**"))
+                        .or(path("/api/admin/investments/**"))
+                        .or(path("/api/deals/**"))
+                        .or(path("/api/data-room/**"))
+                        .or(path("/api/dataroom/**"))
+                        .or(path("/api/nda/**"))
+                        .or(path("/api/log/**")), HandlerFunctions.http())
+                .filter(lb("investment-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+}
+>>>>>>> cdd63f1c6858c4a9379161b6fcc6e1e98612415d

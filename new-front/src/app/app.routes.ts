@@ -9,8 +9,11 @@ import { LoginComponent } from './pages/auth/login.component';
 import { SignupComponent } from './pages/auth/signup.component';
 import { HomeComponent } from './pages/home/home.component';
 import { ProjectsComponent } from './pages/projects/projects.component';
+<<<<<<< HEAD
 import { LegalComponent } from './pages/legal/legal.component';
 import { InvestmentsComponent } from './pages/investments/investments.component';
+=======
+>>>>>>> cdd63f1c6858c4a9379161b6fcc6e1e98612415d
 import { MentoringComponent } from './pages/mentoring/mentoring.component';
 import { RoadmapsComponent } from './pages/roadmaps/roadmaps.component';
 import { PartnershipsComponent } from './pages/partnerships/partnerships.component';
@@ -31,6 +34,12 @@ export const routes: Routes = [
       // The routes below require the user to be signed in
       { path: 'events', component: EventsComponent, canActivate: [loginGuard] },
       { path: 'community', loadChildren: () => import('./modules/community/community.module').then(m => m.CommunityModule), canActivate: [loginGuard] },
+<<<<<<< HEAD
+=======
+      { path: 'procedures', loadChildren: () => import('./modules/legal/legal.module').then(m => m.LegalModule) },
+      { path: 'investment', loadChildren: () => import('./modules/investment-module/investment/investment-module').then(m => m.InvestmentModule), canActivate: [loginGuard] },
+      // Profile accessible to any authenticated user (including USER role)
+>>>>>>> cdd63f1c6858c4a9379161b6fcc6e1e98612415d
       { path: 'profile', component: ProfileComponent, canActivate: [loginGuard] },
       // Partenariat pages — accessible to all logged-in users (USER, PARTNER, ADMIN)
       { path: 'partenariat', loadChildren: () => import('./modules/partenaire/partenaire.module').then(m => m.PartenaireModule), canActivate: [loginGuard] },
@@ -57,8 +66,13 @@ export const routes: Routes = [
       { path: 'dashboard', component: HomeComponent },
       { path: 'projects', component: ProjectsComponent },
       { path: 'community', loadChildren: () => import('./modules/community/community.module').then(m => m.CommunityModule) },
+<<<<<<< HEAD
       { path: 'legal', component: LegalComponent },
       { path: 'investments', component: InvestmentsComponent },
+=======
+      { path: 'legal', loadChildren: () => import('./modules/legal/legal.module').then(m => m.LegalModule), canActivate: [authGuard], data: { role: 'ADMIN' } },
+      { path: 'investments', redirectTo: '/investment', pathMatch: 'full' },
+>>>>>>> cdd63f1c6858c4a9379161b6fcc6e1e98612415d
       { path: 'mentoring', component: MentoringComponent },
       { path: 'roadmaps', component: RoadmapsComponent },
       { path: 'partnerships', component: PartnershipsComponent },

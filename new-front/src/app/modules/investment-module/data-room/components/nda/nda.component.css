@@ -1,0 +1,56 @@
+.nda-card {
+  max-width: 860px;
+  margin: 0 auto;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 4px rgba(11, 15, 42, 0.04);
+}
+
+.lead {
+  font-size: 15px;
+  line-height: 1.7;
+  margin-top: 0;
+  color: var(--text-secondary);
+}
+
+mat-card-actions button ng-icon {
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.nda-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--badge-blue-bg);
+  color: var(--badge-blue-text);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nda-points {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.point {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: var(--surface-subtle);
+  color: var(--text-secondary);
+}
+
+.point ng-icon {
+  color: var(--primary);
+  flex: 0 0 auto;
+}
