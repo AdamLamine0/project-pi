@@ -1,19 +1,19 @@
 <div class="page-container">
   <div class="section-header mb-4">
     <div>
-      <h1 class="section-title">Dossiers a traiter</h1>
-      <p class="section-subtitle">Dossiers valides par l'IA et en attente de decision expert.</p>
+      <h1 class="section-title">Cases to review</h1>
+      <p class="section-subtitle">Cases validated by AI and waiting for expert decision.</p>
     </div>
   </div>
 
   <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
   <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
-  <div *ngIf="loading && !procedures.length" class="alert alert-info">Chargement...</div>
+  <div *ngIf="loading && !procedures.length" class="alert alert-info">Loading...</div>
 
   <div class="expert-layout">
     <section class="expert-list">
       <div *ngIf="!loading && procedures.length === 0" class="empty-state card-premium p-4">
-        <p>Aucun dossier en attente de decision.</p>
+        <p>No cases waiting for a decision.</p>
       </div>
 
       <button class="expert-card"
@@ -44,7 +44,7 @@
 
     <section class="expert-detail">
       <div *ngIf="!selectedProcedure" class="empty-state card-premium p-4">
-        <p>Selectionnez un dossier pour consulter les documents et prendre une decision.</p>
+        <p>Select a case to review documents and make a decision.</p>
       </div>
 
       <div *ngIf="selectedProcedure as p" class="card-premium p-4">
@@ -58,7 +58,7 @@
           </span>
         </div>
 
-        <div *ngIf="detailLoading" class="alert alert-info mt-3">Chargement du detail...</div>
+        <div *ngIf="detailLoading" class="alert alert-info mt-3">Loading details...</div>
 
         <div class="detail-grid mt-3">
           <div class="detail-item">
@@ -66,7 +66,7 @@
             <strong>{{ entrepreneurName(p.entrepreneurId) }}</strong>
           </div>
           <div class="detail-item">
-            <span>ID entrepreneur</span>
+            <span>Entrepreneur ID</span>
             <strong>{{ p.entrepreneurId }}</strong>
           </div>
           <div class="detail-item">
@@ -74,29 +74,29 @@
             <strong>{{ procedureTypeLabels[p.procedureType] }}</strong>
           </div>
           <div class="detail-item">
-            <span>Progression</span>
+            <span>Progress</span>
             <strong>{{ p.completionRate }}%</strong>
           </div>
           <div class="detail-item" *ngIf="p.submittedAt">
-            <span>Soumis le</span>
+            <span>Submitted on</span>
             <strong>{{ p.submittedAt | date:'dd/MM/yyyy HH:mm' }}</strong>
           </div>
           <div class="detail-item">
-            <span>ID dossier</span>
+            <span>Case ID</span>
             <strong>{{ p.id }}</strong>
           </div>
         </div>
 
         <div *ngIf="p.remark" class="ai-remark mt-3">
-          <span>Remarque IA</span>
+          <span>AI note</span>
           <p>{{ p.remark }}</p>
         </div>
 
         <div class="documents-section mt-4">
-          <h3>Documents du dossier</h3>
+          <h3>Case documents</h3>
 
           <div *ngIf="!p.documents.length" class="empty-state p-3">
-            Aucun document trouve.
+            No documents found.
           </div>
 
           <div class="document-row" *ngFor="let doc of p.documents">
@@ -110,7 +110,7 @@
               <button class="btn btn-sm btn-outline-secondary"
                       type="button"
                       (click)="selectDocument(doc)">
-                Visualiser
+                Preview
               </button>
             </div>
           </div>
@@ -118,21 +118,21 @@
           <div class="document-preview" *ngIf="selectedDocument as doc">
             <div class="preview-header">
               <div>
-                <span>Apercu document</span>
+                <span>Document preview</span>
                 <strong>{{ documentLabel(doc) }}</strong>
               </div>
               <a class="btn btn-sm btn-outline-secondary"
                  [href]="doc.fileUrl"
                  target="_blank"
                  rel="noopener">
-                Ouvrir dans un onglet
+                Open in a new tab
               </a>
             </div>
 
             <iframe *ngIf="isPdf(doc)"
                     class="preview-frame"
                     [src]="doc.fileUrl"
-                    title="Apercu PDF">
+                    title="PDF preview">
             </iframe>
 
             <img *ngIf="isImage(doc)"
@@ -141,40 +141,40 @@
                  [alt]="documentLabel(doc)" />
 
             <div *ngIf="!isPdf(doc) && !isImage(doc)" class="preview-unsupported">
-              Ce format ne peut pas etre visualise directement ici.
+              This format cannot be previewed here.
             </div>
           </div>
         </div>
 
         <form class="decision-panel mt-4" [formGroup]="decisionForm" (ngSubmit)="submitDecision()">
-          <h3>Decision expert</h3>
+          <h3>Expert decision</h3>
 
           <div class="mb-3">
             <label class="form-label fw-semibold">Decision *</label>
             <select class="form-select" formControlName="approved">
-              <option value="">Choisir</option>
-              <option value="true">Valider definitivement</option>
-              <option value="false">Refuser</option>
+              <option value="">Choose</option>
+              <option value="true">Approve definitively</option>
+              <option value="false">Reject</option>
             </select>
           </div>
 
           <div class="mb-3">
-            <label class="form-label fw-semibold">Remarque</label>
+            <label class="form-label fw-semibold">Note</label>
             <textarea class="form-control"
                       rows="3"
                       formControlName="remark"
-                      placeholder="Motif de refus, commentaire pour l'entrepreneur...">
+                      placeholder="Reason for rejection or comment for the entrepreneur...">
             </textarea>
           </div>
 
           <div class="d-flex gap-2">
             <button class="btn btn-primary" type="submit"
                     [disabled]="decisionForm.invalid || submitting">
-              {{ submitting ? 'Envoi...' : 'Confirmer la decision' }}
+              {{ submitting ? 'Sending...' : 'Confirm decision' }}
             </button>
             <button class="btn btn-outline-secondary" type="button"
                     (click)="selectedProcedure = undefined; selectedChecklist = undefined; selectedDocument = undefined">
-              Fermer
+              Close
             </button>
           </div>
         </form>

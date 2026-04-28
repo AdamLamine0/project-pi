@@ -140,7 +140,7 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
     { id: 'home',      label: 'Home',      route: '/',          type: 'route' },
     { id: 'events',    label: 'Events',    route: '/events',    type: 'route' },
     { id: 'community', label: 'Community', route: '/community', type: 'route' },
-    { id: 'procedures', label: 'Procédures', route: '/procedures', type: 'route' },
+    { id: 'procedures', label: 'Procedures', route: '/procedures', type: 'route' },
     { id: 'services',  label: 'Services',  anchor: 'services',  type: 'anchor' },
     { id: 'about',     label: 'About',     anchor: 'about',     type: 'anchor' },
     { id: 'contact',   label: 'Contact',   anchor: 'contact',   type: 'anchor' },

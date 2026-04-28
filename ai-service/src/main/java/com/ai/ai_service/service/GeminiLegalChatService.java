@@ -19,7 +19,7 @@ import java.util.Set;
 public class GeminiLegalChatService {
 
     private static final String DISCLAIMER =
-            "Reponse informative generee par IA. Confirmez les points sensibles avec un expert juridique.";
+            "Informational AI-generated response. Confirm sensitive points with a legal expert.";
 
     private final AiProperties properties;
     private final WebClient.Builder webClientBuilder;
@@ -31,7 +31,7 @@ public class GeminiLegalChatService {
 
     public LegalChatResponse answer(LegalChatRequest request) {
         if (request == null || request.question() == null || request.question().isBlank()) {
-            return new LegalChatResponse("Posez une question juridique pour obtenir une reponse.", false, DISCLAIMER);
+            return new LegalChatResponse("Ask a legal question to get an answer.", false, DISCLAIMER);
         }
         if (!properties.getGemini().isEnabled()) {
             return unavailable("Gemini disabled");
@@ -132,54 +132,54 @@ public class GeminiLegalChatService {
 
     private String buildPrompt(LegalChatRequest request) {
         return """
-                Tu es un assistant juridique francophone integre dans une plateforme de procedures.
-                Ta mission est d'aider un entrepreneur a comprendre son dossier courant et les actions utiles.
+                You are an English-speaking legal assistant integrated into a procedures platform.
+                Your mission is to help an entrepreneur understand the current case and useful next actions.
 
                 Regles de comprehension:
-                - Reponds toujours par rapport au dossier fourni, pas de maniere generique.
-                - Si aucun procedureId/procedureType n'est fourni, tu es en mode orientation: aide l'utilisateur a choisir une procedure parmi le catalogue.
-                - Si la question est vague, deduis l'intention la plus probable depuis le statut, les documents manquants et l'historique.
-                - Si l'utilisateur demande "quoi faire", donne les prochaines actions classees par priorite.
-                - Si l'utilisateur demande un terme court ou un acronyme, explique simplement puis relie-le a la procedure.
-                - Si un document manque, cite son nom exact et explique quoi preparer.
-                - Si le dossier est refuse ou contient des remarques, aide a corriger avant resoumission.
-                - Si le dossier est en attente expert, explique que l'utilisateur doit attendre la decision expert sauf demande de precision.
-                - Si le dossier est complet, explique comment utiliser le document final.
+                - Always answer based on the provided case, not generically.
+                - If no procedureId/procedureType is provided, you are in guidance mode: help the user choose a procedure from the catalog.
+                - If the question is vague, infer the most likely intent from the status, missing documents, and history.
+                - If the user asks "what should I do", give the next actions ranked by priority.
+                - If the user asks about a short term or acronym, explain it simply and connect it to the procedure.
+                - If a document is missing, cite its exact name and explain what to prepare.
+                - If the case is rejected or contains remarks, help fix it before resubmission.
+                - If the case is waiting for expert review, explain that the user should wait for the expert decision unless they ask for clarification.
+                - If the case is completed, explain how to use the final document.
 
                 Limites:
                 - Ne promets pas une validation administrative certaine.
-                - Ne donne pas de conseil juridique definitif; recommande l'expert pour les points sensibles.
-                - Si une information manque dans le contexte, dis-le et propose la meilleure verification.
+                - Do not give definitive legal advice; recommend the expert for sensitive points.
+                - If information is missing from the context, say so and suggest the best verification.
 
                 Format attendu:
-                - Reponds en francais.
+                - Answer in English.
                 - Commence par une reponse directe en 1 phrase.
-                - Puis ajoute 2 a 5 puces pratiques si utile.
-                - Termine par "Prochaine action:" avec une action concrete.
-                - Evite les longs paragraphes.
+                - Then add 2 to 5 practical bullet points when useful.
+                - End with "Next action:" and one concrete action.
+                - Avoid long paragraphs.
 
                 Catalogue des procedures disponibles:
-                - SARL: creation d'une Societe a Responsabilite Limitee, avec plusieurs associes.
-                - SUARL: creation d'une Societe Unipersonnelle a Responsabilite Limitee, avec associe unique.
-                - LABEL_STARTUP: demande de label startup, projet innovant, pitch deck, preuve de concept.
-                - PI: propriete intellectuelle, depot/protection d'une idee, marque, creation, actif technique.
-                - FISCALITE: assistance fiscale, documents fiscaux, declarations, situation fiscale.
-                - CONFORMITE: verification de conformite documentaire, statuts a jour, RNE, justificatifs.
+                - SARL: creation of a Limited Liability Company with multiple shareholders.
+                - SUARL: creation of a Single-Member Limited Liability Company with one shareholder.
+                - LABEL_STARTUP: startup label application, innovative project, pitch deck, proof of concept.
+                - IP: intellectual property, filing/protection of an idea, trademark, creation, or technical asset.
+                - TAX SUPPORT: tax assistance, tax documents, declarations, tax situation.
+                - COMPLIANCE: document compliance review, updated bylaws, RNE, supporting documents.
 
                 En mode orientation:
                 - Commence par "Procedure conseillee: <nom>".
                 - Explique pourquoi en 2 ou 3 puces.
-                - Cite les premiers documents a preparer si possible.
-                - Si deux procedures sont plausibles, donne l'option principale et l'alternative.
+                - Mention the first documents to prepare when possible.
+                - If two procedures are plausible, give the main option and the alternative.
 
-                Contexte dossier:
+                Case context:
                 procedureId=%s
                 procedureType=%s
                 procedureStatus=%s
                 projectName=%s
-                documentsObligatoires=%s
-                documentsDeposes=%s
-                documentsManquants=%s
+                requiredDocuments=%s
+                uploadedDocuments=%s
+                missingDocuments=%s
                 progressionDocuments=%s/%s
 
                 Historique recent:
@@ -233,8 +233,8 @@ public class GeminiLegalChatService {
 
     private LegalChatResponse unavailable(String reason) {
         String answer = reason != null && (reason.contains("API key") || reason.contains("403") || reason.contains("401"))
-                ? "Le chatbot juridique est indisponible car la configuration Gemini doit etre verifiee."
-                : "Le chatbot juridique est temporairement indisponible car Gemini est surcharge. Reessayez dans quelques instants.";
+                ? "The legal chatbot is unavailable because the Gemini configuration must be checked."
+                : "The legal chatbot is temporarily unavailable because Gemini is overloaded. Please try again shortly.";
         return new LegalChatResponse(answer, false, DISCLAIMER);
     }
 }

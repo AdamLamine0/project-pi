@@ -29,7 +29,7 @@ public class ChecklistServiceImpl implements ChecklistService {
     public ProcedureChecklistResponse getChecklist(UUID procedureId) {
 
         LegalProcedure procedure = procedureRepository.findById(procedureId)
-                .orElseThrow(() -> new ResourceNotFoundException("Dossier introuvable : " + procedureId));
+                .orElseThrow(() -> new ResourceNotFoundException("Case not found: " + procedureId));
 
         List<ProcedureDocumentRequirement> requirements =
                 requirementRepository.findByProcedureType(procedure.getProcedureType());
@@ -85,7 +85,7 @@ public class ChecklistServiceImpl implements ChecklistService {
     public boolean areAllRequiredDocumentsUploaded(UUID procedureId) {
 
         LegalProcedure procedure = procedureRepository.findById(procedureId)
-                .orElseThrow(() -> new ResourceNotFoundException("Dossier introuvable : " + procedureId));
+                .orElseThrow(() -> new ResourceNotFoundException("Case not found: " + procedureId));
 
         List<ProcedureDocumentRequirement> requirements =
                 requirementRepository.findByProcedureType(procedure.getProcedureType());
@@ -93,7 +93,7 @@ public class ChecklistServiceImpl implements ChecklistService {
         List<LegalDocument> documents =
                 documentRepository.findByProcedureId(procedureId);
 
-        // Vérifie que chaque requirement obligatoire a un document DEPOSE ou VALIDE
+        // Checks that every required item has an UPLOADED or VALIDATED document.
         return requirements.stream()
                 .filter(ProcedureDocumentRequirement::getRequired)
                 .allMatch(req -> documents.stream()

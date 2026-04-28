@@ -39,7 +39,7 @@ export class LegalProcedureFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // description retiré du formulaire
+    // Description removed from the form
     this.form = this.fb.group({
       projectName:   ['', [Validators.required, Validators.maxLength(200)]],
       procedureType: ['', Validators.required],
@@ -53,7 +53,7 @@ export class LegalProcedureFormComponent implements OnInit {
 
     this.service.getExperts().subscribe({
       next: (data) => this.experts = data,
-      error: () => this.errorMessage = 'Impossible de charger la liste des experts.'
+      error: () => this.errorMessage = 'Unable to load the expert list.'
     });
   }
 
@@ -82,12 +82,12 @@ export class LegalProcedureFormComponent implements OnInit {
       this.userId
     ).subscribe({
       next: (created) => {
-        this.successMessage = 'Dossier créé avec succès.';
+        this.successMessage = 'Case created successfully.';
         this.loading = false;
         setTimeout(() => this.router.navigate(['/app/legal', created.id]), 800);
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Erreur lors de la création.';
+        this.errorMessage = err?.error?.message || 'An error occurred while creating the case.';
         this.loading = false;
       }
     });

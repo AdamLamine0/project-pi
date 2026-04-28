@@ -117,27 +117,27 @@ export interface LegalChatResponse {
 }
 
 export const PROCEDURE_TYPE_LABELS: Record<ProcedureType, string> = {
-  SARL: 'Creation SARL',
-  SUARL: 'Creation SUARL',
+  SARL: 'SARL Incorporation',
+  SUARL: 'SUARL Incorporation',
   LABEL_STARTUP: 'Label Startup',
-  PI: 'Propriete Intellectuelle',
-  FISCALITE: 'Fiscalite',
-  CONFORMITE: 'Conformite',
+  PI: 'Intellectual Property',
+  FISCALITE: 'Tax Support',
+  CONFORMITE: 'Compliance',
 };
 
 export const PROCEDURE_TYPE_DESCRIPTIONS: Record<ProcedureType, string> = {
-  SARL: "Creation d'une Societe a Responsabilite Limitee.",
-  SUARL: "Creation d'une Societe Unipersonnelle a Responsabilite Limitee.",
-  LABEL_STARTUP: 'Obtention du label startup.',
-  PI: 'Protection de la propriete intellectuelle.',
-  FISCALITE: 'Assistance fiscale et demarches administratives.',
-  CONFORMITE: 'Verification de conformite juridique.',
+  SARL: "Create a Limited Liability Company.",
+  SUARL: "Create a Single-Member Limited Liability Company.",
+  LABEL_STARTUP: 'Apply for the Startup Label.',
+  PI: 'Protect trademarks, inventions, or creative assets.',
+  FISCALITE: 'Tax assistance and administrative procedures.',
+  CONFORMITE: 'Legal compliance review and corrective actions.',
 };
 
 export const STATUS_LABELS: Record<ProcedureStatus, string> = {
-  BROUILLON: 'Brouillon',
-  EN_COURS: 'En cours',
-  EN_ATTENTE_EXPERT: 'En attente expert',
-  COMPLETE: 'Complete',
-  REFUSE: 'Refuse',
+  BROUILLON: 'Draft',
+  EN_COURS: 'In progress',
+  EN_ATTENTE_EXPERT: 'Waiting for expert review',
+  COMPLETE: 'Completed',
+  REFUSE: 'Rejected',
 };

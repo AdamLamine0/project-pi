@@ -39,15 +39,15 @@ public class LegalAiAnalysisService {
     public LegalAiAnalysisResponse analyzeProcedure(UUID procedureId) {
         LegalProcedure procedure = procedureRepository.findById(procedureId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Dossier juridique introuvable avec l'id : " + procedureId));
+                        "Legal case not found with id: " + procedureId));
 
         if (procedure.getStatus() != ProcedureStatus.EN_COURS) {
-            throw new BusinessException("L'IA analyse uniquement les dossiers EN_COURS.");
+            throw new BusinessException("AI can only analyze IN_PROGRESS cases.");
         }
 
         List<LegalDocument> documents = documentRepository.findByProcedureId(procedureId);
         if (documents.isEmpty()) {
-            throw new BusinessException("Aucun document a analyser.");
+            throw new BusinessException("No documents to analyze.");
         }
 
         LegalAiAnalysisRequest request = new LegalAiAnalysisRequest(
@@ -69,7 +69,7 @@ public class LegalAiAnalysisService {
                 .block();
 
         if (response == null) {
-            throw new BusinessException("Le service IA n'a retourne aucune reponse.");
+            throw new BusinessException("The AI service did not return a response.");
         }
 
         applyAiDecision(procedure, response);
@@ -84,7 +84,7 @@ public class LegalAiAnalysisService {
         } catch (RuntimeException e) {
             log.warn("AI service analysis failed for procedure {}: {}", procedureId, e.getMessage());
             procedureRepository.findById(procedureId).ifPresent(procedure -> {
-                procedure.setRemark("Analyse IA impossible: " + e.getMessage());
+                procedure.setRemark("AI analysis failed: " + e.getMessage());
                 procedureRepository.save(procedure);
             });
         }
@@ -103,7 +103,7 @@ public class LegalAiAnalysisService {
                 .block();
 
         if (response == null) {
-            throw new BusinessException("Le chatbot juridique n'a retourne aucune reponse.");
+            throw new BusinessException("The legal chatbot did not return a response.");
         }
         return response;
     }

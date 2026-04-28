@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "app.users-service")
 public class UserServiceProperties {
-    private String baseUrl = "http://localhost:8090/api/users";
+    private String baseUrl = "http://localhost:8091/api/users";
     private String fallbackBaseUrl = "http://localhost:8081/api/users";
     private int timeoutSeconds = 10;
 }

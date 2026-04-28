@@ -69,7 +69,7 @@ export class ExpertProceduresComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Erreur lors du chargement.';
+        this.errorMessage = err?.error?.message || 'An error occurred while loading cases.';
         this.loading = false;
         this.cdr.detectChanges();
       }
@@ -128,7 +128,7 @@ export class ExpertProceduresComponent implements OnInit {
       this.expertId
     ).subscribe({
       next: () => {
-        this.successMessage = isApproved ? 'Dossier valide.' : 'Dossier refuse.';
+        this.successMessage = isApproved ? 'Case approved.' : 'Case rejected.';
         this.submitting = false;
         this.selectedProcedure = undefined;
         this.selectedChecklist = undefined;
@@ -136,7 +136,7 @@ export class ExpertProceduresComponent implements OnInit {
         this.loadAssigned();
       },
       error: (err) => {
-        this.errorMessage = err?.error?.message || 'Erreur lors de la decision.';
+        this.errorMessage = err?.error?.message || 'An error occurred while saving the decision.';
         this.submitting = false;
         this.cdr.detectChanges();
       }

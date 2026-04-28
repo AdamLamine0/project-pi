@@ -62,7 +62,7 @@ export class LegalProcedureListComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err: any) => {
-        this.errorMessage = err?.error?.message || 'Erreur lors du chargement.';
+        this.errorMessage = err?.error?.message || 'An error occurred while loading cases.';
         this.loading = false;
         this.cdr.detectChanges();
       }
@@ -89,17 +89,17 @@ export class LegalProcedureListComponent implements OnInit {
     this.service.submit(id, this.userId).subscribe({
       next: () => this.loadProcedures(),
       error: (err: any) => {
-        this.errorMessage = err?.error?.message || 'Erreur lors de la soumission.';
+        this.errorMessage = err?.error?.message || 'An error occurred while submitting the case.';
       }
     });
   }
 
   deleteDraft(id: string): void {
-    if (!confirm('Supprimer ce dossier en brouillon ?')) return;
+    if (!confirm('Delete this draft case?')) return;
     this.service.deleteDraft(id, this.userId).subscribe({
       next: () => this.loadProcedures(),
       error: (err: any) => {
-        this.errorMessage = err?.error?.message || 'Erreur lors de la suppression.';
+        this.errorMessage = err?.error?.message || 'An error occurred while deleting the case.';
       }
     });
   }

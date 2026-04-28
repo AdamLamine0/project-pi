@@ -22,7 +22,7 @@ public class FileStorageServiceImpl implements FileStorageService {
 
         String dir = uploadProperties.getUpload() != null ? uploadProperties.getUpload().getDir() : null;
         if (dir == null || dir.isBlank()) {
-            throw new IllegalStateException("La propriété app.upload.dir est absente ou vide.");
+            throw new IllegalStateException("The app.upload.dir property is missing or empty.");
         }
 
         this.uploadPath = Paths.get(dir).toAbsolutePath().normalize();
@@ -57,7 +57,7 @@ public class FileStorageServiceImpl implements FileStorageService {
             return baseUrl + "/api/files/" + generatedName;
 
         } catch (IOException e) {
-            throw new RuntimeException("Erreur lors du stockage du fichier.", e);
+            throw new RuntimeException("An error occurred while storing the file.", e);
         }
     }
 
@@ -86,7 +86,7 @@ public class FileStorageServiceImpl implements FileStorageService {
 
             return baseUrl + "/api/files/" + generatedName;
         } catch (IOException e) {
-            throw new RuntimeException("Erreur lors du stockage du document genere.", e);
+            throw new RuntimeException("An error occurred while storing the generated document.", e);
         }
     }
 }

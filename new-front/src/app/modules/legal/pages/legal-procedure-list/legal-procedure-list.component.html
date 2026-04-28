@@ -2,33 +2,33 @@
   <section class="legal-page-head">
     <div>
       <span class="legal-eyebrow">Entrepreneur</span>
-      <h1>Mes dossiers juridiques</h1>
-      <p>Suivez l'avancement, completez les brouillons et ouvrez les dossiers valides.</p>
+      <h1>My Legal Cases</h1>
+      <p>Track progress, complete drafts, and open validated cases.</p>
     </div>
-    <button class="legal-btn legal-btn--primary" type="button" (click)="openCreate()">Nouveau dossier</button>
+    <button class="legal-btn legal-btn--primary" type="button" (click)="openCreate()">New case</button>
   </section>
 
   <section class="legal-toolbar">
     <label class="legal-toolbar__search">
-      <span>Rechercher par dossier</span>
+      <span>Search by case name</span>
       <input type="search"
              [(ngModel)]="searchTerm"
              (input)="applyFilter()"
-             placeholder="Nom du dossier" />
+             placeholder="Case name" />
     </label>
 
     <label>
-      <span>Filtrer par statut</span>
+      <span>Filter by status</span>
       <select [(ngModel)]="selectedStatus" (change)="applyFilter()">
-        <option value="">Tous les statuts</option>
+        <option value="">All statuses</option>
         <option *ngFor="let s of statuses" [value]="s">{{ statusLabels[s] }}</option>
       </select>
     </label>
 
     <label>
-      <span>Filtrer par procedure</span>
+      <span>Filter by procedure</span>
       <select [(ngModel)]="selectedType" (change)="applyFilter()">
-        <option value="">Tous les types</option>
+        <option value="">All types</option>
         <option *ngFor="let type of procedureTypes" [value]="type">
           {{ procedureTypeLabels[type] }}
         </option>
@@ -37,22 +37,22 @@
 
     <div class="legal-toolbar__meta">
       <strong>{{ filteredProcedures.length }}</strong>
-      <span>dossier{{ filteredProcedures.length > 1 ? 's' : '' }} affiche{{ filteredProcedures.length > 1 ? 's' : '' }}</span>
+      <span>case{{ filteredProcedures.length > 1 ? 's' : '' }} displayed</span>
     </div>
   </section>
 
   <div *ngIf="errorMessage" class="legal-alert legal-alert--error">{{ errorMessage }}</div>
-  <div *ngIf="loading && !filteredProcedures.length" class="legal-alert legal-alert--info">Chargement des dossiers...</div>
+  <div *ngIf="loading && !filteredProcedures.length" class="legal-alert legal-alert--info">Loading cases...</div>
 
   <section class="legal-table-card" *ngIf="filteredProcedures.length || !loading">
     <table class="legal-table" *ngIf="filteredProcedures.length; else emptyList">
       <thead>
         <tr>
-          <th>Projet</th>
+          <th>Project</th>
           <th>Procedure</th>
-          <th>Statut</th>
-          <th>Progression</th>
-          <th>Creation</th>
+          <th>Status</th>
+          <th>Progress</th>
+          <th>Created</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -60,7 +60,7 @@
         <tr *ngFor="let p of filteredProcedures">
           <td>
             <div class="legal-table__title">{{ p.projectName }}</div>
-            <div class="legal-table__muted">Dossier #{{ p.id }}</div>
+            <div class="legal-table__muted">Case #{{ p.id }}</div>
           </td>
           <td>{{ procedureTypeLabels[p.procedureType] }}</td>
           <td>
@@ -80,19 +80,19 @@
               <a class="legal-btn legal-btn--secondary legal-btn--sm"
                  [routerLink]="['/app/legal', p.id]"
                  [state]="{ procedure: p }">
-                Detail
+                Details
               </a>
               <button class="legal-btn legal-btn--primary legal-btn--sm"
                       *ngIf="p.status === 'BROUILLON'"
                       type="button"
                       (click)="submit(p.id)">
-                Soumettre
+                Submit
               </button>
               <button class="legal-btn legal-btn--danger legal-btn--sm"
                       *ngIf="p.status === 'BROUILLON'"
                       type="button"
                       (click)="deleteDraft(p.id)">
-                Supprimer
+                Delete
               </button>
             </div>
           </td>
@@ -102,9 +102,9 @@
 
     <ng-template #emptyList>
       <div class="legal-empty">
-        <strong>Aucun dossier trouve</strong>
-        <p>Ouvrez un nouveau dossier pour commencer une procedure.</p>
-        <button class="legal-btn legal-btn--primary" type="button" (click)="openCreate()">Creer un dossier</button>
+        <strong>No cases found</strong>
+        <p>Open a new case to start a procedure.</p>
+        <button class="legal-btn legal-btn--primary" type="button" (click)="openCreate()">Create a case</button>
       </div>
     </ng-template>
   </section>
