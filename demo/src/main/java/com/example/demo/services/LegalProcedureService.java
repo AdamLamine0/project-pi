@@ -8,6 +8,7 @@ import java.util.UUID;
 public interface LegalProcedureService {
 
     LegalProcedureResponse create(CreateLegalProcedureRequest request, Integer entrepreneurId);
+    List<LegalProcedureResponse> findAll();
     List<LegalProcedureResponse> findByEntrepreneur(Integer entrepreneurId);
     LegalProcedureResponse findById(UUID id);
     LegalProcedureResponse submit(UUID id, Integer entrepreneurId);
@@ -15,6 +16,7 @@ public interface LegalProcedureService {
 
     List<LegalProcedureResponse> findByExpert(Integer expertId);
     LegalProcedureResponse applyExpertDecision(UUID id, ExpertDecisionRequest request, Integer expertId);
+    LegalProcedureStatsResponse getStats();
 
     LegalProcedureResponse setAiResult(UUID id, boolean approved, String remark);
 }

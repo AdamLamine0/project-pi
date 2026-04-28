@@ -105,8 +105,28 @@ export class AuthService {
   }
 
   getPostAuthRedirectPath(): string {
-    if (this.hasRole('ADMIN', 'MENTOR', 'PARTNER')) {
+    if (this.hasRole('ADMIN')) {
       return '/app/dashboard';
+    }
+
+    if (this.hasRole('ENTREPRENEUR')) {
+      return '/procedures';
+    }
+
+    if (this.hasRole('EXPERT')) {
+      return '/procedures/expert/assigned';
+    }
+
+    if (this.hasRole('MENTOR')) {
+      return '/app/mentoring';
+    }
+
+    if (this.hasRole('PARTNER')) {
+      return '/app/partnerships';
+    }
+
+    if (this.hasRole('INVESTOR')) {
+      return '/app/investments';
     }
 
     return '/';

@@ -11,6 +11,7 @@ import {
   LegalAiAnalysisResponse,
   LegalChatRequest,
   LegalChatResponse,
+  LegalProcedureStatsResponse,
 } from '../models/legal-procedure.model';
 
 @Injectable({ providedIn: 'root' })
@@ -39,8 +40,16 @@ export class LegalProcedureService {
     );
   }
 
+  getAllProcedures(): Observable<LegalProcedureResponse[]> {
+    return this.http.get<LegalProcedureResponse[]>(`${this.base}/admin/all`);
+  }
+
   getById(id: string): Observable<LegalProcedureResponse> {
     return this.http.get<LegalProcedureResponse>(`${this.base}/${id}`);
+  }
+
+  getStats(): Observable<LegalProcedureStatsResponse> {
+    return this.http.get<LegalProcedureStatsResponse>(`${this.base}/stats`);
   }
 
   submit(id: string, entrepreneurId: number): Observable<LegalProcedureResponse> {
