@@ -109,19 +109,11 @@ export class AuthService {
       return '/app/dashboard';
     }
 
-    if (this.hasRole('ENTREPRENEUR')) {
-      return '/procedures';
-    }
-
-    if (this.hasRole('EXPERT')) {
-      return '/procedures/expert/assigned';
-    }
-
     if (this.hasRole('MENTOR')) {
       return '/app/mentoring';
     }
 
-    if (this.hasRole('PARTNER')) {
+    if (this.hasRole('PARTNER', 'PARTENAIRE' as UserRole)) {
       return '/app/partnerships';
     }
 
@@ -165,7 +157,7 @@ export class AuthService {
   isUser(): boolean { return this.getRole() === 'USER'; }
   isMentor(): boolean { return this.getRole() === 'MENTOR'; }
   isInvestor(): boolean { return this.getRole() === 'INVESTOR'; }
-  isPartner(): boolean { return this.getRole() === 'PARTNER'; }
+  isPartner(): boolean { return this.getRole() === 'PARTNER' || this.getRole() === ('PARTENAIRE' as UserRole); }
   isEntrepreneur(): boolean { return this.getRole() === 'ENTREPRENEUR'; }
   isExpert(): boolean { return this.getRole() === 'EXPERT'; }
   hasLegalAccess(): boolean { return this.isEntrepreneur() || this.isExpert() || this.isAdmin(); }
