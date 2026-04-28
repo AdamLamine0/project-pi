@@ -82,9 +82,9 @@ public class ConventionService {
     public ConventionResponse confirmer(Integer id, String role, String signature) {
         Convention existing = findById(id);
 
-        if (role.equals(existing.getModifieParRole())) {
+        if (sameConventionSide(role, existing.getModifieParRole())) {
             boolean otherHasConfirmed =
-                    "ROLE_USER".equals(role)
+                    isEntrepreneurRole(role)
                             ? Boolean.TRUE.equals(existing.getConfirmeParPartenaire())
                             : Boolean.TRUE.equals(existing.getConfirmeParUser());
             if (!otherHasConfirmed) {
@@ -94,7 +94,7 @@ public class ConventionService {
             existing.setModifieParRole(null);
         }
 
-        if ("ROLE_USER".equals(role) && Boolean.TRUE.equals(existing.getConfirmeParUser())) {
+        if (isEntrepreneurRole(role) && Boolean.TRUE.equals(existing.getConfirmeParUser())) {
             throw new RuntimeException("Vous avez déjà confirmé cette convention.");
         }
         if ("ROLE_PARTNER".equals(role) && Boolean.TRUE.equals(existing.getConfirmeParPartenaire())) {
@@ -103,14 +103,14 @@ public class ConventionService {
 
         // ── Stocker la signature ──────────────────────────────────────────────
         if (signature != null && !signature.isBlank()) {
-            if ("ROLE_USER".equals(role)) {
+            if (isEntrepreneurRole(role)) {
                 existing.setSignatureUser(signature);
             } else if ("ROLE_PARTNER".equals(role)) {
                 existing.setSignaturePartenaire(signature);
             }
         }
 
-        if ("ROLE_USER".equals(role)) {
+        if (isEntrepreneurRole(role)) {
             existing.setConfirmeParUser(true);
         } else if ("ROLE_PARTNER".equals(role)) {
             existing.setConfirmeParPartenaire(true);
@@ -273,5 +273,21 @@ public class ConventionService {
             throw new RuntimeException(
                     "La date de fin doit être au minimum 3 mois après la date de début.");
         }
+    }
+
+    private boolean isEntrepreneurRole(String role) {
+        return "ROLE_USER".equals(role) || "ROLE_ENTREPRENEUR".equals(role);
+    }
+
+    private String conventionSide(String role) {
+        if (isEntrepreneurRole(role)) return "ENTREPRENEUR";
+        if ("ROLE_PARTNER".equals(role)) return "PARTNER";
+        if ("ROLE_ADMIN".equals(role)) return "ADMIN";
+        return role;
+    }
+
+    private boolean sameConventionSide(String left, String right) {
+        if (left == null || right == null) return false;
+        return conventionSide(left).equals(conventionSide(right));
     }
 }

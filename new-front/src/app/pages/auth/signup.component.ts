@@ -63,6 +63,7 @@ export class SignupComponent {
     Role.MENTOR,
     Role.INVESTOR,
     Role.PARTNER,
+    Role.ADMIN,
   ];
   protected readonly isSubmitting = signal(false);
   protected readonly errorMessage = signal('');

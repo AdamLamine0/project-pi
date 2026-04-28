@@ -28,7 +28,7 @@ public class EventController {
     private final GeminiService geminiService;
 
     private static final Set<String> WRITE_ROLES =
-            Set.of("ADMIN", "MENTOR", "PARTENAIRE");
+            Set.of("ADMIN", "MENTOR", "PARTNER");
     private static final Set<String> ADMIN_ROLES =
             Set.of("ADMIN");
 
@@ -123,7 +123,7 @@ public class EventController {
 
         String r = normalize(role);
 
-        if (r.isEmpty() || (!r.equals("ADMIN") && !r.equals("MENTOR") && !r.equals("PARTENAIRE"))) {
+        if (r.isEmpty() || (!r.equals("ADMIN") && !r.equals("MENTOR") && !r.equals("PARTNER"))) {
             return ResponseEntity.ok(eventService.getAllEvents(EventStatus.PUBLIE, type, organizerId));
         }
 

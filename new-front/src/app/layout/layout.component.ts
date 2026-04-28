@@ -931,10 +931,6 @@ export class LayoutComponent {
       return 'Member';
     }
 
-    if (role === 'PARTENAIRE') {
-      return 'Partner';
-    }
-
     return role.charAt(0) + role.slice(1).toLowerCase();
   });
 
