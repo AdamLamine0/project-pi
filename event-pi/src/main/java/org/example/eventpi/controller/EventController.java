@@ -45,7 +45,7 @@ public class EventController {
     // ── CREATE ────────────────────────────────────────────────────────────
     @PostMapping
     public ResponseEntity<EventResponse> createEvent(
-            @RequestBody @Valid EventRequest request,
+            @RequestBody @Valid EventRequest request, //reçoit le JSON du frontend ET valide les champs 
             @RequestHeader("X-User-Id") String userId,
             @RequestHeader("X-User-Role") String role) {
         requireRole(role, WRITE_ROLES);
@@ -55,9 +55,9 @@ public class EventController {
     }
 
     // ── SUBMIT FOR VALIDATION ─────────────────────────────────────────────
-    @PatchMapping("/{id}/submit")
+    @PatchMapping("/{id}/submit") //modification partielle 
     public ResponseEntity<EventResponse> submitForValidation(
-            @PathVariable Long id,
+            @PathVariable Long id, // récupère l'ID depuis l'URL
             @RequestHeader("X-User-Id") String userId,
             @RequestHeader("X-User-Role") String role) {
         requireRole(role, WRITE_ROLES);

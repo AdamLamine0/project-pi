@@ -23,7 +23,9 @@ export const routes: Routes = [
     path: '',
     component: LandingLayoutComponent,
     children: [
-      { path: '', component: LandingComponent },
+      // Landing page: public, no authentication required
+      { path: '', component: LandingComponent, pathMatch: 'full' },
+      // The routes below require the user to be signed in
       { path: 'events', component: EventsComponent, canActivate: [loginGuard] },
       { path: 'community', loadChildren: () => import('./modules/community/community.module').then(m => m.CommunityModule), canActivate: [loginGuard] },
       { path: 'procedures', loadChildren: () => import('./modules/legal/legal.module').then(m => m.LegalModule) },

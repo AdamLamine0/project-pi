@@ -31,6 +31,7 @@
     "embla-carousel-angular": "^20.0.0",
     "leaflet": "^1.9.4",
     "rxjs": "~7.8.0",
+    "shaders": "^2.5.109",
     "sockjs-client": "^1.6.1",
     "tailwind-merge": "^3.5.0",
     "tslib": "^2.3.0"
