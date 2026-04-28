@@ -1,14 +1,10 @@
-import { bootstrapApplication } from '@angular/platform-browser';
-import { AppComponent } from './app/app.component';
-import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
-import { importProvidersFrom } from '@angular/core';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+(window as any).global = window;
+(window as any).process = {
+  env: { DEBUG: undefined },
+};
+import { platformBrowser } from '@angular/platform-browser';
+import { AppModule } from './app/app.module';
 
-bootstrapApplication(AppComponent, {
-  providers: [
-    provideRouter([]),
-    provideHttpClient(),
-    importProvidersFrom(BrowserAnimationsModule)
-  ]
-}).catch(err => console.error(err));
+platformBrowser()
+  .bootstrapModule(AppModule)
+  .catch((err: unknown) => console.error(err));
