@@ -15,6 +15,5 @@ public interface LegalProcedureRepository extends JpaRepository<LegalProcedure, 
     List<LegalProcedure> findByExpertId(Integer expertId);
 
     List<LegalProcedure> findByExpertIdAndStatus(Integer expertId, ProcedureStatus status);
-    long countByStatus(ProcedureStatus status);
     long countByProcedureType(ProcedureType procedureType);
 }

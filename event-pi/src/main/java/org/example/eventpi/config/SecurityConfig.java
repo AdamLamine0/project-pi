@@ -25,7 +25,9 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    //ay aabd sans jwt ynajem yetlachargi les certificats et les badges 
+    // ── COMPLETELY BYPASS Spring Security for static files ────────────────
+    // web.ignoring() removes these paths from the security filter chain
+    // entirely — no filter runs, no auth check, files are served directly.
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring()

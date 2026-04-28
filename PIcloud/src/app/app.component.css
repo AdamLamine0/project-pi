@@ -1,0 +1,11 @@
+body > .zoom-MuiPopper-root:not(.zm-float *),
+body > [aria-label*="Leave dialog"]:not(.zm-float *),
+body > div[role="dialog"]:not([id*="meetingSDK"]):not(.zm-float *) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  left: -99999px !important;
+  top: -99999px !important;
+}

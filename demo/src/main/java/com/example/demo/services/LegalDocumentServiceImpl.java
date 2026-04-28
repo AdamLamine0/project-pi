@@ -11,7 +11,6 @@ import com.example.demo.exception.ResourceNotFoundException;
 import com.example.demo.mapper.LegalMapper;
 import com.example.demo.repository.LegalDocumentRepository;
 import com.example.demo.repository.LegalProcedureRepository;
-import com.example.demo.repository.ProcedureDocumentRequirementRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +26,6 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
 
     private final LegalDocumentRepository documentRepository;
     private final LegalProcedureRepository procedureRepository;
-    private final ProcedureDocumentRequirementRepository requirementRepository;
     private final LegalMapper mapper;
     private final FileStorageService fileStorageService;
 
@@ -36,14 +34,15 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
 
         LegalProcedure procedure = procedureRepository.findById(procedureId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Case not found with id: " + procedureId));
+                        "Dossier introuvable avec l'id : " + procedureId));
 
-        if (!canEditDocuments(procedure.getStatus())) {
+        // Dépôt autorisé uniquement en BROUILLON (avant soumission)
+        if (procedure.getStatus() != ProcedureStatus.BROUILLON) {
             throw new BusinessException(
-                    "Documents can only be changed on a DRAFT or REJECTED case.");
+                    "Les documents ne peuvent être déposés que sur un dossier en BROUILLON.");
         }
 
-        // If a document already exists for this requirement, replace it.
+        // Si un document existe déjà pour ce requirement → on le remplace
         documentRepository.findByProcedureId(procedureId).stream()
                 .filter(d -> d.getRequirementCode().equals(requirementCode))
                 .findFirst()
@@ -59,11 +58,7 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
                 .status(DocumentStatus.DEPOSE)
                 .build();
 
-        LegalDocument saved = documentRepository.save(document);
-        recalculateCompletionRate(procedure);
-        procedureRepository.save(procedure);
-
-        return mapper.toDocumentResponse(saved);
+        return mapper.toDocumentResponse(documentRepository.save(document));
     }
 
     @Override
@@ -71,7 +66,7 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
     public List<LegalDocumentResponse> findByProcedure(UUID procedureId) {
         if (!procedureRepository.existsById(procedureId)) {
             throw new ResourceNotFoundException(
-                    "Case not found with id: " + procedureId);
+                    "Dossier introuvable avec l'id : " + procedureId);
         }
         return documentRepository.findByProcedureId(procedureId)
                 .stream()
@@ -84,78 +79,32 @@ public class LegalDocumentServiceImpl implements LegalDocumentService {
                                               UpdateLegalDocumentStatusRequest request) {
         LegalDocument document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Document not found with id: " + documentId));
+                        "Document introuvable avec l'id : " + documentId));
 
         if (isLocked(document.getProcedure().getStatus())) {
             throw new BusinessException(
-                    "Cannot update a document from a completed case.");
+                    "Impossible de modifier un document d'un dossier terminé.");
         }
 
         document.setStatus(request.status());
-        LegalDocument saved = documentRepository.save(document);
-        recalculateCompletionRate(document.getProcedure());
-        procedureRepository.save(document.getProcedure());
-
-        return mapper.toDocumentResponse(saved);
+        return mapper.toDocumentResponse(documentRepository.save(document));
     }
 
     @Override
     public void delete(UUID documentId) {
         LegalDocument document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Document not found with id: " + documentId));
+                        "Document introuvable avec l'id : " + documentId));
 
-        if (!canEditDocuments(document.getProcedure().getStatus())) {
+        if (document.getProcedure().getStatus() != ProcedureStatus.BROUILLON) {
             throw new BusinessException(
-                    "Cannot delete a document from a submitted case unless it was rejected by AI.");
+                    "Impossible de supprimer un document d'un dossier déjà soumis.");
         }
 
-        LegalProcedure procedure = document.getProcedure();
         documentRepository.delete(document);
-        documentRepository.flush();
-        recalculateCompletionRate(procedure);
-        procedureRepository.save(procedure);
     }
 
     private boolean isLocked(ProcedureStatus status) {
-        return status == ProcedureStatus.COMPLETE;
-    }
-
-    private boolean canEditDocuments(ProcedureStatus status) {
-        return status == ProcedureStatus.BROUILLON || status == ProcedureStatus.REFUSE;
-    }
-
-    private void recalculateCompletionRate(LegalProcedure procedure) {
-        if (procedure.getStatus() == ProcedureStatus.COMPLETE) {
-            procedure.setCompletionRate(100F);
-            return;
-        }
-
-        if (procedure.getStatus() == ProcedureStatus.EN_ATTENTE_EXPERT
-                || procedure.getStatus() == ProcedureStatus.EN_COURS) {
-            procedure.setCompletionRate(50F);
-            return;
-        }
-
-        List<String> requiredCodes = requirementRepository
-                .findByProcedureType(procedure.getProcedureType())
-                .stream()
-                .filter(requirement -> Boolean.TRUE.equals(requirement.getRequired()))
-                .map(requirement -> requirement.getCode())
-                .toList();
-
-        if (requiredCodes.isEmpty()) {
-            procedure.setCompletionRate(0F);
-            return;
-        }
-
-        long uploadedRequired = documentRepository.findByProcedureId(procedure.getId())
-                .stream()
-                .filter(document -> requiredCodes.contains(document.getRequirementCode()))
-                .filter(document -> document.getStatus() != DocumentStatus.NON_DEPOSE)
-                .count();
-
-        float rate = ((float) uploadedRequired / requiredCodes.size()) * 50F;
-        procedure.setCompletionRate(Math.round(rate * 100f) / 100f);
+        return status == ProcedureStatus.COMPLETE || status == ProcedureStatus.REFUSE;
     }
 }

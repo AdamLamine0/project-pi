@@ -240,7 +240,7 @@ export class OpportunityListComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.canPublish = this.authService.isEntrepreneur() || this.authService.isPartner() || this.authService.isAdmin();
+    this.canPublish = this.authService.isEntrepreneur() || this.authService.isPartenaire() || this.authService.isAdmin();
     this.currentUserId = this.authService.getUserId()?.toString() || '';
     if (this.currentUserId) {
       this.loadAppliedOpportunityIds();

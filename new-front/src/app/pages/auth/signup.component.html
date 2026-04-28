@@ -48,28 +48,6 @@
     }
   </div>
 
-  <!-- Role -->
-  <div class="auth-field-group">
-    <label class="auth-field-label" for="signup-role">Role</label>
-    <select
-      id="signup-role"
-      formControlName="role"
-      class="auth-input"
-      [class.auth-input--error]="form.get('role')?.invalid && form.get('role')?.touched"
-      aria-describedby="signup-role-err"
-    >
-      <option value="" disabled>Choose a role...</option>
-      @for (role of roleOptions; track role) {
-        <option [value]="role">{{ displayRole(role) }}</option>
-      }
-    </select>
-    @if (form.get('role')?.invalid && form.get('role')?.touched) {
-      <p id="signup-role-err" class="auth-field-error" role="alert">
-        Please choose your role.
-      </p>
-    }
-  </div>
-
   <!-- Password -->
   <div class="auth-field-group">
     <label class="auth-field-label" for="signup-password">Password</label>

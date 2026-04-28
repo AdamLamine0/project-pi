@@ -1,0 +1,303 @@
+<!-- partenarie-list.component.html -->
+<div class="page-shell">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h2 class="text-lg font-bold" style="color:var(--text-primary); letter-spacing:-0.02em;">Partner Organizations</h2>
+      <p class="text-xs mt-0.5" style="color:var(--text-secondary);">Manage institutional partnerships and collaborations</p>
+    </div>
+    <div class="page-header-actions">
+      @if (isAdmin()) {
+        <button (click)="goToCreate()" class="flex w-full items-center justify-center gap-1.5 rounded-lg border-none text-xs font-semibold cursor-pointer sm:w-auto"
+          style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;">
+          <ng-icon name="lucidePlus" [size]="'14'" />
+          Add Partner
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  @if (successMessage()) {
+    <div class="rounded-lg border px-4 py-3 mb-4 flex items-center gap-2"
+      style="background:var(--badge-green-bg); border-color:var(--badge-green-text); color:var(--badge-green-text);">
+      <ng-icon name="lucideCheck" [size]="'14'" />
+      <span class="text-xs font-medium">{{ successMessage() }}</span>
+    </div>
+  }
+  @if (errorMessage()) {
+    <div class="rounded-lg border px-4 py-3 mb-4 flex items-center gap-2"
+      style="background:var(--badge-red-bg); border-color:var(--badge-red-text); color:var(--badge-red-text);">
+      <ng-icon name="lucideAlertTriangle" [size]="'14'" />
+      <span class="text-xs font-medium">{{ errorMessage() }}</span>
+    </div>
+  }
+
+  <!-- Stats (admin only) -->
+  @if (isAdmin()) {
+    <div class="stats-grid stats-grid--4">
+      @for (s of partnerStats(); track s.label) {
+        <div class="rounded-xl border p-4"
+          style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);">
+          <div class="flex items-center justify-between mb-1">
+            <p class="text-xs font-medium" style="color:var(--text-secondary);">{{ s.label }}</p>
+            <div class="flex items-center gap-0.5 text-xs" style="color:var(--badge-green-text);">
+              <ng-icon name="lucideArrowUp" [size]="'10'" />
+              {{ s.delta }}
+            </div>
+          </div>
+          <p class="text-2xl font-bold" style="color:var(--text-primary); letter-spacing:-0.03em;">{{ s.value }}</p>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Filters -->
+  <div class="flex gap-3 mb-5 flex-wrap">
+    <div class="relative flex-1 min-w-[200px]">
+      <ng-icon name="lucideSearch" [size]="'14'"
+        style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--text-muted);" />
+      <input type="search" placeholder="Search by name, email, region…"
+        [value]="searchTerm()"
+        (input)="onSearchChange($any($event.target).value)"
+        class="w-full text-sm rounded-lg border focus:outline-none"
+        style="padding:8px 12px 8px 32px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+    </div>
+
+    <select [value]="selectedType()" (change)="onTypeChange($any($event.target).value)"
+      class="text-sm rounded-lg border focus:outline-none"
+      style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);">
+      <option value="">All types</option>
+      @for (t of types; track t) {
+        <option [value]="t">{{ t }}</option>
+      }
+    </select>
+
+    @if (isAdmin()) {
+      <select [value]="selectedStatut()" (change)="onStatutChange($any($event.target).value)"
+        class="text-sm rounded-lg border focus:outline-none"
+        style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);">
+        <option value="">All statuses</option>
+        @for (s of statuts; track s) {
+          <option [value]="s">{{ s }}</option>
+        }
+      </select>
+    }
+  </div>
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="flex items-center justify-center py-12">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2" style="border-color:#1C4FC3;"></div>
+    </div>
+  }
+
+  <!-- Partners grid -->
+  @if (!isLoading()) {
+    <div class="card-grid-auto">
+      @for (p of paginated(); track p.id) {
+        <div class="rounded-xl border overflow-hidden"
+          style="background:var(--surface); border-color:var(--border); box-shadow:0 1px 4px rgba(11,15,42,0.04);"
+          [style.opacity]="p.statut === PartnerStatus.TERMINATED ? '0.6' : p.statut === PartnerStatus.SUSPENDED ? '0.85' : '1'">
+
+          <!-- Card header -->
+          <div class="px-5 py-4" style="border-bottom:1px solid var(--border-subtle);">
+            <div class="flex items-start justify-between">
+              <div class="flex items-center gap-3">
+                <div class="flex items-center justify-center rounded-xl flex-shrink-0"
+                  [style.background]="getColor(p.type) + '22'"
+                  [style.color]="getColor(p.type)"
+                  style="width:42px; height:42px; font-size:12px; font-weight:700;">
+                  {{ getInitials(p.nom) }}
+                </div>
+                <div>
+                  <p class="text-sm font-bold" style="color:var(--text-primary);">{{ p.nom }}</p>
+                  <p class="text-xs" style="color:var(--text-muted);">{{ p.type }}@if (p.region) { · {{ p.region }} }</p>
+                </div>
+              </div>
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0"
+                [style.background]="p.statut === PartnerStatus.ACTIVE ? 'var(--badge-green-bg)' : p.statut === PartnerStatus.SUSPENDED ? 'var(--badge-amber-bg)' : 'var(--badge-red-bg)'"
+                [style.color]="p.statut === PartnerStatus.ACTIVE ? 'var(--badge-green-text)' : p.statut === PartnerStatus.SUSPENDED ? 'var(--badge-amber-text)' : 'var(--badge-red-text)'">
+                {{ p.statut }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Description -->
+          @if (p.description) {
+            <div class="px-5 py-3" style="border-bottom:1px solid var(--border-subtle);">
+              <p class="text-xs leading-relaxed" style="color:var(--text-body);">{{ p.description }}</p>
+            </div>
+          }
+
+          <!-- Contact info -->
+          <div class="px-5 py-3" style="border-bottom:1px solid var(--border-subtle);">
+            <div class="flex flex-col gap-1.5">
+              <div class="flex items-center gap-1.5">
+                <ng-icon name="lucideMail" [size]="'11'" style="color:var(--text-muted); flex-shrink:0;" />
+                <span class="text-xs" style="color:var(--text-body);">{{ p.contactEmail }}</span>
+              </div>
+              @if (p.siteWeb) {
+                <div class="flex items-center gap-1.5">
+                  <ng-icon name="lucideGlobe" [size]="'11'" style="color:var(--text-muted); flex-shrink:0;" />
+                  <a [href]="p.siteWeb" target="_blank" class="text-xs" style="color:#1C4FC3; text-decoration:none;">{{ p.siteWeb }}</a>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Terminate confirmation -->
+          @if (confirmTerminate() === p.id) {
+            <div class="mx-5 my-3 p-3 rounded-lg" style="background:var(--badge-red-bg); border:1px solid var(--badge-red-text);">
+              <p class="flex items-center gap-2 text-xs mb-2" style="color:var(--badge-red-text);">
+                <ng-icon name="lucideAlertTriangle" [size]="'14'" />
+                <strong>Terminate {{ p.nom }}?</strong> The responsible user will lose access.
+              </p>
+              <div class="flex items-center gap-2 justify-end">
+                <button (click)="cancelTerminate()" class="text-xs font-semibold rounded-lg cursor-pointer"
+                  style="background:transparent; border:1.5px solid var(--border); color:var(--text-body); padding:4px 12px;">
+                  Cancel
+                </button>
+                <button (click)="confirmTerminateAction(p)" [disabled]="isChanging(p.id)"
+                  class="text-xs font-semibold rounded-lg cursor-pointer flex items-center gap-1"
+                  style="background:var(--badge-red-text); color:#fff; border:none; padding:4px 12px;">
+                  @if (isChanging(p.id)) {
+                    <div class="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                  }
+                  Yes, terminate
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Footer actions -->
+          <div class="flex flex-wrap items-center gap-2 px-5 py-3">
+            <!-- View button for non-admins -->
+            @if (!isAdmin() && p.statut === PartnerStatus.ACTIVE) {
+              <button (click)="goToView(p.id)" class="flex items-center justify-center gap-1 rounded-lg hover:bg-purple-50 dark:hover:bg-gray-800 transition-colors"
+                style="padding:4px 10px; background:transparent; border:1px solid var(--border); cursor:pointer; color:#1C4FC3; font-size:0.75rem; font-weight:600;"
+                [attr.aria-label]="'View ' + p.nom">
+                <ng-icon name="lucideExternalLink" [size]="'13'" />
+                View
+              </button>
+            }
+
+            <!-- Meeting button -->
+            @if (canRequestMeeting() && p.statut === PartnerStatus.ACTIVE) {
+              <button (click)="goToMeetingRequest(p.id)" class="flex items-center justify-center gap-1 rounded-lg hover:bg-teal-50 dark:hover:bg-gray-800 transition-colors"
+                style="padding:4px 10px; background:transparent; border:1px solid #14B8A6; cursor:pointer; color:#0F766E; font-size:0.75rem; font-weight:600;"
+                [attr.aria-label]="'Request meeting with ' + p.nom">
+                <ng-icon name="lucideVideo" [size]="'13'" />
+                Meeting
+              </button>
+            }
+
+            <!-- Admin actions -->
+            @if (isAdmin()) {
+              <div class="flex items-center gap-1 ml-auto">
+                <!-- Edit -->
+                <button (click)="goToDetail(p.id)" [disabled]="p.statut === PartnerStatus.TERMINATED"
+                  class="flex items-center justify-center rounded-lg hover:bg-purple-50 dark:hover:bg-gray-800 transition-colors"
+                  style="width:26px; height:26px; background:transparent; border:none; cursor:pointer; color:#1C4FC3;"
+                  [style.opacity]="p.statut === PartnerStatus.TERMINATED ? '0.4' : '1'"
+                  [style.cursor]="p.statut === PartnerStatus.TERMINATED ? 'not-allowed' : 'pointer'"
+                  [attr.aria-label]="'Edit ' + p.nom">
+                  <ng-icon name="lucideEdit" [size]="'13'" />
+                </button>
+
+                <!-- Suspend/Activate toggle -->
+                @if (p.statut === PartnerStatus.ACTIVE) {
+                  <button (click)="toggleSuspend(p)" [disabled]="isChanging(p.id)"
+                    class="flex items-center justify-center rounded-lg hover:bg-amber-50 dark:hover:bg-gray-800 transition-colors"
+                    style="width:26px; height:26px; background:transparent; border:none; cursor:pointer; color:var(--badge-amber-text);"
+                    [attr.aria-label]="'Suspend ' + p.nom">
+                    @if (isChanging(p.id)) {
+                      <div class="animate-spin rounded-full h-3 w-3 border-b-2" style="border-color:var(--badge-amber-text);"></div>
+                    } @else {
+                      <ng-icon name="lucidePause" [size]="'13'" />
+                    }
+                  </button>
+                }
+                @if (p.statut === PartnerStatus.SUSPENDED) {
+                  <button (click)="toggleSuspend(p)" [disabled]="isChanging(p.id)"
+                    class="flex items-center justify-center rounded-lg hover:bg-green-50 dark:hover:bg-gray-800 transition-colors"
+                    style="width:26px; height:26px; background:transparent; border:none; cursor:pointer; color:var(--badge-green-text);"
+                    [attr.aria-label]="'Activate ' + p.nom">
+                    @if (isChanging(p.id)) {
+                      <div class="animate-spin rounded-full h-3 w-3 border-b-2" style="border-color:var(--badge-green-text);"></div>
+                    } @else {
+                      <ng-icon name="lucidePlay" [size]="'13'" />
+                    }
+                  </button>
+                }
+
+                <!-- Terminate -->
+                @if (p.statut === PartnerStatus.ACTIVE || p.statut === PartnerStatus.SUSPENDED) {
+                  <button (click)="requestTerminate(p)" [disabled]="isChanging(p.id)"
+                    class="flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-gray-800 transition-colors"
+                    style="width:26px; height:26px; background:transparent; border:none; cursor:pointer; color:var(--badge-red-text);"
+                    [attr.aria-label]="'Terminate ' + p.nom">
+                    <ng-icon name="lucideAlertTriangle" [size]="'13'" />
+                  </button>
+                }
+
+                <!-- Delete -->
+                @if (p.statut === PartnerStatus.TERMINATED) {
+                  <button (click)="delete(p)"
+                    class="flex items-center justify-center rounded-lg hover:bg-red-50 dark:hover:bg-gray-800 transition-colors"
+                    style="width:26px; height:26px; background:transparent; border:none; cursor:pointer; color:var(--badge-red-text);"
+                    [attr.aria-label]="'Delete ' + p.nom">
+                    <ng-icon name="lucideTrash" [size]="'13'" />
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Empty state -->
+      @if (paginated().length === 0) {
+        <div class="col-span-full flex flex-col items-center justify-center py-12">
+          <ng-icon name="lucideSearch" [size]="'40'" style="color:var(--text-muted); opacity:0.3;" />
+          <p class="text-sm mt-3" style="color:var(--text-muted);">No organizations found</p>
+        </div>
+      }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <div class="flex items-center justify-between mt-6 pt-4" style="border-top:1px solid var(--border-subtle);">
+        <span class="text-xs" style="color:var(--text-muted);">{{ paginated().length }} / {{ filtered().length }}</span>
+        <div class="flex items-center gap-1">
+          <button (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1"
+            class="flex items-center justify-center rounded-lg transition-colors"
+            style="width:32px; height:32px; background:transparent; border:1px solid var(--border); cursor:pointer; color:var(--text-secondary);"
+            [style.opacity]="currentPage() === 1 ? '0.4' : '1'"
+            [style.cursor]="currentPage() === 1 ? 'not-allowed' : 'pointer'">
+            <ng-icon name="lucideArrowUp" [size]="'13'" style="transform:rotate(-90deg);" />
+          </button>
+          @for (p of pageNumbers(); track p) {
+            <button (click)="goToPage(p)"
+              class="flex items-center justify-center rounded-lg transition-colors text-xs font-semibold"
+              style="width:32px; height:32px; border:1px solid var(--border); cursor:pointer;"
+              [style.background]="p === currentPage() ? '#1C4FC3' : 'transparent'"
+              [style.border-color]="p === currentPage() ? '#1C4FC3' : 'var(--border)'"
+              [style.color]="p === currentPage() ? '#fff' : 'var(--text-secondary)'">
+              {{ p }}
+            </button>
+          }
+          <button (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()"
+            class="flex items-center justify-center rounded-lg transition-colors"
+            style="width:32px; height:32px; background:transparent; border:1px solid var(--border); cursor:pointer; color:var(--text-secondary);"
+            [style.opacity]="currentPage() === totalPages() ? '0.4' : '1'"
+            [style.cursor]="currentPage() === totalPages() ? 'not-allowed' : 'pointer'">
+            <ng-icon name="lucideArrowUp" [size]="'13'" style="transform:rotate(90deg);" />
+          </button>
+        </div>
+      </div>
+    }
+  }
+
+</div>

@@ -25,7 +25,6 @@ public class AuthFilter {
             "/api/auth/reset-password",
             "/oauth2/authorization/google",
             "/login/oauth2/code/google",
-            "/api/users/experts",
             "/api/community/marketplace/files",
             "/verify"   // covers /api/tickets/{id}/verify and /api/verify/**
     );

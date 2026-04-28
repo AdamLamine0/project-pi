@@ -4,47 +4,109 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d6a98110-6808-47e6-9a4b-393b44c59baa" name="Changes" comment="n">
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Developing Microservice Community Architecture.md" beforeDir="false" afterPath="$PROJECT_DIR$/Developing Microservice Community Architecture.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PROJECT_DOCUMENTATION.md" beforeDir="false" afterPath="$PROJECT_DIR$/PROJECT_DOCUMENTATION.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ai-service/src/main/java/com/ai/ai_service/service/GeminiLegalChatService.java" beforeDir="false" afterPath="$PROJECT_DIR$/ai-service/src/main/java/com/ai/ai_service/service/GeminiLegalChatService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ai-service/src/main/java/com/ai/ai_service/service/GeminiLegalReasoningService.java" beforeDir="false" afterPath="$PROJECT_DIR$/ai-service/src/main/java/com/ai/ai_service/service/GeminiLegalReasoningService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ai-service/src/main/java/com/ai/ai_service/service/LegalAiAnalysisService.java" beforeDir="false" afterPath="$PROJECT_DIR$/ai-service/src/main/java/com/ai/ai_service/service/LegalAiAnalysisService.java" afterDir="false" />
+    <list default="true" id="d6a98110-6808-47e6-9a4b-393b44c59baa" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/models/legal-procedure.model.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/models/procedure-type.model.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/legal-routing.module.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/legal.module.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/pages/expert-procedures/expert-procedures.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/pages/expert-procedures/expert-procedures.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/pages/expert-procedures/expert-procedures.component.spec.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/pages/expert-procedures/expert-procedures.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/pages/legal-procedure-detail/legal-procedure-detail.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/pages/legal-procedure-detail/legal-procedure-detail.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/pages/legal-procedure-detail/legal-procedure-detail.component.spec.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/pages/legal-procedure-detail/legal-procedure-detail.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/pages/legal-procedure-form/legal-procedure-form.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/pages/legal-procedure-form/legal-procedure-form.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/pages/legal-procedure-form/legal-procedure-form.component.spec.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/pages/legal-procedure-form/legal-procedure-form.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/pages/legal-procedure-list/legal-procedure-list.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/pages/legal-procedure-list/legal-procedure-list.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/pages/legal-procedure-list/legal-procedure-list.component.spec.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/pages/legal-procedure-list/legal-procedure-list.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/pages/procedure-home/procedure-home.component.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/pages/procedure-home/procedure-home.component.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/pages/procedure-home/procedure-home.component.spec.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/legal/pages/procedure-home/procedure-home.component.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/services/legal-procedure.service.spec.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/PIcloud/src/app/services/legal-procedure.service.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/config/SecurityConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/dto/ExpertDecisionRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/dto/ExpertSummaryResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/demo/uploads/1af16bfe-d7f4-4eb6-8044-1baa5cc31fb0.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/demo/uploads/28c1951d-3b02-4d73-bc2f-10b993d3a30c.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/demo/uploads/2f136887-ed31-4d18-8a0b-62009b20a7d6.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/demo/uploads/3abdf442-708d-423c-944a-90d256068518.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/demo/uploads/4a4ea30d-a59f-4bdd-912c-d90662a407be.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/demo/uploads/5ea40059-feef-44c9-9138-e8a306e0d038.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/demo/uploads/6950f5c7-2cc9-40a1-a537-e43c085d0cfe.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/demo/uploads/7b92cfa3-6b79-4db8-a2b1-8a38ca4532d2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/demo/uploads/986868ec-9db2-4fb6-908d-e03968beaf8d.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/demo/uploads/9efa4aec-9779-486f-8c20-448ee17ebbc6.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/userPI/src/main/java/org/example/userpi/dto/ExpertSummaryDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.agent.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.ask.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.ask2agent.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.edit.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PIcloud/.vscode/launch.json" beforeDir="false" afterPath="$PROJECT_DIR$/PIcloud/.vscode/launch.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PIcloud/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/PIcloud/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PIcloud/src/app/app-routing.module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/PIcloud/src/app/app-routing.module.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PIcloud/src/app/app.component.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/PIcloud/src/app/app.component.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PIcloud/src/app/app.module.ts" beforeDir="false" afterPath="$PROJECT_DIR$/PIcloud/src/app/app.module.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PIcloud/src/app/core/components/navbar/navbar.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/PIcloud/src/app/core/components/navbar/navbar.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PIcloud/src/app/core/interceptors/jwt.interceptor.ts" beforeDir="false" afterPath="$PROJECT_DIR$/PIcloud/src/app/core/interceptors/jwt.interceptor.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PIcloud/src/app/core/models/user.model.ts" beforeDir="false" afterPath="$PROJECT_DIR$/PIcloud/src/app/core/models/user.model.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PIcloud/src/app/core/services/auth.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/PIcloud/src/app/core/services/auth.service.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PIcloud/src/app/modules/auth/register/register.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/auth/register/register.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PIcloud/src/app/modules/auth/register/register.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/auth/register/register.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PIcloud/src/app/modules/auth/register/register.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/auth/register/register.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PIcloud/src/app/modules/user/profile/profile.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/user/profile/profile.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PIcloud/src/app/modules/user/profile/profile.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/user/profile/profile.component.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PIcloud/src/app/modules/user/profile/profile.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/user/profile/profile.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PIcloud/src/app/modules/user/user-list/user-list.component.css" beforeDir="false" afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/user/user-list/user-list.component.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PIcloud/src/app/modules/user/user-list/user-list.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/PIcloud/src/app/modules/user/user-list/user-list.component.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PIcloud/src/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/PIcloud/src/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PIcloud/src/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/PIcloud/src/styles.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api-gateway/src/main/java/org/example/apigateway/config/GatewayRoutes.java" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/src/main/java/org/example/apigateway/config/GatewayRoutes.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api-gateway/src/main/java/org/example/apigateway/filter/AuthFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/src/main/java/org/example/apigateway/filter/AuthFilter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/config/DataInitializer.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/config/DataInitializer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/config/UserServiceProperties.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/config/UserServiceProperties.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/demo/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/DemoApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/DemoApplication.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/controllers/FileController.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/controllers/FileController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/controllers/LegalDocumentController.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/controllers/LegalDocumentController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/controllers/LegalProcedureController.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/controllers/LegalProcedureController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/controllers/ProcedureTypeController.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/controllers/ProcedureTypeController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/dto/CreateLegalProcedureRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/dto/CreateLegalProcedureRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/dto/LegalDocumentResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/dto/LegalDocumentResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/dto/LegalProcedureResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/dto/LegalProcedureResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/entity/LegalDocument.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/entity/LegalDocument.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/entity/LegalProcedure.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/entity/LegalProcedure.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/enums/DocumentStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/enums/DocumentStatus.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/enums/ProcedureStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/enums/ProcedureStatus.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/mapper/LegalMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/mapper/LegalMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/repository/ProcedureDocumentRequirementRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/repository/ProcedureDocumentRequirementRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/repository/LegalProcedureRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/repository/LegalProcedureRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/services/ChecklistService.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/services/ChecklistService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/services/ChecklistServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/services/ChecklistServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/services/FileStorageServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/services/FileStorageServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/services/FinalLegalDocumentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/services/FinalLegalDocumentService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/services/LegalAiAnalysisService.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/services/LegalAiAnalysisService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/services/LegalDocumentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/services/LegalDocumentService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/services/LegalDocumentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/services/LegalDocumentServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/services/LegalProcedureService.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/services/LegalProcedureService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/services/LegalProcedureServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/services/LegalProcedureServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/services/ProcedureTypeServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/java/com/example/demo/services/ProcedureTypeServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/demo/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/demo/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/event-pi/CLAUDE.md" beforeDir="false" afterPath="$PROJECT_DIR$/event-pi/CLAUDE.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/event-pi/FoundersLab_Project_Description.md" beforeDir="false" afterPath="$PROJECT_DIR$/event-pi/FoundersLab_Project_Description.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/new-front/src/app/models/legal-procedure.model.ts" beforeDir="false" afterPath="$PROJECT_DIR$/new-front/src/app/models/legal-procedure.model.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/new-front/src/app/modules/legal/pages/expert-procedures/expert-procedures.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/new-front/src/app/modules/legal/pages/expert-procedures/expert-procedures.component.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/new-front/src/app/modules/legal/pages/expert-procedures/expert-procedures.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/new-front/src/app/modules/legal/pages/expert-procedures/expert-procedures.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/new-front/src/app/modules/legal/pages/legal-procedure-detail/legal-procedure-detail.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/new-front/src/app/modules/legal/pages/legal-procedure-detail/legal-procedure-detail.component.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/new-front/src/app/modules/legal/pages/legal-procedure-detail/legal-procedure-detail.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/new-front/src/app/modules/legal/pages/legal-procedure-detail/legal-procedure-detail.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/new-front/src/app/modules/legal/pages/legal-procedure-form/legal-procedure-form.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/new-front/src/app/modules/legal/pages/legal-procedure-form/legal-procedure-form.component.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/new-front/src/app/modules/legal/pages/legal-procedure-form/legal-procedure-form.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/new-front/src/app/modules/legal/pages/legal-procedure-form/legal-procedure-form.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/new-front/src/app/modules/legal/pages/legal-procedure-list/legal-procedure-list.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/new-front/src/app/modules/legal/pages/legal-procedure-list/legal-procedure-list.component.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/new-front/src/app/modules/legal/pages/legal-procedure-list/legal-procedure-list.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/new-front/src/app/modules/legal/pages/legal-procedure-list/legal-procedure-list.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/new-front/src/app/modules/legal/pages/procedure-home/procedure-home.component.html" beforeDir="false" afterPath="$PROJECT_DIR$/new-front/src/app/modules/legal/pages/procedure-home/procedure-home.component.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/new-front/src/app/modules/legal/pages/procedure-home/procedure-home.component.ts" beforeDir="false" afterPath="$PROJECT_DIR$/new-front/src/app/modules/legal/pages/procedure-home/procedure-home.component.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/new-front/src/app/services/legal-procedure.service.ts" beforeDir="false" afterPath="$PROJECT_DIR$/new-front/src/app/services/legal-procedure.service.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/userPI/src/main/java/org/example/userpi/config/CorsConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/userPI/src/main/java/org/example/userpi/config/CorsConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/eureka-server/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/eureka-server/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/userPI/src/main/java/org/example/userpi/Enum/Role.java" beforeDir="false" afterPath="$PROJECT_DIR$/userPI/src/main/java/org/example/userpi/Enum/Role.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/userPI/src/main/java/org/example/userpi/controller/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/userPI/src/main/java/org/example/userpi/controller/UserController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/userPI/src/main/java/org/example/userpi/dto/AuthResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/userPI/src/main/java/org/example/userpi/dto/AuthResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/userPI/src/main/java/org/example/userpi/dto/RegisterRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/userPI/src/main/java/org/example/userpi/dto/RegisterRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/userPI/src/main/java/org/example/userpi/repository/UserRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/userPI/src/main/java/org/example/userpi/repository/UserRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/userPI/src/main/java/org/example/userpi/service/AuthService.java" beforeDir="false" afterPath="$PROJECT_DIR$/userPI/src/main/java/org/example/userpi/service/AuthService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/userPI/src/main/java/org/example/userpi/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/userPI/src/main/java/org/example/userpi/service/UserService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/userPI/src/main/java/org/example/userpi/service/UserServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/userPI/src/main/java/org/example/userpi/service/UserServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/userPI/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/userPI/src/main/resources/application.properties" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -93,28 +155,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "Spring Boot.ApiGatewayApplication.executor": "Run",
-    "Spring Boot.DemoApplication.executor": "Run",
-    "Spring Boot.EurekaServerApplication.executor": "Run",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "zaineb",
-    "junie.onboarding.icon.badge.shown": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/user/Desktop/project-pi",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
-    "to.speed.mode.migration.done": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Merging main&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/user/Desktop/project-pi&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -130,19 +188,6 @@
       <option name="presentableId" value="Default" />
       <updated>1776013599579</updated>
     </task>
-    <task id="LOCAL-00001">
-      <option name="closed" value="true" />
-      <created>1776462370024</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1776462370024</updated>
-    </task>
-    <option name="localTasksCounter" value="2" />
     <servers />
-  </component>
-  <component name="VcsManagerConfiguration">
-    <MESSAGE value="n" />
-    <option name="LAST_COMMIT_MESSAGE" value="n" />
   </component>
 </project>

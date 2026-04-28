@@ -1,0 +1,142 @@
+<div class="request-page">
+  <!-- ── SUCCESS / PENDING state ── -->
+  <div *ngIf="meetingResponse as response" class="success-panel">
+    <div class="success-icon">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+    </div>
+
+    <h2>Request sent!</h2>
+
+    <p class="success-text">
+      Your meeting request has been sent to
+      <strong>{{ response.partenaireContactName }}</strong>
+      <span *ngIf="response.partenaireEmail"> ({{ response.partenaireEmail }})</span>.
+      The partner will review it and either accept, suggest a new time, or explain why they can't meet.
+      You'll be notified by email and can track the status in your meetings page.
+    </p>
+
+    <!-- Status pill -->
+    <div class="status-pill pending">
+      <span class="status-dot"></span>
+      Awaiting partner response
+    </div>
+
+    <div class="success-details">
+      <div>
+        <span>Proposed date</span>
+        <strong>{{ response.suggestedDateTime | date: 'dd/MM/yyyy HH:mm' }}</strong>
+      </div>
+      <div>
+        <span>Duration</span>
+        <strong>{{ response.message ?? '—' }}</strong>
+      </div>
+      <div>
+        <span>Status</span>
+        <strong>Pending</strong>
+      </div>
+    </div>
+
+    <div class="info-note">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      The Zoom meeting will be created automatically once the partner accepts your request.
+    </div>
+
+    <div class="success-actions">
+      <button class="btn-secondary" (click)="closeSuccess()">View my meetings</button>
+      <!--
+        The "Open Zoom" button only appears after the partner has ACCEPTED.
+        At request creation time, meetingStatus is PENDING and no Zoom meeting exists yet.
+        If you navigate back here after acceptance (e.g. via deep link), it would show.
+      -->
+      <button class="btn-primary" (click)="openZoomMeeting()"
+              *ngIf="response.meetingStatus === 'ACCEPTED' && response.zoomJoinUrl">
+        Open Zoom
+      </button>
+    </div>
+  </div>
+
+  <!-- ── FORM ── -->
+  <div *ngIf="!isSuccess" class="form-layout">
+    <section class="intro-panel">
+      <p class="eyebrow">Meeting</p>
+      <h1>Schedule a Meeting</h1>
+      <p class="subtitle">
+        Send a meeting request to the partner. They will accept, reject, or propose a different time.
+        The Zoom link is only created once they accept.
+      </p>
+
+      <div class="partner-card" *ngIf="partner as selectedPartner">
+        <span>Selected partner</span>
+        <h2>{{ selectedPartner.nom }}</h2>
+        <p>{{ selectedPartner.contactNom }}</p>
+        <p>{{ selectedPartner.contactEmail }}</p>
+      </div>
+
+      <div class="inline-alert error" *ngIf="partnerLoadError">{{ partnerLoadError }}</div>
+      <div class="inline-alert info" *ngIf="isPartnerLoading">Loading partner…</div>
+
+      <button class="btn-secondary back-btn" (click)="close()">Back</button>
+    </section>
+
+    <section class="form-state">
+      <h2>Request a Meeting</h2>
+
+      <div class="alert error" *ngIf="errorMessage">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        {{ errorMessage }}
+      </div>
+
+      <div class="form-group">
+        <label>Requester name *</label>
+        <input type="text" [(ngModel)]="requesterName" placeholder="Your name" [disabled]="isLoading" />
+      </div>
+
+      <div class="form-group">
+        <label>Subject *</label>
+        <input type="text" [(ngModel)]="subject" placeholder="E.g.: Partnership follow-up" [disabled]="isLoading" />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label>Date *</label>
+          <input type="date" [(ngModel)]="suggestedDate" [disabled]="isLoading" />
+        </div>
+        <div class="form-group flex-1">
+          <label>Time *</label>
+          <select [(ngModel)]="suggestedTime" [disabled]="isLoading">
+            <option value="" disabled>Pick a time…</option>
+            <option *ngFor="let t of timePresets" [value]="t">{{ t }}</option>
+          </select>
+        </div>
+        <div class="form-group flex-1">
+          <label>Duration (minutes) *</label>
+          <input type="number" [(ngModel)]="durationMinutes" min="15" max="180" [disabled]="isLoading" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Note (optional)</label>
+        <textarea [(ngModel)]="note" placeholder="Add a note for the partner…" rows="3" [disabled]="isLoading"></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-secondary" (click)="close()" [disabled]="isLoading">Cancel</button>
+        <button class="btn-primary" (click)="submit()" [disabled]="isLoading">
+          <span *ngIf="isLoading" class="spinner"></span>
+          {{ isLoading ? 'Sending…' : 'Send request' }}
+        </button>
+      </div>
+    </section>
+  </div>
+</div>

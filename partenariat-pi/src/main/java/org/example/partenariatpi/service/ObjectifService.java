@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.partenariatpi.dto.ObjectifMapper;
 import org.example.partenariatpi.dto.ObjectifRequest;
 import org.example.partenariatpi.dto.ObjectifResponse;
+import org.example.partenariatpi.enums.StatutConvention;
 import org.example.partenariatpi.model.Convention;
 import org.example.partenariatpi.model.Objectif;
 import org.example.partenariatpi.enums.ResponsableObjectif;
@@ -52,13 +53,7 @@ public class ObjectifService {
         conventionService.checkIsParty(convention, requestingRole, requestingUserId);
 
         // Valider que dateEcheance <= dateFin de la convention
-        if (request.getDateEcheance() != null && convention.getDateFin() != null) {
-            if (request.getDateEcheance().isAfter(convention.getDateFin())) {
-                throw new RuntimeException(
-                        "La date d'échéance ne peut pas dépasser la date de fin de la convention ("
-                                + convention.getDateFin() + ").");
-            }
-        }
+
 
         Objectif o = mapper.toEntity(request, convention);
         ObjectifResponse saved = mapper.toResponse(repository.save(o));
@@ -77,18 +72,12 @@ public class ObjectifService {
         conventionService.checkIsParty(existing.getConvention(), requestingRole, requestingUserId);
 
         // Valider que dateEcheance <= dateFin de la convention
-        if (request.getDateEcheance() != null && existing.getConvention().getDateFin() != null) {
-            if (request.getDateEcheance().isAfter(existing.getConvention().getDateFin())) {
-                throw new RuntimeException(
-                        "La date d'échéance ne peut pas dépasser la date de fin de la convention ("
-                                + existing.getConvention().getDateFin() + ").");
-            }
-        }
+
 
         existing.setTitre(request.getTitre());
         existing.setDescription(request.getDescription());
         existing.setResponsable(request.getResponsable());
-        existing.setDateEcheance(request.getDateEcheance());
+        //existing.setDateEcheance(request.getDateEcheance());
         existing.setCommentaire(request.getCommentaire());
         ObjectifResponse saved = mapper.toResponse(repository.save(existing));
         conventionService.resetConfirmationsAfterObjectifChange(
@@ -108,17 +97,28 @@ public class ObjectifService {
         Objectif existing = findById(id);
         conventionService.checkIsParty(existing.getConvention(), requestingRole, requestingUserId);
 
-        // Peut changer le statut seulement si la convention est ACTIVE
-        if (existing.getConvention().getStatut() != org.example.partenariatpi.enums.StatutConvention.ACTIVE) {
+        if (existing.getConvention().getStatut() != StatutConvention.ACTIVE) {
             throw new RuntimeException(
-                    "Le statut des objectifs ne peut être modifié que sur une convention ACTIVE.");
+                    "Objective status can only be changed on an ACTIVE convention.");
         }
 
         existing.setStatut(statut);
         if (commentaire != null && !commentaire.isBlank()) {
             existing.setCommentaire(commentaire);
         }
-        return mapper.toResponse(repository.save(existing));
+        ObjectifResponse saved = mapper.toResponse(repository.save(existing));
+
+        // ── Auto-complete convention if ALL objectives are ATTEINT ────────────
+        checkAndCompleteConvention(existing.getConvention().getId());
+
+        return saved;
+    }
+
+    private void checkAndCompleteConvention(Integer conventionId) {
+        List<Objectif> all = repository.findByConventionId(conventionId);
+        if (!all.isEmpty() && all.stream().allMatch(o -> o.getStatut() == StatutObjectif.FINISHED)) {
+            conventionService.markAsCompleted(conventionId);
+        }
     }
 
     // ── DELETE ────────────────────────────────────────────────────────────────

@@ -12,7 +12,7 @@ public class ObjectifResponse {
     private String titre;
     private String description;
     private ResponsableObjectif responsable;
-    private LocalDate dateEcheance;
+    // dateEcheance REMOVED
     private StatutObjectif statut;
     private String commentaire;
     private LocalDate dateCreation;

@@ -1,9 +1,9 @@
-import { ActivatedRouteSnapshot, CanActivateFn, Router, RouterStateSnapshot } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { AuthService } from './auth.service';
 import { UserRole } from '../models/user.model';
 
-export const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
+export const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
@@ -12,42 +12,39 @@ export const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot, state: R
     return false;
   }
 
-  // Regular users belong on the public site, not the dashboard.
-  if (authService.hasRole('USER')) {
-    router.navigate(['/']);
-    return false;
+  // Walk down to the deepest matched route so a parent layout guard can see
+  // the child's role data (Angular doesn't merge route.data automatically).
+  let leaf: ActivatedRouteSnapshot = route;
+  while (leaf.firstChild) {
+    leaf = leaf.firstChild;
   }
 
-  const requiredRole = route.data['role'] as UserRole | undefined;
-  const requiredRoles = route.data['roles'] as UserRole[] | undefined;
+  const requiredRole =
+    (route.data['role'] as UserRole | undefined) ??
+    (leaf.data['role'] as UserRole | undefined);
+  const requiredRoles =
+    (route.data['roles'] as UserRole[] | undefined) ??
+    (leaf.data['roles'] as UserRole[] | undefined);
 
-  if (requiredRoles && !authService.hasRole(...requiredRoles)) {
-    if (route.routeConfig?.path === 'dashboard') {
+  // Regular users belong on the public site, except for routes that explicitly
+  // allow the USER role (e.g. shared partenariat pages).
+  if (authService.hasRole('USER')) {
+    const userAllowed =
+      (requiredRoles && requiredRoles.includes('USER')) ||
+      requiredRole === 'USER';
+    if (!userAllowed) {
       router.navigate(['/']);
       return false;
     }
+  }
 
-    if (route.routeConfig?.path === 'legal') {
-      router.navigateByUrl(state.url.replace(/^\/app\/legal/, '/procedures'));
-      return false;
-    }
-
-    router.navigate([authService.getPostAuthRedirectPath()]);
+  if (requiredRoles && !authService.hasRole(...requiredRoles)) {
+    router.navigate(['/app/dashboard']);
     return false;
   }
 
   if (requiredRole && !authService.hasRole(requiredRole)) {
-    if (route.routeConfig?.path === 'dashboard') {
-      router.navigate(['/']);
-      return false;
-    }
-
-    if (route.routeConfig?.path === 'legal') {
-      router.navigateByUrl(state.url.replace(/^\/app\/legal/, '/procedures'));
-      return false;
-    }
-
-    router.navigate([authService.getPostAuthRedirectPath()]);
+    router.navigate(['/app/dashboard']);
     return false;
   }
 
