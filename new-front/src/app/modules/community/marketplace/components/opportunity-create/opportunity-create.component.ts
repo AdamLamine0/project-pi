@@ -282,8 +282,8 @@ export class OpportunityCreateComponent implements OnInit {
   checkUserRole() {
     this.canCreateOpportunity = this.authService.isAdmin() ||
                               this.authService.isEntrepreneur() ||
-                              this.authService.isPartenaire() ||
-                              this.authService.isInvestisseur();
+      this.authService.isPartner() ||
+      this.authService.isInvestor();
   }
 
   addSkillEvent(event: any): void {

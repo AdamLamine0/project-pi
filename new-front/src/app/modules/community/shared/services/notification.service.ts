@@ -26,6 +26,12 @@ export class CommunityNotificationService {
   ) {}
 
   init(userId: string) {
+    if (!this.isValidUserId(userId)) {
+      this.notificationsSubject.next([]);
+      this.unreadCountSubject.next(0);
+      return;
+    }
+
     this.refreshNotifications(userId);
     
     // Subscribe to notifications topic via the existing STOMP client in ChatService
@@ -37,6 +43,10 @@ export class CommunityNotificationService {
   }
 
   private subscribeToNotifications(userId: string) {
+    if (!this.isValidUserId(userId)) {
+      return;
+    }
+
     this.chatService.subscribeToNotifications(userId, (notification: CommunityNotification) => {
       this.handleNewNotification(notification);
     });
@@ -52,11 +62,22 @@ export class CommunityNotificationService {
   }
 
   refreshNotifications(userId: string) {
+    if (!this.isValidUserId(userId)) {
+      this.notificationsSubject.next([]);
+      this.unreadCountSubject.next(0);
+      return;
+    }
+
     this.getNotifications(userId).subscribe();
     this.getUnreadCount(userId).subscribe();
   }
 
   getNotifications(userId: string): Observable<CommunityNotification[]> {
+    if (!this.isValidUserId(userId)) {
+      this.notificationsSubject.next([]);
+      return of([]);
+    }
+
     return this.http.get<CommunityNotification[]>(`${this.apiUrl}/${userId}`).pipe(
       tap(notifs => this.notificationsSubject.next(notifs)),
       catchError(() => {
@@ -67,6 +88,11 @@ export class CommunityNotificationService {
   }
 
   getUnreadCount(userId: string): Observable<number> {
+    if (!this.isValidUserId(userId)) {
+      this.unreadCountSubject.next(0);
+      return of(0);
+    }
+
     return this.http.get<number>(`${this.apiUrl}/${userId}/unread-count`).pipe(
       tap(count => this.unreadCountSubject.next(count)),
       catchError(() => {
@@ -86,5 +112,9 @@ export class CommunityNotificationService {
     return this.http.put<void>(`${this.apiUrl}/all/${userId}/read`, {}).pipe(
       tap(() => this.refreshNotifications(userId))
     );
+  }
+
+  private isValidUserId(userId: string): boolean {
+    return Number(userId) > 0;
   }
 }
