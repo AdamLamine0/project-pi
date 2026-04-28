@@ -896,8 +896,13 @@ export class LayoutComponent {
     { icon: 'lucideLayoutDashboard', label: 'Dashboard',    route: '/app/dashboard'    },
     { icon: 'lucideRocket',          label: 'Projects',     route: '/app/projects'     },
     { icon: 'lucideUsers',           label: 'Community',    route: '/app/community'    },
+<<<<<<< HEAD
     { icon: 'lucideScale',           label: 'Legal',        route: '/app/legal'        },
     { icon: 'lucideTrendingUp',      label: 'Investments',  route: '/app/investments'  },
+=======
+    { icon: 'lucideScale',           label: 'Procedures',   route: '/app/legal', roles: ['ADMIN'] },
+    { icon: 'lucideTrendingUp',      label: 'Investments',  route: '/investment'       },
+>>>>>>> cdd63f1c6858c4a9379161b6fcc6e1e98612415d
     { icon: 'lucideGraduationCap',   label: 'Mentoring',    route: '/app/mentoring'    },
     { icon: 'lucideMap',             label: 'Roadmaps',     route: '/app/roadmaps'     },
     { icon: 'lucideHandshake',       label: 'Partnerships', route: '/app/partenariat/list' },

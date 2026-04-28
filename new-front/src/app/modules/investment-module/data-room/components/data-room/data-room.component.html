@@ -1,0 +1,153 @@
+<div class="page">
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+
+  <div class="body">
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow">Secure workspace</div>
+        <h1>Investment Data Room</h1>
+        <p>
+          Centralize sensitive documents, track views, and share deal materials in a clear,
+          confidential workspace.
+        </p>
+
+        <div class="hero-badges">
+          <span class="hero-badge">{{ isEntrepreneurActor ? 'Entrepreneur workspace' : (ndaSigned ? 'NDA signed' : 'NDA required') }}</span>
+          <span class="hero-badge">{{ totalDocuments }} document(s)</span>
+          <span class="hero-badge" *ngIf="documentsUnlocked">{{ selectedFolderLabel }}</span>
+        </div>
+      </div>
+
+      <div class="hero-stats">
+        <article class="stat-card">
+          <span class="stat-label">Access</span>
+          <strong>{{ accessStatusLabel }}</strong>
+          <small>{{ accessStatusHint }}</small>
+        </article>
+        <article class="stat-card">
+          <span class="stat-label">Views</span>
+          <strong>{{ viewedCount }}</strong>
+          <small>Documents opened during this session.</small>
+        </article>
+        <article class="stat-card">
+          <span class="stat-label">Last activity</span>
+          <strong>{{ lastViewed ? (lastViewed.at | date : 'dd MMM, HH:mm') : 'None' }}</strong>
+          <small>{{ lastViewed?.fileName || 'No document viewed yet.' }}</small>
+        </article>
+      </div>
+    </section>
+
+    <mat-progress-bar *ngIf="loading || ndaLoading" mode="indeterminate"></mat-progress-bar>
+
+    <section class="locked-shell" *ngIf="!loading && !ndaLoading && !isAllowedActor">
+      <div class="locked-hint">
+        <ng-icon name="lucideBan" size="20"></ng-icon>
+        <div>
+          <strong>Access restricted</strong>
+          <p>Only investors and entrepreneurs can open this Data Room.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="locked-shell" *ngIf="!loading && !ndaLoading && isInvestorActor && !documentsUnlocked">
+      <app-nda-signature
+        [agreement]="ndaAgreement"
+        [busy]="ndaBusy"
+        (submitSignature)="onSubmitNda($event)"
+        (accessRequested)="onNdaSign()"
+      ></app-nda-signature>
+
+      <div class="state error" *ngIf="ndaError">{{ ndaError }}</div>
+
+      <div class="locked-hint">
+        <ng-icon name="lucideLock" size="20"></ng-icon>
+        <div>
+          <strong>Protected access</strong>
+          <p>Documents remain hidden until the confidentiality agreement is signed.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="main-grid" *ngIf="!loading && !ndaLoading && documentsUnlocked">
+      <aside class="sidebar-panel">
+        <div class="sidebar-head">
+          <span class="sidebar-eyebrow">Navigation</span>
+          <h2>Folders</h2>
+          <p>Choose a category to filter documents instantly.</p>
+        </div>
+
+        <app-folder-list
+          [selected]="selectedFolder"
+          [counts]="folderCounts"
+          (selectedChange)="onFolderChange($event)"
+        ></app-folder-list>
+      </aside>
+
+      <section class="docs-panel">
+        <div class="panel-head">
+          <div>
+            <span class="panel-eyebrow">Available documents</span>
+            <h2>{{ selectedFolderLabel }}</h2>
+            <p class="hint">{{ filteredDocuments.length }} document(s) in this category</p>
+          </div>
+          <div class="panel-actions" *ngIf="canUploadDocuments">
+            <input
+              #fileInput
+              type="file"
+              hidden
+              (change)="onFileSelected($event)"
+            />
+            <button
+              mat-stroked-button
+              type="button"
+              color="primary"
+              [disabled]="uploadBusy"
+              (click)="fileInput.click()"
+            >
+              <ng-icon name="lucideCloudUpload" size="17"></ng-icon>
+              {{ uploadBusy ? 'Uploading...' : 'Add document' }}
+            </button>
+          </div>
+        </div>
+
+        <app-document-list
+          [documents]="filteredDocuments"
+          [loading]="false"
+          (view)="onView($event)"
+          (download)="onDownload($event)"
+        ></app-document-list>
+      </section>
+
+      <aside class="analytics" aria-label="Session analytics">
+        <mat-card class="analytics-card">
+          <mat-card-title>Session activity</mat-card-title>
+          <mat-card-content>
+            <div class="analytics-row">
+              <span>Viewed documents</span>
+              <strong>{{ viewedCount }}</strong>
+            </div>
+            <div class="analytics-row">
+              <span>Active folder</span>
+              <strong>{{ selectedFolderLabel }}</strong>
+            </div>
+            <div class="analytics-row" *ngIf="lastViewed; else noLastViewed">
+              <span>Last document</span>
+              <strong>{{ lastViewed.fileName }}</strong>
+            </div>
+            <p class="muted" *ngIf="lastViewed">
+              Viewed on {{ lastViewed.at | date : 'dd MMM yyyy, HH:mm' }}
+            </p>
+            <ng-template #noLastViewed>
+              <p class="muted">No views during this session.</p>
+            </ng-template>
+            <button *ngIf="ndaSigned" mat-stroked-button color="primary" type="button" class="certificate-btn" (click)="openCertificate()">
+              <ng-icon name="lucideBadgeCheck" size="17"></ng-icon>
+              Download NDA certificate
+            </button>
+          </mat-card-content>
+        </mat-card>
+      </aside>
+    </div>
+  </div>
+</div>

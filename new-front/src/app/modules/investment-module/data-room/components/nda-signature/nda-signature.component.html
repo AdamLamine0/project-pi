@@ -1,0 +1,65 @@
+<section class="signature-shell" *ngIf="agreement as nda">
+  <div class="signature-card">
+    <div class="hero">
+      <div>
+        <div class="eyebrow">Confidentiality agreement</div>
+        <h2>NDA before Data Room access</h2>
+        <p>
+          The investor must accept the NDA and provide a digital signature proof before
+          viewing confidential documents.
+        </p>
+      </div>
+      <span class="status-pill" [attr.data-status]="nda.status">
+        {{ nda.status === 'SIGNED' ? 'NDA signed' : nda.status === 'REJECTED' ? 'Rejected' : 'Pending' }}
+      </span>
+    </div>
+
+    <div class="content-box">
+      <div class="content-head">
+        <strong>NDA text</strong>
+        <span>NDA hash: {{ nda.ndaHash | slice:0:16 }}...</span>
+      </div>
+      <div class="nda-content">{{ nda.ndaContent }}</div>
+    </div>
+
+    <div class="signed-banner" *ngIf="isSigned">
+      <div>
+        <strong>The NDA is already signed.</strong>
+        <p>You can now access the confidential Data Room documents.</p>
+      </div>
+      <button type="button" class="primary-btn" (click)="accessRequested.emit()">
+        Access Data Room
+      </button>
+    </div>
+
+    <ng-container *ngIf="!isSigned">
+      <label class="terms-check">
+        <input type="checkbox" [(ngModel)]="acceptedTerms" />
+        <span>I have read and accept the NDA terms</span>
+      </label>
+
+      <div class="form-grid">
+        <label class="field full">
+          <span>Signer full name</span>
+          <input [(ngModel)]="signerFullName" placeholder="Ex: Amin Ben Ali" />
+        </label>
+      </div>
+
+      <div class="draw-shell">
+        <div class="canvas-head">
+          <span>Draw your signature</span>
+          <button type="button" class="ghost-btn" (click)="clearSignature()">Clear signature</button>
+        </div>
+        <canvas #signatureCanvas class="signature-canvas"></canvas>
+      </div>
+
+      <div class="error-banner" *ngIf="error">{{ error }}</div>
+
+      <div class="actions">
+        <button type="button" class="primary-btn" [disabled]="!canSubmit" (click)="sign()">
+          {{ busy ? 'Signing...' : 'Sign and access Data Room' }}
+        </button>
+      </div>
+    </ng-container>
+  </div>
+</section>
