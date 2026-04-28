@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -11,6 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
+import { Subscription } from 'rxjs';
 import { STARTUP_CATALOG_BY_ID } from '../../models/startup-catalog';
 import { InvestmentRequestService } from '../../services/investment-request.service';
 import { InvestmentRequest } from '../../models/investment-request';
@@ -22,7 +23,7 @@ import { AuthService } from '../../../../../core/services/auth.service';
   templateUrl: './request-form.html',
   styleUrl: './request-form.css',
 })
-export class RequestForm implements OnInit {
+export class RequestForm implements OnInit, OnDestroy {
   mode: 'add' | 'edit' = 'add';
   currentRequest: InvestmentRequest | null = null;
 
@@ -34,6 +35,7 @@ export class RequestForm implements OnInit {
   fileError = '';
 
   form!: FormGroup;
+  private readonly sub = new Subscription();
 
   constructor(
     private fb: FormBuilder,
@@ -45,19 +47,28 @@ export class RequestForm implements OnInit {
 
   ngOnInit(): void {
     this.buildForm();
+    this.sub.add(
+      this.route.paramMap.subscribe((params) => {
+        const id = params.get('id');
+        if (id) {
+          this.mode = 'edit';
+          this.sub.add(
+            this.requestService.getById(id).subscribe((data) => {
+              this.currentRequest = data;
+              this.openEdit(data);
+            })
+          );
+          return;
+        }
 
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.mode = 'edit';
-      this.requestService.getById(id).subscribe((data) => {
-        this.currentRequest = data;
-        this.openEdit(data);
-      });
-      return;
-    }
+        const startupId = params.get('startupId');
+        this.openAdd(startupId ?? '');
+      })
+    );
+  }
 
-    const startupId = this.route.snapshot.paramMap.get('startupId');
-    this.openAdd(startupId ?? '');
+  ngOnDestroy(): void {
+    this.sub.unsubscribe();
   }
 
   // ================= FORM =================

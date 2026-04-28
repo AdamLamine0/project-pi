@@ -160,14 +160,46 @@ export class RequestManagement implements OnInit {
   }
 
   download(req: InvestmentRequest): void {
+    console.log('Download called for request:', req.id);
+    console.log('Document URL:', req.investorDocUrl);
+    
     if (req.investorDocUrl) {
-      window.open(req.investorDocUrl, '_blank', 'noopener,noreferrer');
+      this.requestService.downloadDocument(req.investorDocUrl).subscribe({
+        next: (blob: Blob) => {
+          console.log('Document downloaded successfully, blob size:', blob.size);
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `document-${req.id}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        },
+        error: (err) => {
+          console.error('Error downloading document:', err);
+          console.error('Error status:', err.status);
+          console.error('Error message:', err.message);
+          console.error('Full error:', err);
+          alert('Failed to download document. Please try again.');
+        }
+      });
+    } else {
+      console.warn('No document URL available for request:', req.id);
+      alert('No document available for this request.');
     }
   }
 
   update(id: string): void {
     if (!this.isInvestorView) return;
     this.router.navigate(['/investment/edit-request', id]);
+  }
+
+  reRequest(req: InvestmentRequest): void {
+    if (!this.isInvestorView) return;
+    this.router.navigate(['/investment/request', req.startupId], {
+      queryParams: { name: this.startupName(req.startupId) },
+    });
   }
 
   viewInKanban(_: string): void {

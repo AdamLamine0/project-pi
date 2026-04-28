@@ -6,7 +6,7 @@
         <h1>Find investors aligned with your startup</h1>
         <p>
           Browse active investor profiles, understand their funding preferences, and identify
-          the best matches before sending an investment opportunity.
+          the best matches.
         </p>
       </div>
 
@@ -18,10 +18,6 @@
         <article>
           <span>Visible matches</span>
           <strong>{{ visibleProfiles.length }}</strong>
-        </article>
-        <article>
-          <span>Max capital tracked</span>
-          <strong>{{ totalCapitalLabel }}</strong>
         </article>
       </div>
     </header>
@@ -50,11 +46,11 @@
       <label>
         <span>Budget</span>
         <select [(ngModel)]="selectedBudget" (ngModelChange)="applyFilters()">
-          <option value="ALL">Any budget</option>
-          <option value="UNDER_50K">Under $50K</option>
-          <option value="50K_250K">$50K - $250K</option>
-          <option value="250K_1M">$250K - $1M</option>
-          <option value="OVER_1M">Over $1M</option>
+          <option value="ALL">Tous les budgets</option>
+          <option value="UNDER_100K">Moins de 10 000 TND</option>
+          <option value="100K_500K">10 000 TND - 50 000 TND</option>
+          <option value="500K_2M">50 000 TND - 100 000 TND</option>
+          <option value="OVER_2M">Plus de 100 000 TND</option>
         </select>
       </label>
 
@@ -88,7 +84,6 @@
           </div>
           <div>
             <h2>{{ profile.name || 'Investor profile' }}</h2>
-            <span>{{ profile.investorId }}</span>
           </div>
         </div>
 

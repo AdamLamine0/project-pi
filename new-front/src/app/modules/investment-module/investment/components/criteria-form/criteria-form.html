@@ -11,23 +11,11 @@
   <div class="helper-card" *ngIf="!isEditMode && existingCriteriaId">
     <strong>Profil deja existant</strong>
     <p>Un investisseur ne peut avoir qu un seul critere. Ouvre le profil existant pour le modifier.</p>
-    <button type="button" class="btn secondary" (click)="openExistingCriteria()">Ouvrir le critere existant</button>
+    <button type="button" class="btn secondary" (click)="openExistingCriteria()">Show my criteria</button>
   </div>
 
   <form class="card" (ngSubmit)="submit()">
     <div class="grid">
-      <div class="field">
-        <label for="investorId">Identifiant investisseur</label>
-        <input
-          id="investorId"
-          type="text"
-          [(ngModel)]="criteria.investorId"
-          name="investorId"
-          placeholder="ex: INV-001"
-          required
-        />
-      </div>
-
       <div class="field">
         <label for="location">Zone geographique</label>
         <input

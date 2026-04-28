@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSliderModule } from '@angular/material/slider';
+import { Subscription } from 'rxjs';
 import { InvestmentCriteria } from '../../models/investment-criteria.model';
 import { InvestmentCriteriaService } from '../../services/investment-criteria.service';
 import { AuthService } from '../../../../../core/services/auth.service';
@@ -19,7 +20,7 @@ import { AuthService } from '../../../../../core/services/auth.service';
   templateUrl: './criteria-form.html',
   styleUrl: './criteria-form.css',
 })
-export class CriteriaForm implements OnInit {
+export class CriteriaForm implements OnInit, OnDestroy {
   criteria: InvestmentCriteria = {
     investorId: '',
     sectors: [],
@@ -37,6 +38,7 @@ export class CriteriaForm implements OnInit {
   existingCriteriaId = '';
   submitting = false;
   error = '';
+  private readonly sub = new Subscription();
 
   constructor(
     private service: InvestmentCriteriaService,
@@ -71,29 +73,47 @@ export class CriteriaForm implements OnInit {
   readonly stageSuggestions = ['Pre-Seed', 'Seed', 'Series A', 'Series B', 'Series C', 'Growth'] as const;
 
   ngOnInit(): void {
-    this.criteriaId = this.route.snapshot.paramMap.get('id') ?? '';
-    this.isEditMode = !!this.criteriaId;
+    this.sub.add(
+      this.route.paramMap.subscribe((params) => {
+        this.criteriaId = params.get('id') ?? '';
+        this.isEditMode = !!this.criteriaId;
+        this.error = '';
+        this.existingCriteriaId = '';
 
-    if (this.isEditMode) {
-      this.service.getById(this.criteriaId).subscribe({
-        next: (criteria) => {
-          this.criteria = {
-            ...criteria,
-            sectors: [...criteria.sectors],
-            stages: [...criteria.stages],
-          };
-        },
-        error: () => {
-          this.error = 'Impossible de charger ce profil d investissement.';
+        if (this.isEditMode) {
+          this.sub.add(
+            this.service.getById(this.criteriaId).subscribe({
+              next: (criteria) => {
+                this.criteria = {
+                  ...criteria,
+                  sectors: [...criteria.sectors],
+                  stages: [...criteria.stages],
+                };
+              },
+              error: () => {
+                this.error = 'Impossible de charger ce profil d investissement.';
+              }
+            })
+          );
+          return;
         }
-      });
-      return;
-    }
 
-    const investorFromQuery = this.route.snapshot.queryParamMap.get('investorId');
-    const storedInvestor = this.safeStorageGet('investment.criteria.investorId');
-    this.criteria.investorId = investorFromQuery || this.resolveInvestorId() || storedInvestor || 'dev-investor';
-    this.lookupExistingCriteria();
+        this.criteria = {
+          investorId: this.resolveInvestorId() || 'dev-investor',
+          sectors: [],
+          stages: [],
+          minBudget: 0,
+          maxBudget: 0,
+          location: '',
+          active: true,
+        };
+        this.lookupExistingCriteria();
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.sub.unsubscribe();
   }
 
   get filteredSectorSuggestions(): string[] {
@@ -182,9 +202,9 @@ export class CriteriaForm implements OnInit {
   }
 
   private lookupExistingCriteria(submitAfterCheck = false): void {
-    const investorId = this.criteria.investorId.trim();
+    const investorId = (this.resolveInvestorId() || this.criteria.investorId).trim();
     if (!investorId) {
-      this.error = 'L identifiant investisseur est obligatoire.';
+      this.error = 'Impossible de resoudre l investisseur connecte.';
       return;
     }
 
@@ -192,7 +212,7 @@ export class CriteriaForm implements OnInit {
     this.submitting = submitAfterCheck;
     this.error = '';
 
-    this.service.getInvestorCriteria(investorId).subscribe({
+    this.sub.add(this.service.getInvestorCriteria(investorId).subscribe({
       next: (criteriaList) => {
         const existing = criteriaList.find((item) => item.id !== this.criteriaId) ?? null;
         this.existingCriteriaId = existing?.id ?? '';
@@ -212,7 +232,7 @@ export class CriteriaForm implements OnInit {
         this.submitting = false;
         this.error = 'Impossible de verifier les criteres existants pour cet investisseur.';
       }
-    });
+    }));
   }
 
   private saveCriteria(): void {
@@ -223,7 +243,7 @@ export class CriteriaForm implements OnInit {
       ? this.service.update({ ...this.criteria, id: this.criteriaId })
       : this.service.create(this.criteria);
 
-    request$.subscribe({
+    this.sub.add(request$.subscribe({
       next: () => {
         this.submitting = false;
         alert(this.isEditMode ? 'Critere mis a jour !' : 'Critere enregistre !');
@@ -235,7 +255,7 @@ export class CriteriaForm implements OnInit {
           ? 'Impossible de mettre a jour ce profil d investissement.'
           : 'Impossible d enregistrer ce profil d investissement.';
       }
-    });
+    }));
   }
 
   private persistInvestorId(): void {

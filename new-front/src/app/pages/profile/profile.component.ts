@@ -158,6 +158,18 @@ type ProfileTab = 'account' | 'security' | 'tickets' | 'badges' | 'certificates'
                       </button>
                     </div>
                   }
+
+                  @if (isInvestor && !isEditingProfile) {
+                    <div class="flex items-center justify-between" style="padding-top:12px; border-top:1px solid var(--border-subtle);">
+                      <div>
+                        <p class="text-xs font-semibold" style="color:var(--text-secondary);">Investment Criteria</p>
+                        <p class="text-xs mt-1" style="color:var(--text-muted);">Define your investment preferences and criteria</p>
+                      </div>
+                      <button type="button" (click)="goToCriteriaForm()" class="text-xs font-semibold rounded-lg cursor-pointer" style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; border:none; padding:6px 16px; font-family:var(--font-sans);">
+                        Add Criteria
+                      </button>
+                    </div>
+                  }
                 </form>
               </div>
             }
@@ -642,6 +654,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
     return this.authService.hasRole(Role.ADMIN, Role.MENTOR, Role.INVESTOR, Role.PARTNER, Role.PARTENAIRE);
   }
 
+  protected get isInvestor(): boolean {
+    return this.authService.hasRole(Role.INVESTOR);
+  }
+
   protected get fullName(): string {
     return [this.user?.name, this.user?.prenom].filter(Boolean).join(' ').trim();
   }
@@ -650,6 +666,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
     const first = this.user?.name?.[0] || this.authService.getEmail()?.[0] || 'F';
     const last = this.user?.prenom?.[0] || this.authService.getRole()?.[0] || 'L';
     return `${first}${last}`.toUpperCase();
+  }
+
+  protected goToCriteriaForm(): void {
+    this.router.navigate(['/investment/criteria']);
   }
 
   protected toggleProfileEdit(): void {

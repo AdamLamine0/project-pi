@@ -55,17 +55,21 @@ export class CriteriaList implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    const roleFromQuery = this.route.snapshot.queryParamMap.get('role');
-    const storedRole = this.safeStorageGet('investment.criteria.role');
-    const resolvedRole = (roleFromQuery || storedRole || 'ROLE_INVESTOR').toUpperCase();
-    if (this.isRoleView(resolvedRole)) {
-      this.selectedRole = resolvedRole;
-    }
+    this.sub.add(
+      this.route.queryParamMap.subscribe((query) => {
+        const roleFromQuery = query.get('role');
+        const storedRole = this.safeStorageGet('investment.criteria.role');
+        const resolvedRole = (roleFromQuery || storedRole || 'ROLE_INVESTOR').toUpperCase();
+        if (this.isRoleView(resolvedRole)) {
+          this.selectedRole = resolvedRole;
+        }
 
-    const investorFromQuery = this.route.snapshot.queryParamMap.get('investorId');
-    const storedInvestor = this.safeStorageGet('investment.criteria.investorId');
-    this.currentInvestorId = investorFromQuery || this.resolveInvestorId() || storedInvestor || 'dev-investor';
-
+        const investorFromQuery = query.get('investorId');
+        const storedInvestor = this.safeStorageGet('investment.criteria.investorId');
+        this.currentInvestorId = investorFromQuery || this.resolveInvestorId() || storedInvestor || 'dev-investor';
+        this.applyFilters();
+      })
+    );
     this.loadCriteria();
   }
 
@@ -91,6 +95,10 @@ export class CriteriaList implements OnInit, OnDestroy {
 
   get canCreateInvestorCriteria(): boolean {
     return !this.investorCriteria;
+  }
+
+  get investorPrimaryActionLabel(): string {
+    return this.canCreateInvestorCriteria ? 'Create my criteria' : 'Show my criteria';
   }
 
   get availableSectors(): string[] {
@@ -174,6 +182,17 @@ export class CriteriaList implements OnInit, OnDestroy {
   editCriteria(criteria: InvestmentCriteria): void {
     if (!criteria.id) return;
     this.router.navigate(['/investment/criteria/edit', criteria.id]);
+  }
+
+  openInvestorPrimaryAction(): void {
+    if (this.canCreateInvestorCriteria) {
+      this.router.navigate(['/investment/criteria']);
+      return;
+    }
+
+    this.router.navigate(['/investment/criteria/list'], {
+      queryParams: { role: 'ROLE_INVESTOR' }
+    });
   }
 
   previousPage(): void {

@@ -80,14 +80,18 @@ export class InvestmentHolding implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.requestId = this.route.snapshot.paramMap.get('requestId') ?? '';
-    if (!this.requestId) {
-      this.error = 'L identifiant de la demande est manquant.';
-      this.loading = false;
-      return;
-    }
+    this.sub.add(
+      this.route.paramMap.subscribe((params) => {
+        this.requestId = params.get('requestId') ?? '';
+        if (!this.requestId) {
+          this.error = 'L identifiant de la demande est manquant.';
+          this.loading = false;
+          return;
+        }
 
-    this.loadPage();
+        this.loadPage();
+      })
+    );
   }
 
   ngOnDestroy(): void {

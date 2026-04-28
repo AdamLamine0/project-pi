@@ -147,6 +147,14 @@
           >
             Edit
           </button>
+          <button
+            *ngIf="isInvestorView && req.investmentStatus !== 'PENDING'"
+            type="button"
+            class="btn btn-secondary"
+            (click)="reRequest(req)"
+          >
+            Request again
+          </button>
 
           <ng-container *ngIf="isStartupView && req.investmentStatus === 'PENDING'">
             <button type="button" class="btn btn-danger" (click)="reject(req.id)">

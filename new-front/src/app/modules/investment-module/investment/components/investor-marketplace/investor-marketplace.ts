@@ -73,10 +73,6 @@ export class InvestorMarketplace implements OnInit, OnDestroy {
     return this.allProfiles.length;
   }
 
-  get totalCapitalLabel(): string {
-    const total = this.allProfiles.reduce((sum, profile) => sum + Number(profile.maxBudget || 0), 0);
-    return total > 0 ? this.formatBudget(total) : 'Available';
-  }
 
   applyFilters(): void {
     const search = this.searchTerm.trim().toLowerCase();
@@ -183,12 +179,7 @@ export class InvestorMarketplace implements OnInit, OnDestroy {
     }
   }
 
-  private formatBudget(value: number): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-      notation: value >= 1000000 ? 'compact' : 'standard',
-    }).format(value);
-  }
+  formatBudget(value: number): string {
+  return `${value.toLocaleString('fr-TN')} TND`;
+}
 }

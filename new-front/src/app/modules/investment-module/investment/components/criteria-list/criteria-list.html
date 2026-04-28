@@ -75,6 +75,12 @@
     </section>
 
     <section class="profile-shell" *ngIf="isInvestorView">
+      <div class="toolbar-actions">
+        <button class="primary-btn" type="button" (click)="openInvestorPrimaryAction()">
+          {{ investorPrimaryActionLabel }}
+        </button>
+      </div>
+
       <div class="loader-wrap" *ngIf="loading">
         <div class="loader"></div>
         <p>Chargement du profil investisseur...</p>
@@ -83,9 +89,6 @@
       <div class="empty-state profile-empty" *ngIf="!loading && !investorCriteria">
         <h2>Profil d investissement non configure</h2>
         <p>{{ emptyMessage }}</p>
-        <button class="primary-btn" type="button" routerLink="/investment/criteria">
-          Creer mon critere
-        </button>
       </div>
 
       <div class="profile-card" *ngIf="!loading && investorCriteria as criteria">
