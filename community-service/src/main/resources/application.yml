@@ -12,7 +12,7 @@ spring:
 
 groq:
   api:
-    key: YOUR_GROQ_API_KEY_HERE
+    key: ${GROQ_API_KEY:}
 
 user:
   service:
