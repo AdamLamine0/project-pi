@@ -897,7 +897,7 @@ export class LayoutComponent {
     { icon: 'lucideRocket',          label: 'Projects',     route: '/app/projects'     },
     { icon: 'lucideUsers',           label: 'Community',    route: '/app/community'    },
     { icon: 'lucideScale',           label: 'Procedures',   route: '/app/legal', roles: ['ADMIN'] },
-    { icon: 'lucideTrendingUp',      label: 'Investments',  route: '/app/investments'  },
+    { icon: 'lucideTrendingUp',      label: 'Investments',  route: '/investment'       },
     { icon: 'lucideGraduationCap',   label: 'Mentoring',    route: '/app/mentoring'    },
     { icon: 'lucideMap',             label: 'Roadmaps',     route: '/app/roadmaps'     },
     { icon: 'lucideHandshake',       label: 'Partnerships', route: '/app/partnerships' },

@@ -1,0 +1,47 @@
+.folder-nav {
+  min-width: 200px;
+}
+
+.heading {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  padding: 4px 10px 12px;
+}
+
+.badge {
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--badge-blue-bg);
+  color: var(--badge-blue-text);
+  border-radius: 999px;
+  padding: 4px 9px;
+}
+
+.folder-list {
+  padding-top: 0;
+}
+
+.folder-list button {
+  margin-bottom: 8px;
+  border-radius: 10px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+}
+
+.folder-list button ng-icon {
+  color: var(--primary);
+}
+
+.folder-list button.is-selected {
+  background: var(--chip-active-bg);
+  border-color: var(--chip-active-border);
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+
+.folder-list button [matListItemLine] {
+  color: var(--text-secondary);
+  font-size: 12px;
+}

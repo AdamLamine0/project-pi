@@ -1,0 +1,48 @@
+<div class="doc-wrap">
+  <div class="empty" *ngIf="!loading && documents.length === 0">
+    <ng-icon name="lucideFolderOpen" size="22"></ng-icon>
+    <div>
+      <strong>No documents in this folder</strong>
+      <p>Add the first deal documents to start building this section.</p>
+    </div>
+  </div>
+
+  <div class="loading" *ngIf="loading">
+    <mat-spinner diameter="36"></mat-spinner>
+    <span>Loading documents...</span>
+  </div>
+
+  <div class="doc-grid" *ngIf="!loading && documents.length > 0">
+    <article class="doc-card" *ngFor="let row of documents">
+      <div class="doc-main">
+        <div class="doc-icon" [attr.data-tone]="toneFor(row.type)">
+          <ng-icon [name]="iconFor(row.type)" size="22"></ng-icon>
+        </div>
+
+        <div class="doc-copy">
+          <div class="doc-title-row">
+            <h3>{{ row.fileName }}</h3>
+            <span class="type-pill" [attr.data-tone]="toneFor(row.type)">{{ row.type }}</span>
+          </div>
+
+          <div class="doc-meta">
+            <span>Added on {{ formatDate(row.uploadDate) }}</span>
+            <span class="meta-dot">•</span>
+            <span>Secure document</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="doc-actions">
+        <button mat-stroked-button type="button" (click)="view.emit(row)">
+          <ng-icon name="lucideEye" size="16"></ng-icon>
+          View
+        </button>
+        <button mat-flat-button color="primary" type="button" (click)="download.emit(row)">
+          <ng-icon name="lucideDownload" size="16"></ng-icon>
+          Download
+        </button>
+      </div>
+    </article>
+  </div>
+</div>
