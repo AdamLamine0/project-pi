@@ -29,6 +29,7 @@ export class RequestForm implements OnInit {
   isVisible = false;
   isSubmitting = false;
   submitSuccess = false;
+
   selectedFile: File | null = null;
   fileError = '';
 
@@ -59,63 +60,78 @@ export class RequestForm implements OnInit {
     this.openAdd(startupId ?? '');
   }
 
+  // ================= FORM =================
+
   private buildForm(): void {
     this.form = this.fb.group({
-      introMessage: ['', [Validators.required, Validators.minLength(20), Validators.maxLength(500)]],
+      introMessage: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(20),
+          Validators.maxLength(500)
+        ]
+      ],
       ticketProposed: [null, [Validators.min(1)]],
-      investorId: ['dev-investor', Validators.required],
       startupId: ['', Validators.required],
     });
   }
+
+  // ================= CREATE =================
 
   openAdd(startupId = ''): void {
     this.mode = 'add';
     this.currentRequest = null;
     this.isVisible = true;
     this.submitSuccess = false;
+
     this.form.reset({
-      investorId: 'dev-investor',
       startupId,
       introMessage: '',
       ticketProposed: null,
     });
-    this.form.get('investorId')?.enable();
-    this.form.get('startupId')?.enable();
+
     this.selectedFile = null;
     this.fileError = '';
   }
+
+  // ================= EDIT =================
 
   openEdit(req: InvestmentRequest): void {
     this.mode = 'edit';
     this.currentRequest = req;
     this.isVisible = true;
     this.submitSuccess = false;
+
     this.selectedFile = null;
     this.fileError = '';
 
     this.form.reset({
-      investorId: req.investorId ?? 'dev-investor',
       startupId: req.startupId ?? '',
       introMessage: req.introMessage ?? '',
       ticketProposed: req.ticketProposed ?? null,
     });
 
-    this.form.get('investorId')?.disable();
     this.form.get('startupId')?.disable();
   }
 
+  // ================= CLOSE =================
+
   closeForm(): void {
     this.isVisible = false;
+
     this.form.reset({
-      investorId: 'dev-investor',
       startupId: '',
       introMessage: '',
       ticketProposed: null,
     });
+
     this.selectedFile = null;
     this.fileError = '';
     this.submitSuccess = false;
   }
+
+  // ================= SUBMIT =================
 
   onSubmit(): void {
     if (this.form.invalid) {
@@ -125,28 +141,39 @@ export class RequestForm implements OnInit {
 
     this.isSubmitting = true;
 
+    const userId = this.authService.getUserId();
+    console.log('Connected User ID =', userId);
+
+    // ================= ADD =================
     if (this.mode === 'add') {
       const raw = this.form.getRawValue();
+
       const formData = new FormData();
       formData.append('startupId', raw.startupId);
       formData.append('introMessage', (raw.introMessage ?? '').trim());
-      if (raw.ticketProposed != null && raw.ticketProposed !== '') {
+
+      if (raw.ticketProposed != null) {
         formData.append('ticketProposed', String(raw.ticketProposed));
       }
+
       if (this.selectedFile) {
         formData.append('investorDoc', this.selectedFile, this.selectedFile.name);
       }
 
-      this.requestService.create(formData, String(this.authService.getUserId())).subscribe({
+      this.requestService.create(formData, String(userId)).subscribe({
         next: () => this.handleSuccess(),
-        error: () => {
+        error: (err) => {
+          console.error(err);
           this.isSubmitting = false;
         }
       });
+
       return;
     }
 
+    // ================= EDIT =================
     const raw = this.form.getRawValue();
+
     const payload: InvestmentRequest = {
       ...(this.currentRequest as InvestmentRequest),
       introMessage: (raw.introMessage ?? '').trim(),
@@ -155,31 +182,44 @@ export class RequestForm implements OnInit {
 
     this.requestService.updateRequest(payload.id, payload).subscribe({
       next: () => this.handleSuccess(),
-      error: () => {
+      error: (err) => {
+        console.error(err);
         this.isSubmitting = false;
       }
     });
   }
 
+  // ================= SUCCESS =================
+
   private handleSuccess(): void {
     this.isSubmitting = false;
     this.submitSuccess = true;
-    setTimeout(() => this.router.navigate(['/investment/demandes']), 800);
+
+    setTimeout(() => {
+      this.router.navigate(['/investment/demandes']);
+    }, 800);
   }
+
+  // ================= FILE =================
 
   onFileSelected(event: Event): void {
     const file = (event.target as HTMLInputElement).files?.[0];
+
     this.fileError = '';
     this.selectedFile = null;
+
     if (!file) return;
+
     if (file.type !== 'application/pdf') {
       this.fileError = 'Only PDF files are accepted';
       return;
     }
+
     if (file.size > 5 * 1024 * 1024) {
       this.fileError = 'Maximum size: 5 MB';
       return;
     }
+
     this.selectedFile = file;
   }
 
@@ -188,8 +228,15 @@ export class RequestForm implements OnInit {
     this.fileError = '';
   }
 
-  get isEditMode(): boolean { return this.mode === 'edit'; }
-  get isAddMode(): boolean { return this.mode === 'add'; }
+  // ================= GETTERS =================
+
+  get isEditMode(): boolean {
+    return this.mode === 'edit';
+  }
+
+  get isAddMode(): boolean {
+    return this.mode === 'add';
+  }
 
   get formTitle(): string {
     return this.mode === 'add'
@@ -216,6 +263,8 @@ export class RequestForm implements OnInit {
     return this.form.get('introMessage')?.value?.length ?? 0;
   }
 
+  // ================= STARTUP INFO =================
+
   get startupResolved(): boolean {
     const startupId = this.form.getRawValue().startupId ?? this.currentRequest?.startupId ?? '';
     return !!STARTUP_CATALOG_BY_ID[startupId];
@@ -231,6 +280,8 @@ export class RequestForm implements OnInit {
     return STARTUP_CATALOG_BY_ID[startupId]?.sector ?? '';
   }
 
+  // ================= VALIDATION =================
+
   isInvalid(field: string): boolean {
     const ctrl = this.form.get(field);
     return !!(ctrl?.invalid && ctrl?.touched);
@@ -239,6 +290,7 @@ export class RequestForm implements OnInit {
   getError(field: string): string {
     const errors = this.form.get(field)?.errors;
     if (!errors) return '';
+
     if (errors['required']) return 'This field is required';
     if (errors['minlength']) {
       return `Minimum ${errors['minlength'].requiredLength} characters`;
@@ -247,6 +299,7 @@ export class RequestForm implements OnInit {
       return `Maximum ${errors['maxlength'].requiredLength} characters`;
     }
     if (errors['min']) return 'Amount must be positive';
+
     return 'Invalid value';
   }
 

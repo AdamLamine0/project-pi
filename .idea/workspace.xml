@@ -5,12 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d6a98110-6808-47e6-9a4b-393b44c59baa" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/new-front/src/app/modules/investment-module/investment/components/criteria-form/criteria-form.css" beforeDir="false" afterPath="$PROJECT_DIR$/new-front/src/app/modules/investment-module/investment/components/criteria-form/criteria-form.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/new-front/src/app/modules/investment-module/investment/components/criteria-form/criteria-form.html" beforeDir="false" afterPath="$PROJECT_DIR$/new-front/src/app/modules/investment-module/investment/components/criteria-form/criteria-form.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/new-front/src/app/modules/investment-module/investment/components/criteria-form/criteria-form.ts" beforeDir="false" afterPath="$PROJECT_DIR$/new-front/src/app/modules/investment-module/investment/components/criteria-form/criteria-form.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/new-front/src/app/modules/investment-module/investment/components/criteria-list/criteria-list.css" beforeDir="false" afterPath="$PROJECT_DIR$/new-front/src/app/modules/investment-module/investment/components/criteria-list/criteria-list.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/new-front/src/app/modules/investment-module/investment/components/criteria-list/criteria-list.html" beforeDir="false" afterPath="$PROJECT_DIR$/new-front/src/app/modules/investment-module/investment/components/criteria-list/criteria-list.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/new-front/src/app/modules/investment-module/investment/components/criteria-list/criteria-list.ts" beforeDir="false" afterPath="$PROJECT_DIR$/new-front/src/app/modules/investment-module/investment/components/criteria-list/criteria-list.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api-gateway/src/main/java/org/example/apigateway/config/GatewayRoutes.java" beforeDir="false" afterPath="$PROJECT_DIR$/api-gateway/src/main/java/org/example/apigateway/config/GatewayRoutes.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/new-front/src/app/modules/investment-module/investment/components/request-form/request-form.ts" beforeDir="false" afterPath="$PROJECT_DIR$/new-front/src/app/modules/investment-module/investment/components/request-form/request-form.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,6 +59,7 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
     "git-widget-placeholder": "investment",

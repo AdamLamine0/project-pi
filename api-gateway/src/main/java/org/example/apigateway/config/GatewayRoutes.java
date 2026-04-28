@@ -148,6 +148,16 @@ public class GatewayRoutes {
     }
 
 
+    //investissement
+    @Bean
+    public RouterFunction<ServerResponse> investmentServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/invest-request/**"), HandlerFunctions.http())
+                .filter(lb("investment-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+
 
 
 }
