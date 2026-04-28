@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../../../../../environments/environment';
@@ -61,15 +62,17 @@ export class CommunityNotificationService {
     this.toastService.show(notification.message, 'info');
   }
 
-  refreshNotifications(userId: string) {
+  async refreshNotifications(userId: string): Promise<void> {
     if (!this.isValidUserId(userId)) {
       this.notificationsSubject.next([]);
       this.unreadCountSubject.next(0);
       return;
     }
 
-    this.getNotifications(userId).subscribe();
-    this.getUnreadCount(userId).subscribe();
+    await Promise.all([
+      firstValueFrom(this.getNotifications(userId)),
+      firstValueFrom(this.getUnreadCount(userId)),
+    ]);
   }
 
   getNotifications(userId: string): Observable<CommunityNotification[]> {
@@ -104,13 +107,13 @@ export class CommunityNotificationService {
 
   markAsRead(id: string, userId: string): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/${id}/read`, {}).pipe(
-      tap(() => this.refreshNotifications(userId))
+      tap(() => void this.refreshNotifications(userId))
     );
   }
 
   markAllAsRead(userId: string): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/all/${userId}/read`, {}).pipe(
-      tap(() => this.refreshNotifications(userId))
+      tap(() => void this.refreshNotifications(userId))
     );
   }
 

@@ -49,10 +49,10 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: HomeComponent },
+      { path: 'dashboard', component: HomeComponent, canActivate: [authGuard], data: { role: 'ADMIN' } },
       { path: 'projects', component: ProjectsComponent },
       { path: 'community', loadChildren: () => import('./modules/community/community.module').then(m => m.CommunityModule) },
-      { path: 'legal', loadChildren: () => import('./modules/legal/legal.module').then(m => m.LegalModule) },
+      { path: 'legal', loadChildren: () => import('./modules/legal/legal.module').then(m => m.LegalModule), canActivate: [authGuard], data: { role: 'ADMIN' } },
       { path: 'investments', component: InvestmentsComponent },
       { path: 'mentoring', component: MentoringComponent },
       { path: 'roadmaps', component: RoadmapsComponent },

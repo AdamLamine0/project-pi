@@ -84,7 +84,8 @@ export class LegalProcedureFormComponent implements OnInit {
       next: (created) => {
         this.successMessage = 'Case created successfully.';
         this.loading = false;
-        setTimeout(() => this.router.navigate(['/app/legal', created.id]), 800);
+        const basePath = this.auth.isAdmin() ? '/app/legal' : '/procedures';
+        setTimeout(() => this.router.navigate([basePath, created.id]), 800);
       },
       error: (err) => {
         this.errorMessage = err?.error?.message || 'An error occurred while creating the case.';

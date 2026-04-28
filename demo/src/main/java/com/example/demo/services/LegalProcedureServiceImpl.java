@@ -3,6 +3,7 @@ package com.example.demo.services;
 import com.example.demo.dto.CreateLegalProcedureRequest;
 import com.example.demo.dto.ExpertDecisionRequest;
 import com.example.demo.dto.LegalProcedureResponse;
+import com.example.demo.dto.LegalProcedureStatsResponse;
 import com.example.demo.entity.LegalProcedure;
 import com.example.demo.enums.DocumentStatus;
 import com.example.demo.enums.ProcedureStatus;
@@ -20,9 +21,12 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Map;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -54,6 +58,15 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
                 .build();
 
         return mapper.toProcedureResponse(procedureRepository.save(procedure));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<LegalProcedureResponse> findAll() {
+        return procedureRepository.findAll()
+                .stream()
+                .map(mapper::toProcedureResponse)
+                .toList();
     }
 
     @Override
@@ -155,6 +168,32 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
 
         recalculateCompletionRate(procedure);
         return mapper.toProcedureResponse(procedureRepository.save(procedure));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public LegalProcedureStatsResponse getStats() {
+        long total = procedureRepository.count();
+        Map<String, Long> byType = Arrays.stream(com.example.demo.enums.ProcedureType.values())
+                .collect(Collectors.toMap(Enum::name, procedureRepository::countByProcedureType));
+        double averageCompletion = total == 0 ? 0 : procedureRepository.findAll()
+                .stream()
+                .map(LegalProcedure::getCompletionRate)
+                .filter(rate -> rate != null)
+                .mapToDouble(Float::doubleValue)
+                .average()
+                .orElse(0);
+
+        return new LegalProcedureStatsResponse(
+                total,
+                procedureRepository.countByStatus(ProcedureStatus.BROUILLON),
+                procedureRepository.countByStatus(ProcedureStatus.EN_COURS),
+                procedureRepository.countByStatus(ProcedureStatus.EN_ATTENTE_EXPERT),
+                procedureRepository.countByStatus(ProcedureStatus.COMPLETE),
+                procedureRepository.countByStatus(ProcedureStatus.REFUSE),
+                Math.round(averageCompletion * 10.0) / 10.0,
+                byType
+        );
     }
 
     @Override
