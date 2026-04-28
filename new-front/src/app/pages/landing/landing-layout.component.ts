@@ -121,6 +121,12 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
   protected readonly canAccessDashboard = computed(() =>
     this.authService.hasRole('ADMIN', 'MENTOR', 'PARTNER', 'PARTENAIRE')
   );
+  protected readonly isInvestor = computed(() =>
+    this.authService.hasRole('INVESTOR')
+  );
+  protected readonly canAccessInvestmentRequests = computed(() =>
+    this.authService.hasRole('INVESTOR', 'ENTREPRENEUR')
+  );
   protected readonly userInitial = computed(() => {
     const e = this.authService.getEmail();
     return e ? e[0].toUpperCase() : '?';
@@ -141,6 +147,7 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
     { id: 'events',    label: 'Events',    route: '/events',    type: 'route' },
     { id: 'community', label: 'Community', route: '/community', type: 'route' },
     { id: 'procedures', label: 'Procedures', route: '/procedures', type: 'route' },
+    { id: 'investment', label: 'Investment', route: '/investment', type: 'route' },
     { id: 'services',  label: 'Services',  anchor: 'services',  type: 'anchor' },
     { id: 'about',     label: 'About',     anchor: 'about',     type: 'anchor' },
     { id: 'contact',   label: 'Contact',   anchor: 'contact',   type: 'anchor' },

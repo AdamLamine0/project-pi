@@ -1,0 +1,28 @@
+<div class="kanban-page">
+  <div class="header">
+    <div>
+      <div class="eyebrow">Deal pipeline</div>
+      <div class="title">Investment deals</div>
+      <div class="subtitle">Drag cards across columns to update status and priority.</div>
+    </div>
+
+    <button mat-stroked-button (click)="loadBoard()" [disabled]="loading">
+      Refresh
+    </button>
+  </div>
+
+  <div class="state" *ngIf="loading">Loading pipeline...</div>
+  <div class="state error" *ngIf="!loading && error">{{ error }}</div>
+
+  <div class="board" *ngIf="!loading">
+    <app-kanban-column
+      *ngFor="let status of statuses"
+      [title]="statusTitles[status]"
+      [status]="status"
+      [cards]="columns[status]"
+      [connectedToIds]="connectedDropListIds"
+      (dropped)="onColumnDropped($event)"
+    ></app-kanban-column>
+  </div>
+</div>
+

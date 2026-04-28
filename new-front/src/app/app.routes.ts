@@ -27,6 +27,9 @@ export const routes: Routes = [
       { path: 'events', component: EventsComponent, canActivate: [loginGuard] },
       { path: 'community', loadChildren: () => import('./modules/community/community.module').then(m => m.CommunityModule), canActivate: [loginGuard] },
       { path: 'procedures', loadChildren: () => import('./modules/legal/legal.module').then(m => m.LegalModule) },
+      {
+        path: 'investment', loadChildren: () => import('./modules/investment-module/investment/investment-module').then(m => m.InvestmentModule), canActivate: [loginGuard]
+      },
       // Profile accessible to any authenticated user (including USER role)
       { path: 'profile', component: ProfileComponent, canActivate: [loginGuard] },
     ],
