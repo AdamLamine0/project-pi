@@ -1,1 +1,27 @@
-<p>kanban-board works!</p>
+<div class="kanban-page">
+  <div class="header">
+    <div>
+      <div class="title">Pipeline des deals</div>
+      <div class="subtitle">Glisse les cartes pour mettre a jour le statut et l ordre.</div>
+    </div>
+
+    <button mat-stroked-button (click)="loadBoard()" [disabled]="loading">
+      Recharger
+    </button>
+  </div>
+
+  <div class="state" *ngIf="loading">Chargement...</div>
+  <div class="state error" *ngIf="!loading && error">{{ error }}</div>
+
+  <div class="board" *ngIf="!loading">
+    <app-kanban-column
+      *ngFor="let status of statuses"
+      [title]="statusTitles[status]"
+      [status]="status"
+      [cards]="columns[status]"
+      [connectedToIds]="connectedDropListIds"
+      (dropped)="onColumnDropped($event)"
+    ></app-kanban-column>
+  </div>
+</div>
+

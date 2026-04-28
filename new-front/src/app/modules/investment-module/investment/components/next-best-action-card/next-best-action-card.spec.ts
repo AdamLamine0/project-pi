@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DealCard } from './deal-card';
+import { NextBestActionCard } from './next-best-action-card';
 
-describe('DealCard', () => {
-  let component: DealCard;
-  let fixture: ComponentFixture<DealCard>;
+describe('NextBestActionCard', () => {
+  let component: NextBestActionCard;
+  let fixture: ComponentFixture<NextBestActionCard>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [DealCard],
+      imports: [NextBestActionCard],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(DealCard);
+    fixture = TestBed.createComponent(NextBestActionCard);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

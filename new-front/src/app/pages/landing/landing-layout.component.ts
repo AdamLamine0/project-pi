@@ -121,6 +121,9 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
   protected readonly canAccessDashboard = computed(() =>
     this.authService.hasRole('ADMIN', 'MENTOR', 'PARTNER', 'PARTENAIRE')
   );
+  protected readonly isInvestor = computed(() =>
+    this.authService.hasRole('INVESTOR')
+  );
   protected readonly userInitial = computed(() => {
     const e = this.authService.getEmail();
     return e ? e[0].toUpperCase() : '?';
@@ -271,4 +274,4 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
       default: return 'Notification';
     }
   }
-}
+}

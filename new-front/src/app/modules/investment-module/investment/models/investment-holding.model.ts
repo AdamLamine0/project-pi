@@ -28,7 +28,7 @@ export interface InvestmentHoldingMilestone {
   releasedAt?: string | null;
 }
 
-export interface InvestmentHolding {
+export interface InvestmentHoldingModel {
   id: string;
   investmentRequestId: string;
   investorId: string;

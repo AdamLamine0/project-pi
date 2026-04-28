@@ -95,6 +95,16 @@
         Dashboard
       </a>
       }
+      @if (isInvestor()) {
+      <a routerLink="/investment/startups" class="cta-ghost startups-link">
+        <ng-icon name="lucideRocket" size="14" />
+        Startups
+      </a>
+      <a routerLink="/investment/kanban" class="cta-ghost deals-link">
+        <ng-icon name="lucideBriefcase" size="14" />
+        Deals
+      </a>
+      }
       <!-- User dropdown -->
       <div class="user-menu">
         <button class="user-menu-trigger" (click)="toggleUserDropdown()">
@@ -177,6 +187,10 @@
       Reservations</a>
     @if (canAccessDashboard()) {
     <a routerLink="/app/dashboard" class="mobile-link" (click)="mobileMenu.set(false)">Dashboard</a>
+    }
+    @if (isInvestor()) {
+    <a routerLink="/investment/startups" class="mobile-link" (click)="mobileMenu.set(false)">Startups</a>
+    <a routerLink="/investment/kanban" class="mobile-link" (click)="mobileMenu.set(false)">Deals</a>
     }
     <button class="mobile-link" (click)="logout()">Sign out</button>
     } @else {

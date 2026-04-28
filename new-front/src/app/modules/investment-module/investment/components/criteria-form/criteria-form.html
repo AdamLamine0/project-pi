@@ -1,1 +1,148 @@
-<p>criteria-form works!</p>
+<div class="page">
+  <div class="header">
+    <h2>{{ isEditMode ? "Modifier le critere d'investissement" : "Critere d'investissement" }}</h2>
+    <p class="sub">
+      {{ isEditMode ? "Mets a jour le profil d'investissement en gardant la meme these." : "Definis ton profil d'investissement et les opportunites que tu recherches." }}
+    </p>
+  </div>
+
+  <p class="error" *ngIf="error">{{ error }}</p>
+
+  <div class="helper-card" *ngIf="!isEditMode && existingCriteriaId">
+    <strong>Profil deja existant</strong>
+    <p>Un investisseur ne peut avoir qu un seul critere. Ouvre le profil existant pour le modifier.</p>
+    <button type="button" class="btn secondary" (click)="openExistingCriteria()">Ouvrir le critere existant</button>
+  </div>
+
+  <form class="card" (ngSubmit)="submit()">
+    <div class="grid">
+      <div class="field">
+        <label for="investorId">Identifiant investisseur</label>
+        <input
+          id="investorId"
+          type="text"
+          [(ngModel)]="criteria.investorId"
+          name="investorId"
+          placeholder="ex: INV-001"
+          required
+        />
+      </div>
+
+      <div class="field">
+        <label for="location">Zone geographique</label>
+        <input
+          id="location"
+          type="text"
+          [(ngModel)]="criteria.location"
+          name="location"
+          placeholder="ex: Europe, MENA, Remote"
+        />
+      </div>
+
+      <div class="field">
+        <label for="minBudget">Budget minimum</label>
+        <input
+          id="minBudget"
+          type="number"
+          min="0"
+          [(ngModel)]="criteria.minBudget"
+          name="minBudget"
+          placeholder="0"
+        />
+      </div>
+
+      <div class="field">
+        <label for="maxBudget">Budget maximum</label>
+        <input
+          id="maxBudget"
+          type="number"
+          min="0"
+          [(ngModel)]="criteria.maxBudget"
+          name="maxBudget"
+          placeholder="0"
+        />
+      </div>
+
+      <div class="field full">
+        <label>Secteurs</label>
+        <div class="chipRow">
+          <input
+            type="text"
+            [(ngModel)]="sectorDraft"
+            name="sectorDraft"
+            placeholder="Saisis un secteur puis clique sur Ajouter"
+            (keydown.enter)="$event.preventDefault(); addSector()"
+          />
+          <button type="button" class="btn secondary" (click)="addSector()">Ajouter</button>
+        </div>
+        <div class="suggestions" *ngIf="filteredSectorSuggestions.length > 0">
+          <button
+            type="button"
+            class="suggestion"
+            *ngFor="let s of filteredSectorSuggestions"
+            (click)="selectSectorSuggestion(s)"
+          >
+            {{ s }}
+          </button>
+        </div>
+        <div class="chips" *ngIf="criteria.sectors.length > 0">
+          <button
+            type="button"
+            class="chip"
+            *ngFor="let s of criteria.sectors"
+            (click)="removeSector(s)"
+            title="Remove"
+          >
+            <span class="chipText">{{ s }}</span>
+            <span class="chipX">x</span>
+          </button>
+        </div>
+        <p class="hint" *ngIf="criteria.sectors.length === 0">Aucun secteur ajoute pour le moment.</p>
+      </div>
+
+      <div class="field full">
+        <label>Stades</label>
+        <div class="chipRow">
+          <input
+            type="text"
+            [(ngModel)]="stageDraft"
+            name="stageDraft"
+            placeholder="Saisis un stade (Seed, Series A...) puis clique sur Ajouter"
+            (keydown.enter)="$event.preventDefault(); addStage()"
+          />
+          <button type="button" class="btn secondary" (click)="addStage()">Ajouter</button>
+        </div>
+        <div class="suggestions" *ngIf="filteredStageSuggestions.length > 0">
+          <button
+            type="button"
+            class="suggestion"
+            *ngFor="let s of filteredStageSuggestions"
+            (click)="selectStageSuggestion(s)"
+          >
+            {{ s }}
+          </button>
+        </div>
+        <div class="chips" *ngIf="criteria.stages.length > 0">
+          <button
+            type="button"
+            class="chip"
+            *ngFor="let s of criteria.stages"
+            (click)="removeStage(s)"
+            title="Remove"
+          >
+            <span class="chipText">{{ s }}</span>
+            <span class="chipX">x</span>
+          </button>
+        </div>
+        <p class="hint" *ngIf="criteria.stages.length === 0">Aucun stade ajoute pour le moment.</p>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="submit" class="btn primary" [disabled]="submitting">
+        {{ isEditMode ? 'Mettre a jour le critere' : 'Enregistrer le critere' }}
+      </button>
+    </div>
+  </form>
+</div>
+

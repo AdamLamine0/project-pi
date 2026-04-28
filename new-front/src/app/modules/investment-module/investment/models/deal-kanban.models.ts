@@ -8,7 +8,7 @@ export type DealStatus =
 
 export type AlertLevel = 'NONE' | 'YELLOW' | 'RED';
 
-export interface DealCard {
+export interface DealPipeline {
   id: string | number;
   startupName?: string;
   startupId?: string;
@@ -32,8 +32,8 @@ export interface KanbanBoardResponse {
    * - or `{ [status]: DealCard[] }`
    * - or `{ deals: DealCard[] }`
    */
-  columns?: Partial<Record<DealStatus, DealCard[]>>;
-  deals?: DealCard[];
+  columns?: Partial<Record<DealStatus, DealPipeline[]>>;
+  deals?: DealPipeline[];
   [key: string]: unknown;
 }
 

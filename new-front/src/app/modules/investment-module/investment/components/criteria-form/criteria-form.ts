@@ -1,11 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatSliderModule } from '@angular/material/slider';
 import { InvestmentCriteria } from '../../models/investment-criteria.model';
-import { InvestmentCriteriaService } from '../../services/investment-criteria.service/investment-criteria.service';
+import { InvestmentCriteriaService } from '../../services/investment-criteria.service';
 
 @Component({
   selector: 'app-criteria-form',
-  imports: [],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatCardModule, MatButtonModule, MatInputModule, MatFormFieldModule, MatSelectModule, MatCheckboxModule, MatSliderModule],
   templateUrl: './criteria-form.html',
   styleUrl: './criteria-form.css',
 })

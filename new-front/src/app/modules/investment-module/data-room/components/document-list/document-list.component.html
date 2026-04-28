@@ -1,0 +1,48 @@
+<div class="doc-wrap">
+  <div class="empty" *ngIf="!loading && documents.length === 0">
+    <mat-icon>folder_open</mat-icon>
+    <div>
+      <strong>Aucun document dans ce dossier</strong>
+      <p>Ajoutez les premieres pieces du deal pour alimenter cette section.</p>
+    </div>
+  </div>
+
+  <div class="loading" *ngIf="loading">
+    <mat-spinner diameter="36"></mat-spinner>
+    <span>Chargement des documents...</span>
+  </div>
+
+  <div class="doc-grid" *ngIf="!loading && documents.length > 0">
+    <article class="doc-card" *ngFor="let row of documents">
+      <div class="doc-main">
+        <div class="doc-icon" [attr.data-tone]="toneFor(row.type)">
+          <mat-icon>{{ iconFor(row.type) }}</mat-icon>
+        </div>
+
+        <div class="doc-copy">
+          <div class="doc-title-row">
+            <h3>{{ row.fileName }}</h3>
+            <span class="type-pill" [attr.data-tone]="toneFor(row.type)">{{ row.type }}</span>
+          </div>
+
+          <div class="doc-meta">
+            <span>Ajoute le {{ formatDate(row.uploadDate) }}</span>
+            <span class="meta-dot">•</span>
+            <span>Document securise</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="doc-actions">
+        <button mat-stroked-button type="button" (click)="view.emit(row)">
+          <mat-icon>visibility</mat-icon>
+          Voir
+        </button>
+        <button mat-flat-button color="primary" type="button" (click)="download.emit(row)">
+          <mat-icon>download</mat-icon>
+          Telecharger
+        </button>
+      </div>
+    </article>
+  </div>
+</div>
