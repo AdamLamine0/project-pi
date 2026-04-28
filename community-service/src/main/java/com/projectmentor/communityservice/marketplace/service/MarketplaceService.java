@@ -156,10 +156,9 @@ public class MarketplaceService {
         opp.setPositionsAvailable(dto.getPositionsAvailable() != null ? dto.getPositionsAvailable() : 1);
         opp.setSkillsRequired(dto.getSkillsRequired());
 
+        // Use server local time — expiresAt is stored as local time (no TZ info)
         LocalDateTime newDeadline = dto.getExpiresAt();
-        // Automatically reopen the opportunity if the new deadline is in the future
-        // Use UTC for comparison to be consistent with the DeadlineSchedulerService
-        if (newDeadline != null && newDeadline.isAfter(LocalDateTime.now(java.time.ZoneOffset.UTC))) {
+        if (newDeadline != null && newDeadline.isAfter(LocalDateTime.now())) {
             if (opp.getStatus() == OpportunityStatus.EXPIRED || 
                 opp.getStatus() == OpportunityStatus.CLOSED || 
                 opp.getStatus() == OpportunityStatus.IN_PROGRESS) {
