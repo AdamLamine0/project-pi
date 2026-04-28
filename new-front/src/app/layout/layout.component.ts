@@ -10,6 +10,7 @@ import {
   lucideAlertCircle, lucideEdit, lucideMoon, lucideSun, lucideStar,
   lucideMonitor, lucideMenu, lucideCamera, lucideKey, lucideTrash2,
   lucideChevronRight, lucideLanguages, lucideCreditCard, lucideMessageSquare,
+  lucideClipboardList,
 } from '@ng-icons/lucide';
 import { filter } from 'rxjs/operators';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -35,6 +36,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
       lucideAlertCircle, lucideEdit, lucideMoon, lucideSun, lucideStar,
       lucideMonitor, lucideMenu, lucideCamera, lucideKey, lucideTrash2,
       lucideChevronRight, lucideLanguages, lucideCreditCard, lucideMessageSquare,
+      lucideClipboardList,
     }),
   ],
   template: `
@@ -900,6 +902,7 @@ export class LayoutComponent {
     { icon: 'lucideMap',             label: 'Roadmaps',     route: '/app/roadmaps'     },
     { icon: 'lucideHandshake',       label: 'Partnerships', route: '/app/partnerships' },
     { icon: 'lucideCalendar',        label: 'Events',       route: '/app/events'       },
+    { icon: 'lucideClipboardList',   label: 'Registrations', route: '/app/registrations' },
   ];
 
   private readonly url = toSignal(
