@@ -78,7 +78,7 @@
           <td>
             <div class="legal-row-actions">
               <a class="legal-btn legal-btn--secondary legal-btn--sm"
-                 [routerLink]="['/app/legal', p.id]"
+                 [routerLink]="[auth.isAdmin() ? '/app/legal' : '/procedures', p.id]"
                  [state]="{ procedure: p }">
                 Details
               </a>

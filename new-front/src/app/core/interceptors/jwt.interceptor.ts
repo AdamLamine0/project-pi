@@ -8,9 +8,8 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
   const token = authService.getToken();
-  const isPublicExpertList = req.url.includes('/api/users/experts');
   const isAuthEndpoint = req.url.includes('/api/auth/');
-  const isPublicRequest = isPublicExpertList || isAuthEndpoint;
+  const isPublicRequest = isAuthEndpoint;
 
   const authReq = token && !isPublicRequest
     ? req.clone({
