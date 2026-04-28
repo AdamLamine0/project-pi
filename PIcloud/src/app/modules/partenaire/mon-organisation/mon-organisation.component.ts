@@ -91,21 +91,12 @@ export class MonOrganisationComponent implements OnInit {
     return this.org?.statut === PartnerStatus.TERMINATED;
   }
 
-  // PARTNER: find their org by matching userId from all orgs
+  // PARTNER: load their org directly
   async loadMyOrg(): Promise<void> {
     this.isLoading = true;
     this.errorMessage = '';
     try {
-      const myUserId = Number(this.authService.getUserId());
-      const allOrgs  = await this.partenaireService.getAll();
-      const myOrg    = allOrgs.find(o => Number(o.userId) === myUserId) ?? null;
-
-      if (!myOrg) {
-        this.errorMessage = 'No organisation found for your account. Please contact an administrator.';
-        return;
-      }
-
-      this.org = myOrg;
+      this.org = await this.partenaireService.getMyDashboard();
       this.patchForm(this.org);
     } catch {
       this.errorMessage = 'Unable to load your organisation.';

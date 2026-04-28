@@ -23,7 +23,7 @@ public class OAuth2LoginSuccessHandler
     private final JwtService jwtService;
 
     private static final String FRONTEND_CALLBACK =
-            "http://localhost:4200/auth/oauth2/callback";
+            "http://localhost:4200/auth/oauth2-callback";
 
     @Override
     public void onAuthenticationSuccess(

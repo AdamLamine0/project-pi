@@ -44,15 +44,11 @@ export class PartenaireService {
     );
   }
 
-  // ── PARTNER: find own organisation by scanning all orgs ──────────────────
-  async getMyDashboard(): Promise<OrganisationPartenaire> {
-    const myUserId = Number(this.auth.getUserId());
-    const all = await this.getAll();
-    const mine = all.find(o => Number(o.userId) === myUserId);
-    if (!mine) {
-      throw new Error('No organisation found for your account. Please contact an administrator.');
-    }
-    return mine;
+  // ── PARTNER: get own organisation directly ───────────────────────────────
+  getMyDashboard(): Promise<OrganisationPartenaire> {
+    return firstValueFrom(
+      this.http.get<OrganisationPartenaire>(`${this.apiUrl}/my-dashboard`, { headers: this.headers() })
+    );
   }
 
   // ── PARTNER: update contact info ──────────────────────────────────────────

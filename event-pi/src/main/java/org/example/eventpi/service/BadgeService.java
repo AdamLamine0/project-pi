@@ -7,9 +7,11 @@ import org.example.eventpi.feign.UserClient;
 import org.example.eventpi.dto.UserResponse;
 import org.example.eventpi.model.*;
 import org.example.eventpi.repository.BadgeRepository;
+import org.example.eventpi.repository.CertificateRepository;
 import org.example.eventpi.repository.EventRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -21,19 +23,21 @@ import java.util.List;
 public class BadgeService {
 
     private final BadgeRepository badgeRepository;
+    private final CertificateRepository certificateRepository;
     private final CertificateService certificateService;
     private final EventRepository eventRepository;
     private final UserClient userClient;
     private final NotificationService notificationService;
 
-    // How many events of the same series to trigger SERIE_COMPLETION badge
     private static final int SERIES_THRESHOLD = 4;
 
     @Value("${app.base-url}")
     private String baseUrl;
 
     // ── MAIN TRIGGER — called after checkIn ──────────────────────────────
-    @Transactional
+    // REQUIRES_NEW: badge/cert generation runs in its own independent transaction.
+    // If it fails and rolls back, the caller's check-in transaction is NOT affected.
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void onAttendanceConfirmed(Integer userId, Long eventId) {
         Event event = eventRepository.findById(eventId).orElse(null);
         if (event == null) {
@@ -41,7 +45,6 @@ public class BadgeService {
             return;
         }
 
-        // Skip if already processed for this user+event
         if (badgeRepository.existsByUserIdAndEventIdAndType(
                 userId, eventId, BadgeType.PARTICIPATION)) {
             log.info("Badge already issued for userId={} eventId={}", userId, eventId);
@@ -73,7 +76,6 @@ public class BadgeService {
         // ── 3. Generate certificate (PDF + QR) ────────────────────────────
         Certificate cert = null;
         try {
-            // With:
             cert = certificateService.generateCertificate(
                     userId, recipientName, event,
                     participationBadge.getId(),
@@ -89,7 +91,6 @@ public class BadgeService {
             try {
                 String downloadUrl = baseUrl + "/api/certificates/"
                         + cert.getId() + "/download";
-                // Pass snapshot strings, not the live entity
                 String eventTitle = event.getTitle();
                 LocalDateTime eventDate = event.getStartDate();
                 notificationService.sendCertificateIssued(
@@ -111,7 +112,6 @@ public class BadgeService {
 
         long count = badgeRepository.countByUserIdAndSeriesTag(userId, seriesTag);
         if (count >= SERIES_THRESHOLD) {
-            // Check not already awarded
             boolean alreadyHas = badgeRepository
                     .findByUserId(userId).stream()
                     .anyMatch(b -> b.getType() == BadgeType.SERIE_COMPLETION
@@ -159,14 +159,27 @@ public class BadgeService {
     }
 
     private BadgeResponse toResponse(Badge b) {
+        String eventTitle = null;
+        if (b.getEventId() != null) {
+            eventTitle = eventRepository.findById(b.getEventId())
+                    .map(Event::getTitle)
+                    .orElse(null);
+        }
+
+        // PNG is only generated when a certificate is produced (PARTICIPATION badges).
+        boolean hasImage = b.getEventId() != null
+                && certificateRepository.findByBadgeId(b.getId()).isPresent();
+
         return BadgeResponse.builder()
                 .id(b.getId())
                 .userId(b.getUserId())
                 .eventId(b.getEventId())
+                .eventTitle(eventTitle)
                 .type(b.getType())
                 .label(b.getLabel())
                 .earnedAt(b.getEarnedAt())
                 .seriesTag(b.getSeriesTag())
+                .hasImage(hasImage)
                 .build();
     }
 }

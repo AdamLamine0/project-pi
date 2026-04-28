@@ -16,4 +16,11 @@ public class EventProgramResponse {
     private LocalDateTime endTime;
     private Integer orderIndex;
     private ProgramSlotType type;
+    // ── Assigned speaker (null when no speaker is assigned) ──────────────
+    private Long speakerId;
+    private String speakerName;
+    private String speakerTitle;
+    private String speakerCompany;
+    private String speakerPhotoUrl;
+    private String speakerLinkedinUrl;
 }

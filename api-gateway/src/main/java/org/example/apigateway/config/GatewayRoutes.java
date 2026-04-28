@@ -4,10 +4,15 @@ import org.example.apigateway.filter.AuthFilter;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
+
+import java.util.List;
 
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
 import static org.springframework.web.servlet.function.RequestPredicates.path;
@@ -50,6 +55,14 @@ public class GatewayRoutes {
         return RouterFunctions
                 .route(path("/api/conventions/**"), HandlerFunctions.http())
                 .filter(lb("partenariat-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> communityServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/community/**"), HandlerFunctions.http())
+                .filter(lb("community-service"))
                 .filter(authFilter.jwtFilter());
     }
 
@@ -129,6 +142,14 @@ public class GatewayRoutes {
     public RouterFunction<ServerResponse> certificateServiceRoute() {
         return RouterFunctions
                 .route(path("/api/certificates/**"), HandlerFunctions.http())
+                .filter(lb("event-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> ticketServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/tickets/**"), HandlerFunctions.http())
                 .filter(lb("event-pi"))
                 .filter(authFilter.jwtFilter());
     }
