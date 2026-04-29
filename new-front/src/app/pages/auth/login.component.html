@@ -28,7 +28,7 @@
   <div class="auth-field-group">
     <div class="auth-label-row">
       <label class="auth-field-label" for="login-password">Password</label>
-      <a routerLink="." class="auth-forgot-link" aria-label="Forgot your password">
+      <a routerLink="/auth/reset-password" class="auth-forgot-link" aria-label="Forgot your password">
         Forgot password?
       </a>
     </div>
@@ -73,7 +73,7 @@
   </div>
 
   <!-- Google -->
-  <button type="button" class="auth-btn-social">
+  <button type="button" class="auth-btn-social" (click)="loginWithGoogle()" aria-label="Continue with Google">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
          width="18" height="18" aria-hidden="true" focusable="false">
       <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04

@@ -473,7 +473,7 @@ export class EventsComponent implements OnInit, OnDestroy {
   }
 
   protected canCreate(): boolean {
-    return this.authService.hasRole('ADMIN', 'MENTOR', 'PARTNER');
+    return this.authService.hasRole('ADMIN', 'MENTOR', 'PARTNER', 'PARTENAIRE');
   }
 
   protected isAdmin(): boolean {
@@ -1196,7 +1196,7 @@ protected changeEventStatus(event: Event, status: EventStatus): void {
   protected canSubmit(event: Event): boolean {
     if (event.status !== 'BROUILLON') return false;
     if (this.isAdmin()) return true;
-    return event.organizerId === this.authService.getUserId() && this.authService.hasRole('MENTOR', 'PARTNER');
+    return event.organizerId === this.authService.getUserId() && this.authService.hasRole('MENTOR', 'PARTNER', 'PARTENAIRE');
   }
 
   protected canPublish(event: Event): boolean {

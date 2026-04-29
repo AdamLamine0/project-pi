@@ -9,7 +9,7 @@ FoundersLab is a Tunisian startup ecosystem platform built as a microservices sy
 - **event-pi** — Spring Boot 4.0.4 / Java 17 microservice (port 8083) for event management, registrations, badges, certificates, and ML predictions
 - **ml-service** — FastAPI / Python 3 service (port 8085) for ML-powered event analytics
 
-The broader system (not in this repo) includes `user-pi` (port 8081), `partenariat-pi`, an API Gateway (port 8091), and Eureka Service Discovery (port 8761).
+The broader system (not in this repo) includes `user-pi` (port 8081), `partenariat-pi`, an API Gateway (port 8090), and Eureka Service Discovery (port 8761).
 
 ## Build & Run Commands
 

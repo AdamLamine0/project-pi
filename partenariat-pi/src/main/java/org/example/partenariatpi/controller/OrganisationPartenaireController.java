@@ -43,7 +43,7 @@ public class OrganisationPartenaireController {
     public ResponseEntity<OrganisationPartenaireResponse> getMyDashboard(
             @RequestHeader("X-User-Id") Integer userId,
             @RequestHeader("X-User-Role") String role) {
-        checkRole(cleanRole(role), "ROLE_PARTNER");
+        checkRole(cleanRole(role), "ROLE_PARTNER", "ROLE_PARTENAIRE");
         return ResponseEntity.ok(service.getMyDashboard(userId));
     }
 
@@ -53,7 +53,7 @@ public class OrganisationPartenaireController {
             @Valid @RequestBody OrganisationPartenaireRequest request,
             @RequestHeader("X-User-Id") Integer userId,
             @RequestHeader("X-User-Role") String role) {
-        checkRole(cleanRole(role), "ROLE_PARTNER");
+        checkRole(cleanRole(role), "ROLE_PARTNER", "ROLE_PARTENAIRE");
         return ResponseEntity.ok(service.updateContactInfo(id, request, userId));
     }
 
@@ -106,8 +106,14 @@ public class OrganisationPartenaireController {
             throw new RuntimeException("Access denied: ADMIN role required");
     }
 
-    private void checkRole(String role, String required) {
-        if (!required.equals(role))
-            throw new RuntimeException("Access denied: " + required + " role required");
+    private void checkRole(String role, String... required) {
+        for (String candidate : required) {
+            if (candidate.equals(role)) {
+                return;
+            }
+        }
+
+        throw new RuntimeException(
+                "Access denied: " + String.join(" or ", required) + " role required");
     }
 }

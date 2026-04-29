@@ -1,0 +1,253 @@
+<div class="meetings-page">
+  <section class="hero">
+    <div>
+      <p class="eyebrow">Calendar</p>
+      <h1>My Meetings</h1>
+      <p class="subtitle">Track requests, accepted meetings and partner responses all in one place.</p>
+    </div>
+
+    <div class="hero-actions">
+      <button class="ghost-btn" (click)="loadMeetings()" [disabled]="isLoading">Refresh</button>
+      <div class="mode-switch">
+        <button [class.active]="viewMode === 'list'" (click)="setViewMode('list')">List</button>
+        <button [class.active]="viewMode === 'calendar'" (click)="setViewMode('calendar')">Calendar</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="alert error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <!-- ── SUMMARY ── -->
+  <section class="summary-grid" *ngIf="!isLoading && meetings.length">
+    <article class="summary-card highlight" *ngIf="nextMeeting">
+      <span class="summary-label">Next confirmed meeting</span>
+      <h2>{{ nextMeeting!.partenaireContactName }}</h2>
+      <p>{{ formatDateTime(nextMeeting!.suggestedDateTime) }}</p>
+      <button class="primary-btn" *ngIf="!isPast(nextMeeting!)"
+              (click)="openMeeting(nextMeeting!)" [disabled]="!canJoin(nextMeeting!)">
+        {{ canJoin(nextMeeting!) ? meetingActionLabel(nextMeeting!) : 'Available soon' }}
+      </button>
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-label">Confirmed</span>
+      <h2>{{ acceptedMeetings.length }}</h2>
+      <p>Zoom meetings ready</p>
+    </article>
+
+    <article class="summary-card">
+      <span class="summary-label">Pending</span>
+      <h2>{{ pendingMeetings.length }}</h2>
+      <p>Awaiting partner response</p>
+    </article>
+  </section>
+
+  <section class="loading-row" *ngIf="isLoading">
+    <span class="ring"></span>
+    Loading meetings...
+  </section>
+
+  <!-- ── PARTNER RESPOND PANEL (inline, shown when partner clicks Respond) ── -->
+  <section class="respond-panel" *ngIf="respondingTo">
+    <div class="respond-panel__header">
+      <h3>Respond to: <em>{{ respondingTo.partenaireContactName }}</em> — {{ respondingTo.subject ?? respondingTo.message }}</h3>
+      <button class="icon-btn" (click)="cancelRespond()">✕</button>
+    </div>
+    <p class="respond-meta">Requested for <strong>{{ formatDateTime(respondingTo.suggestedDateTime) }}</strong></p>
+    <div class="respond-actions">
+      <button class="respond-btn accept" (click)="partnerRespond('ACCEPT')" [disabled]="isResponding">
+        ✓ Accept
+      </button>
+      <button class="respond-btn suggest" (click)="showSuggestTime = true" [disabled]="isResponding">
+        📅 Suggest time
+      </button>
+      <button class="respond-btn reject" (click)="showRejectForm = true" [disabled]="isResponding">
+        ✕ Reject
+      </button>
+    </div>
+
+    <div class="respond-sub-form" *ngIf="showSuggestTime">
+      <label>Propose a new date/time</label>
+      <input type="datetime-local" [(ngModel)]="partnerSuggestedTime" />
+      <label>Note (optional)</label>
+      <textarea [(ngModel)]="partnerComment" rows="2" placeholder="Why this time?"></textarea>
+      <button class="primary-btn" (click)="partnerRespond('SUGGEST_TIME')" [disabled]="isResponding || !partnerSuggestedTime">
+        Send suggestion
+      </button>
+    </div>
+
+    <div class="respond-sub-form" *ngIf="showRejectForm">
+      <label>Reason for rejection *</label>
+      <textarea [(ngModel)]="partnerComment" rows="3" placeholder="Explain why you cannot accept..."></textarea>
+      <button class="primary-btn reject-confirm" (click)="partnerRespond('REJECT')" [disabled]="isResponding || !partnerComment?.trim()">
+        Confirm rejection
+      </button>
+    </div>
+
+    <div class="alert error" *ngIf="respondError">{{ respondError }}</div>
+    <div class="loading-row" *ngIf="isResponding"><span class="ring"></span>Sending response…</div>
+  </section>
+
+  <!-- ── UPDATE TIME PANEL (shown when user clicks "Update time" after TIME_SUGGESTED) ── -->
+  <section class="respond-panel" *ngIf="updatingTime">
+    <div class="respond-panel__header">
+      <h3>Update meeting time — {{ updatingTime.subject }}</h3>
+      <button class="icon-btn" (click)="cancelUpdateTime()">✕</button>
+    </div>
+    <p class="respond-meta">
+      Partner suggested:
+      <strong>{{ formatDateTime(updatingTime.suggestedDateTimeByPartner!) }}</strong>
+      <span *ngIf="updatingTime.partnerComment"> — "{{ updatingTime.partnerComment }}"</span>
+    </p>
+    <div class="form-group">
+      <label>Your new proposed date/time</label>
+      <input type="datetime-local" [(ngModel)]="newSuggestedTime" />
+    </div>
+    <div class="form-group">
+      <label>Note (optional)</label>
+      <textarea [(ngModel)]="updateNote" rows="2" placeholder="Add a message..."></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="ghost-btn" (click)="cancelUpdateTime()">Cancel</button>
+      <button class="primary-btn" (click)="submitTimeUpdate()" [disabled]="isResponding || !newSuggestedTime">
+        <span *ngIf="isResponding" class="ring small"></span>
+        Send updated request
+      </button>
+    </div>
+    <div class="alert error" *ngIf="respondError">{{ respondError }}</div>
+  </section>
+
+  <!-- ── LIST / CALENDAR ── -->
+  <ng-container *ngIf="!isLoading && meetings.length; else emptyState">
+    <section *ngIf="viewMode === 'list'" class="meeting-list">
+      <article class="meeting-card" *ngFor="let meeting of meetings; trackBy: trackByMeetingId"
+               [class.card--pending]="meeting.meetingStatus === 'PENDING'"
+               [class.card--rejected]="meeting.meetingStatus === 'REJECTED'"
+               [class.card--suggested]="meeting.meetingStatus === 'TIME_SUGGESTED'">
+
+        <div class="meeting-card__header">
+          <div>
+            <p class="meeting-time">{{ formatDateTime(meeting.suggestedDateTime) }}</p>
+            <h3>{{ meeting.partenaireContactName }}</h3>
+          </div>
+          <div class="badges">
+            <span class="badge priority" [class.urgent]="meeting.priority === 'EMERGENCY'">
+              {{ getPriorityLabel(meeting.priority) }}
+            </span>
+            <span class="badge" [ngClass]="statusBadgeClass(meeting.meetingStatus)">
+              {{ statusLabel(meeting.meetingStatus) }}
+            </span>
+          </div>
+        </div>
+
+        <p class="meeting-meta">{{ meeting.message }}</p>
+
+        <!-- TIME_SUGGESTED info banner -->
+        <div class="info-banner" *ngIf="meeting.meetingStatus === 'TIME_SUGGESTED'">
+          <strong>Partner proposed a new time:</strong>
+          {{ formatDateTime(meeting.suggestedDateTimeByPartner!) }}
+          <span *ngIf="meeting.partnerComment"> — "{{ meeting.partnerComment }}"</span>
+        </div>
+
+        <!-- REJECTED info banner -->
+        <div class="info-banner rejected" *ngIf="meeting.meetingStatus === 'REJECTED'">
+          <strong>Rejected</strong><span *ngIf="meeting.partnerComment"> — {{ meeting.partnerComment }}</span>
+        </div>
+
+        <div class="meeting-details">
+          <div>
+            <span>Date</span>
+            <strong>{{ formatDate(meeting.suggestedDateTime) }}</strong>
+          </div>
+          <div>
+            <span>Status</span>
+            <strong>{{ statusLabel(meeting.meetingStatus) }}</strong>
+          </div>
+          <div>
+            <span>Created</span>
+            <strong>{{ formatDateTime(meeting.createdAt) }}</strong>
+          </div>
+        </div>
+
+        <div class="meeting-actions">
+          <!-- Accepted & joinable -->
+          <ng-container *ngIf="meeting.meetingStatus === 'ACCEPTED' && !isPast(meeting)">
+            <button class="primary-btn" (click)="openMeeting(meeting)" [disabled]="!canJoin(meeting)">
+              {{ canJoin(meeting) ? meetingActionLabel(meeting) : 'Available at ' + formatTime(meeting.suggestedDateTime) }}
+            </button>
+          </ng-container>
+
+          <!-- PENDING — partner can respond -->
+          <ng-container *ngIf="meeting.meetingStatus === 'PENDING' && isPartner()">
+            <button class="text-btn" (click)="startRespond(meeting)">Respond</button>
+          </ng-container>
+
+          <!-- TIME_SUGGESTED — user can update time -->
+          <ng-container *ngIf="meeting.meetingStatus === 'TIME_SUGGESTED' && !isPartner()">
+            <button class="text-btn" (click)="startUpdateTime(meeting)">Update time</button>
+          </ng-container>
+
+          <!-- REJECTED — user can start a new request -->
+          <ng-container *ngIf="meeting.meetingStatus === 'REJECTED' && !isPartner()">
+            <span class="muted-label">Request a new meeting from the partner page.</span>
+          </ng-container>
+        </div>
+      </article>
+    </section>
+
+    <section *ngIf="viewMode === 'calendar'" class="calendar-grid">
+      <article class="day-column" *ngFor="let day of calendarGroups">
+        <header>
+          <p>{{ day.label }}</p>
+          <span>{{ day.meetings.length }} meeting{{ day.meetings.length > 1 ? 's' : '' }}</span>
+        </header>
+
+        <div class="day-events">
+          <article class="day-event" *ngFor="let meeting of day.meetings; trackBy: trackByMeetingId">
+            <div class="day-event__time">{{ formatTime(meeting.suggestedDateTime) }}</div>
+            <div class="day-event__content">
+              <h4>{{ meeting.partenaireContactName }}</h4>
+              <p>{{ meeting.message }}</p>
+              <div class="day-event__actions">
+                <span class="badge" [ngClass]="statusBadgeClass(meeting.meetingStatus)">
+                  {{ statusLabel(meeting.meetingStatus) }}
+                </span>
+                <!-- Join -->
+                <button class="text-btn" *ngIf="meeting.meetingStatus === 'ACCEPTED' && !isPast(meeting)"
+                        (click)="openMeeting(meeting)" [disabled]="!canJoin(meeting)">
+                  {{ canJoin(meeting) ? meetingActionLabel(meeting) : 'Coming soon' }}
+                </button>
+                <!-- Partner respond -->
+                <button class="text-btn" *ngIf="meeting.meetingStatus === 'PENDING' && isPartner()"
+                        (click)="startRespond(meeting)">Respond</button>
+                <!-- User update time -->
+                <button class="text-btn" *ngIf="meeting.meetingStatus === 'TIME_SUGGESTED' && !isPartner()"
+                        (click)="startUpdateTime(meeting)">Update time</button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </article>
+    </section>
+  </ng-container>
+
+  <ng-template #emptyState>
+    <section class="empty-state" *ngIf="!isLoading && !errorMessage">
+      <h2>No meetings yet</h2>
+      <p>When you send a meeting request, it will appear here along with partner responses.</p>
+    </section>
+  </ng-template>
+
+  <!-- ── ZOOM OVERLAY ── -->
+  <section class="zoom-overlay" *ngIf="isMeetingOpen">
+    <div class="zoom-overlay__container">
+      <div class="zoom-overlay__sdk" #zoomContainer>
+        <div class="zoom-overlay__error" *ngIf="meetingError">
+          <p>{{ meetingError }}</p>
+          <button class="btn-secondary" (click)="openMeeting(currentMeeting!)">Retry</button>
+          <button class="btn-ghost" (click)="closeMeeting()">Close</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

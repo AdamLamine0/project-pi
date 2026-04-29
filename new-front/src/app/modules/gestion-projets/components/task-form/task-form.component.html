@@ -1,0 +1,61 @@
+<form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
+  <div class="mb-3">
+    <label for="taskTitle" class="form-label">Titre <span class="text-danger">*</span></label>
+    <input 
+      type="text" 
+      class="form-control" 
+      id="taskTitle"
+      formControlName="title"
+      placeholder="Titre de la tâche">
+  </div>
+
+  <div class="mb-3">
+    <label for="taskDescription" class="form-label">Description <span class="text-danger">*</span></label>
+    <textarea 
+      class="form-control" 
+      id="taskDescription"
+      formControlName="description"
+      rows="3"
+      placeholder="Description de la tâche"></textarea>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="taskStatus" class="form-label">Statut</label>
+      <select class="form-select" id="taskStatus" formControlName="status">
+        <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
+      </select>
+    </div>
+    <div class="col-md-6 mb-3">
+      <label for="taskPriority" class="form-label">Priorité</label>
+      <select class="form-select" id="taskPriority" formControlName="priority">
+        <option *ngFor="let priority of priorityOptions" [value]="priority">{{ priority }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6 mb-3">
+      <label for="assignedToId" class="form-label">Assignée à</label>
+      <input 
+        type="number" 
+        class="form-control" 
+        id="assignedToId"
+        formControlName="assignedToId"
+        placeholder="ID du membre">
+    </div>
+    <div class="col-md-6 mb-3">
+      <label for="dueDate" class="form-label">Échéance</label>
+      <input 
+        type="date" 
+        class="form-control" 
+        id="dueDate"
+        formControlName="dueDate">
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary" [disabled]="submitting">
+    <span *ngIf="submitting" class="spinner-border spinner-border-sm me-2"></span>
+    {{ task ? 'Mettre à jour' : 'Créer la tâche' }}
+  </button>
+</form>

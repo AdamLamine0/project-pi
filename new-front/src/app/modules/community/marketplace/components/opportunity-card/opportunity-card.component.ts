@@ -238,8 +238,8 @@ export class OpportunityCardComponent {
   canPublishOpportunities(): boolean {
     return this.authService.isAdmin() ||
            this.authService.isEntrepreneur() ||
-      this.authService.isPartner() ||
-      this.authService.isInvestor();
+           this.authService.isPartenaire() ||
+           this.authService.isInvestisseur();
   }
 
   getTypeIcon(): string {

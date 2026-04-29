@@ -1,0 +1,124 @@
+<div class="container-fluid py-4 projects-page">
+  <!-- MENTOR BANNER -->
+  <div class="mentor-browse-banner" *ngIf="isMentor">
+    <div class="mentor-banner-inner">
+      <div class="mentor-banner-icon">🧑‍🏫</div>
+      <div>
+        <h5 class="mb-1">Mode Mentor</h5>
+        <p class="mb-0">Parcourez les projets soumis et envoyez une demande de mentorat aux fondateurs qui vous intéressent.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="onboarding-hero mb-4">
+    <div>
+      <p class="hero-kicker">{{ isMentor ? 'Projets à accompagner' : 'Onboarding Projet' }}</p>
+      <h2 class="hero-title">Gestion des Projets</h2>
+      <p class="hero-subtitle">
+        Creez, priorisez et pilotez vos projets dans un parcours coherent: cadrage, execution et suivi.
+      </p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" (click)="createProject()">
+          <i class="bi bi-plus-circle"></i> Nouveau Projet
+        </button>
+        <button class="btn btn-outline-primary" (click)="filterDrafts()">Voir brouillons</button>
+        <button class="btn btn-outline-primary" (click)="filterActive()">Voir actifs</button>
+      </div>
+    </div>
+    <div class="hero-metrics">
+      <div class="metric-card">
+        <span>Total</span>
+        <strong>{{ totalProjects }}</strong>
+      </div>
+      <div class="metric-card">
+        <span>Actifs</span>
+        <strong>{{ activeProjects }}</strong>
+      </div>
+      <div class="metric-card">
+        <span>Termines</span>
+        <strong>{{ completedProjects }}</strong>
+      </div>
+      <div class="metric-card">
+        <span>Taux onboarding</span>
+        <strong>{{ onboardingCompletionRate }}%</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="card filter-card mb-4">
+    <div class="card-body">
+      <div class="row g-2 align-items-center">
+        <div class="col-lg-5">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Rechercher par titre ou description..."
+            [(ngModel)]="searchQuery"
+            (input)="onSearch()">
+        </div>
+        <div class="col-lg-4">
+          <select
+            class="form-select"
+            [(ngModel)]="selectedStatus"
+            (change)="onStatusChange()">
+            <option value="">Tous les statuts</option>
+            <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
+          </select>
+        </div>
+        <div class="col-lg-3 text-lg-end">
+          <button class="btn btn-link clear-link" type="button" (click)="clearFilters()">Reinitialiser les filtres</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border" role="status">
+      <span class="visually-hidden">Chargement...</span>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && hasLoadedOnce && filteredProjects.length === 0" class="empty-state">
+    <h5>Aucun projet trouve</h5>
+    <p>Commencez l onboarding en creant votre premier projet.</p>
+    <button class="btn btn-primary" (click)="createProject()">Creer mon premier projet</button>
+  </div>
+
+  <div *ngIf="!loading && filteredProjects.length > 0" class="row">
+    <div class="col-md-6 col-xl-4 mb-4" *ngFor="let project of filteredProjects">
+      <!-- MENTOR INTEREST OVERLAY -->
+      <div class="mentor-card-wrap" *ngIf="isMentor">
+        <app-project-card
+          [project]="project"
+          (view)="viewProject($event)"
+          (edit)="editProject($event)"
+          (delete)="deleteProject($event)">
+        </app-project-card>
+        <div class="mentor-overlay-actions">
+          <button
+            class="btn-mentor-interest"
+            *ngIf="!getMentorRequestStatus(project.id)"
+            (click)="showInterest(project, $event)">
+            🤝 Montrer mon intérêt
+          </button>
+          <span class="mentor-sent-badge" *ngIf="getMentorRequestStatus(project.id) === 'PENDING'">
+            ⏳ Demande envoyée
+          </span>
+          <span class="mentor-accepted-badge" *ngIf="getMentorRequestStatus(project.id) === 'ACCEPTED'">
+            ✅ Mentorat accepté
+          </span>
+        </div>
+      </div>
+
+      <!-- DEFAULT (non-mentor) -->
+      <ng-container *ngIf="!isMentor">
+        <app-project-card
+          [project]="project"
+          (view)="viewProject($event)"
+          (edit)="editProject($event)"
+          (delete)="deleteProject($event)">
+        </app-project-card>
+      </ng-container>
+    </div>
+  </div>
+</div>

@@ -16,3 +16,17 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local environment secrets
+.env
+.env.*
+!.env.example
+# Local generated apps
+PIcloud/
+
+# Python
+**/.venv/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd

@@ -31,8 +31,8 @@ public class DeadlineSchedulerService {
      */
     @Scheduled(fixedDelay = 60_000)
     public void checkExpiredOpportunities() {
-        // Use server local time — expiresAt is stored as local time (no TZ info)
-        LocalDateTime now = LocalDateTime.now();
+        // Use UTC time for database comparison to avoid timezone mismatches
+        LocalDateTime now = LocalDateTime.now(java.time.ZoneOffset.UTC);
         List<Opportunity> expired = opportunityRepository.findExpiredOpenOpportunities(now);
 
         if (expired.isEmpty()) {

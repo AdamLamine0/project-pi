@@ -27,7 +27,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     // Paths that bypass JWT validation entirely
     private static final List<String> PUBLIC_PATHS = List.of(
             "/api/auth/",
-            "/api/users/"   // ← ADD: allow internal Feign calls
+            "/api/users/directory",   // only the public directory endpoint
+            "/api/users/experts"      // only the experts endpoint   // ← ADD: allow internal Feign calls
     );
 
     @Override
