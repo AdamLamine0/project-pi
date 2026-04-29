@@ -1,0 +1,296 @@
+.legal-shell {
+  width: min(100%, 1180px);
+  margin: 0 auto;
+  display: grid;
+  gap: 1rem;
+}
+
+.legal-eyebrow {
+  display: inline-flex;
+  color: #1C4FC3;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.legal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.45rem;
+  border: 1px solid transparent;
+  border-radius: 0.7rem;
+  padding: 0.65rem 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.84rem;
+  font-weight: 850;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.legal-btn--sm {
+  min-height: 2rem;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.76rem;
+}
+
+.legal-btn--primary {
+  background: linear-gradient(135deg, #1C4FC3, #1D1384);
+  color: #fff;
+}
+
+.legal-btn--secondary {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+.legal-btn--danger {
+  border-color: rgba(220, 38, 38, 0.18);
+  background: var(--badge-red-bg);
+  color: var(--badge-red-text);
+}
+
+.legal-alert {
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+  font-weight: 700;
+}
+
+.legal-alert--error {
+  background: var(--badge-red-bg);
+  color: var(--badge-red-text);
+}
+
+.legal-alert--info {
+  background: var(--badge-blue-bg);
+  color: var(--badge-blue-text);
+}
+
+.procedure-list-head {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border: 1px solid rgba(28, 79, 195, 0.14);
+  border-radius: 0.85rem;
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+  background:
+    linear-gradient(135deg, rgba(219, 234, 254, 0.55), transparent 52%),
+    var(--surface);
+}
+
+.procedure-list-head h1 {
+  margin: 0.25rem 0 0;
+  color: var(--text-primary);
+  font-size: clamp(1.45rem, 3vw, 2.1rem);
+  font-weight: 850;
+}
+
+.procedure-list-head p {
+  margin: 0.35rem 0 0;
+  color: var(--text-secondary);
+}
+
+.procedure-list-stats {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+}
+
+.procedure-list-stats article {
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  padding: 0.9rem 1rem;
+  background: var(--surface);
+  box-shadow: 0 1px 4px rgba(11, 15, 42, 0.04);
+}
+
+.procedure-list-stats span {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.procedure-list-stats strong {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--text-primary);
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+.procedure-toolbar {
+  display: grid;
+  gap: 0.8rem;
+  align-items: end;
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  padding: 1rem;
+  background: var(--surface);
+}
+
+.procedure-toolbar label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.procedure-toolbar label span,
+.legal-toolbar__meta span {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.procedure-toolbar input,
+.procedure-toolbar select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  padding: 0.68rem 0.75rem;
+  background: var(--surface-input);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.procedure-toolbar input:focus,
+.procedure-toolbar select:focus {
+  outline: none;
+  border-color: #1C4FC3;
+  box-shadow: 0 0 0 3px rgba(28, 79, 195, 0.12);
+}
+
+.legal-toolbar__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  padding: 0.62rem 0.75rem;
+  background: var(--surface-subtle);
+}
+
+.legal-toolbar__meta strong {
+  color: var(--text-primary);
+  font-size: 1.1rem;
+}
+
+.procedure-clear {
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  padding: 0.68rem 0.9rem;
+  background: transparent;
+  color: var(--text-body);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.procedure-clear:hover {
+  background: var(--surface-subtle);
+}
+
+.procedure-table-card {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  background: var(--surface);
+  box-shadow: 0 1px 4px rgba(11, 15, 42, 0.04);
+}
+
+.legal-table {
+  width: 100%;
+  min-width: 860px;
+  border-collapse: collapse;
+}
+
+.legal-table th,
+.legal-table td {
+  padding: 0.95rem 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.legal-table th {
+  color: var(--text-secondary);
+  background: var(--surface-subtle);
+  font-size: 0.74rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.legal-table__title {
+  color: var(--text-primary);
+  font-weight: 850;
+}
+
+.legal-table__muted {
+  max-width: 220px;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legal-status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.28rem 0.58rem;
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.status-brouillon { background: var(--badge-blue-bg); color: var(--badge-blue-text); }
+.status-en-cours { background: var(--badge-amber-bg); color: var(--badge-amber-text); }
+.status-en-attente-expert { background: var(--badge-purple-bg); color: var(--badge-purple-text); }
+.status-complete { background: var(--badge-green-bg); color: var(--badge-green-text); }
+.status-refuse { background: var(--badge-red-bg); color: var(--badge-red-text); }
+
+.legal-progress {
+  width: 100%;
+  height: 0.45rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-subtle);
+}
+
+.legal-progress div {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #1C4FC3, #059669);
+}
+
+.legal-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.legal-empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.65rem;
+  padding: 3rem 1rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.legal-empty strong {
+  color: var(--text-primary);
+  font-size: 1.05rem;
+}
+
+@media (min-width: 760px) {
+  .procedure-list-head {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .procedure-toolbar {
+    grid-template-columns: minmax(220px, 1.4fr) minmax(170px, 0.8fr) minmax(190px, 0.9fr) auto auto;
+  }
+}

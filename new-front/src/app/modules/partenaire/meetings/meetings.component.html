@@ -50,7 +50,7 @@
   <!-- ── PARTNER RESPOND PANEL (inline, shown when partner clicks Respond) ── -->
   <section class="respond-panel" *ngIf="respondingTo">
     <div class="respond-panel__header">
-      <h3>Respond to: <em>{{ respondingTo.partenaireContactName }}</em> — {{ respondingTo.subject ?? respondingTo.message }}</h3>
+      <h3>Respond to: <em>{{ respondingTo.partenaireContactName }}</em> — {{ respondingTo.subject || respondingTo.message }}</h3>
       <button class="icon-btn" (click)="cancelRespond()">✕</button>
     </div>
     <p class="respond-meta">Requested for <strong>{{ formatDateTime(respondingTo.suggestedDateTime) }}</strong></p>
@@ -79,7 +79,7 @@
     <div class="respond-sub-form" *ngIf="showRejectForm">
       <label>Reason for rejection *</label>
       <textarea [(ngModel)]="partnerComment" rows="3" placeholder="Explain why you cannot accept..."></textarea>
-      <button class="primary-btn reject-confirm" (click)="partnerRespond('REJECT')" [disabled]="isResponding || !partnerComment?.trim()">
+      <button class="primary-btn reject-confirm" (click)="partnerRespond('REJECT')" [disabled]="isResponding || !partnerComment.trim()">
         Confirm rejection
       </button>
     </div>

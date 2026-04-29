@@ -5,7 +5,9 @@
       "Bash(xargs -I{} grep \"hover:bg-gray-50\" {})",
       "Bash(find /Users/slimane/FoundersLab -maxdepth 2 -name tailwind.config.* -type f)",
       "Bash(npx tsc *)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(xargs grep *)",
+      "Bash(curl -v http://localhost:8091/api/legal-procedures/my-procedures -H \"X-User-Id: 1\")"
     ]
   }
 }

@@ -58,7 +58,7 @@ export const routes: Routes = [
       { path: 'dashboard', component: HomeComponent },
       { path: 'projects', component: ProjectsComponent },
       { path: 'community', loadChildren: () => import('./modules/community/community.module').then(m => m.CommunityModule) },
-      { path: 'legal', loadChildren: () => import('./modules/legal/legal.module').then(m => m.LegalModule), canActivate: [authGuard], data: { role: 'ADMIN' } },
+      { path: 'legal', loadChildren: () => import('./modules/legal/legal.module').then(m => m.LegalModule), canActivate: [authGuard], data: { roles: ['ADMIN', 'ENTREPRENEUR', 'EXPERT'] } },
       { path: 'investments', redirectTo: '/investment', pathMatch: 'full' },
       { path: 'mentoring', component: MentoringComponent },
       { path: 'roadmaps', component: RoadmapsComponent },

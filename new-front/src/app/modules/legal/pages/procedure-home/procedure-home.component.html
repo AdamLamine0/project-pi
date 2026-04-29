@@ -295,12 +295,12 @@
 
         <div class="legal-actions">
           <ng-container *ngIf="auth.isEntrepreneur()">
-            <a class="legal-btn legal-btn--primary" routerLink="/procedures/new">Create a case</a>
-            <a class="legal-btn legal-btn--secondary" routerLink="/procedures/list">View my cases</a>
+            <a class="legal-btn legal-btn--primary" [routerLink]="[legalBasePath(), 'new']">Create a case</a>
+            <a class="legal-btn legal-btn--secondary" [routerLink]="[legalBasePath(), 'list']">View my cases</a>
           </ng-container>
 
           <ng-container *ngIf="auth.isExpert()">
-            <a class="legal-btn legal-btn--primary" routerLink="/procedures/expert/assigned">Cases to review</a>
+            <a class="legal-btn legal-btn--primary" [routerLink]="[legalBasePath(), 'expert', 'assigned']">Cases to review</a>
           </ng-container>
 
           <ng-container *ngIf="!auth.isEntrepreneur() && !auth.isExpert()">
@@ -323,6 +323,49 @@
           <strong>Validate</strong>
         </div>
       </div>
+    </section>
+
+    <section class="procedure-workspace" *ngIf="auth.isEntrepreneur()">
+      <div class="procedure-workspace__head">
+        <div>
+          <span class="legal-eyebrow">Workspace</span>
+          <h2>Your procedures</h2>
+          <p>Resume drafts, follow submitted cases, and start a new request from one place.</p>
+        </div>
+        <div class="procedure-workspace__actions">
+          <button class="legal-btn legal-btn--secondary" type="button" (click)="openList()">View all</button>
+          <button class="legal-btn legal-btn--primary" type="button" (click)="openCreate()">New case</button>
+        </div>
+      </div>
+
+      <div class="procedure-stats">
+        <article *ngFor="let stat of dashboardStats">
+          <span>{{ stat.label }}</span>
+          <strong>{{ stat.value }}</strong>
+        </article>
+      </div>
+
+      <div class="procedure-recent" *ngIf="recentProcedures().length; else noRecentProcedures">
+        <article *ngFor="let procedure of recentProcedures()"
+                 (click)="openProcedure(procedure)">
+          <div>
+            <strong>{{ procedure.projectName }}</strong>
+            <span>{{ labels[procedure.procedureType] }}</span>
+          </div>
+          <span class="procedure-pill"
+                [style.background]="statusColor(procedure.status)"
+                [style.color]="statusTextColor(procedure.status)">
+            {{ statusFilterLabel(procedure.status) }}
+          </span>
+        </article>
+      </div>
+
+      <ng-template #noRecentProcedures>
+        <div class="procedure-empty-inline">
+          <strong>No procedure yet</strong>
+          <span>Create your first case and the checklist will be prepared automatically.</span>
+        </div>
+      </ng-template>
     </section>
 
     <section class="procedure-advisor">
@@ -391,13 +434,13 @@
 
           <a class="legal-btn legal-btn--secondary"
              *ngIf="auth.isEntrepreneur()"
-             routerLink="/procedures/list">
+             [routerLink]="[legalBasePath(), 'list']">
             My cases
           </a>
 
           <a class="legal-btn legal-btn--primary"
              *ngIf="auth.isExpert()"
-             routerLink="/procedures/expert/assigned">
+             [routerLink]="[legalBasePath(), 'expert', 'assigned']">
             Review
           </a>
 

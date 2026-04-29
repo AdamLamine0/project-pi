@@ -8,6 +8,8 @@ import java.util.UUID;
 public interface LegalProcedureService {
 
     LegalProcedureResponse create(CreateLegalProcedureRequest request, Integer entrepreneurId);
+    List<LegalProcedureResponse> findAll();
+    LegalProcedureStatsResponse getStats();
     List<LegalProcedureResponse> findByEntrepreneur(Integer entrepreneurId);
     LegalProcedureResponse findById(UUID id);
     LegalProcedureResponse submit(UUID id, Integer entrepreneurId);

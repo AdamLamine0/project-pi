@@ -8,11 +8,17 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
   const token = authService.getToken();
+  const userId = authService.getUserId();
+  const email = authService.getEmail();
+  const role = authService.getRole();
 
   const authReq = token
     ? req.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`,
+          ...(userId ? { 'X-User-Id': String(userId) } : {}),
+          ...(email ? { 'X-User-Email': email } : {}),
+          ...(role ? { 'X-User-Role': role } : {}),
         },
       })
     : req;

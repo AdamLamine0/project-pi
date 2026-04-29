@@ -34,6 +34,13 @@ spring:
             filters:
               - StripPrefix=0
 
+          - id: legal-service
+            uri: http://localhost:8087
+            predicates:
+              - Path=/api/legal-procedures, /api/legal-procedures/**, /api/procedure-types/**, /api/procedure-types, /api/files/**
+            filters:
+              - StripPrefix=0
+
 eureka:
   client:
     enabled: true

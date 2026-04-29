@@ -77,7 +77,7 @@
           </svg>
           Soumis le {{ event.submittedAt | date:'dd/MM/yyyy HH:mm' }}
         </span>
-        <span class="detail-item" *ngIf="event.targetSector?.length">
+        <span class="detail-item" *ngIf="event.targetSector.length">
           {{ event.targetSector.join(', ') }}
         </span>
       </div>
