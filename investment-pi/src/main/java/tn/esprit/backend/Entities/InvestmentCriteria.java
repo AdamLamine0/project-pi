@@ -20,19 +20,16 @@ public class InvestmentCriteria {
     private String id;
 
     private String name;
-    //@NotNull(message = "Investor ID is required")
     private String investorId;
     private List<String> sectors;
     private List<String> stage;
     private Boolean active = true;
 
-    //@Min(value = 0, message = "Minimum budget must be positive")
     private double minBudget;
-
-    //@Min(value = 0, message = "Maximum budget must be positive")
     private double maxBudget;
 
     private String location;
+    private String presentationPdfUrl;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

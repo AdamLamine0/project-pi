@@ -14,4 +14,6 @@ public interface DealPipelineRepo extends MongoRepository<DealPipeline, String> 
     // Deals actifs
     List<DealPipeline> findByStatusIn(List<DealStatus> statuses);
     List<DealPipeline> findAllByRequestId(String requestId);
+
+    List<DealPipeline> findByStartupIdOrderByColumnOrderAsc(String startupId);
 }
