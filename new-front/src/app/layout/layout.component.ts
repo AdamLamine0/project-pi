@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+﻿import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import {
@@ -16,6 +16,8 @@ import { filter } from 'rxjs/operators';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ThemeService } from '../services/theme.service';
 import { AuthService } from '../core/services/auth.service';
+import { UserService } from '../core/services/user.service';
+import { User } from '../core/models/user.model';
 import { CommunityNotificationService } from '../modules/community/shared/services/notification.service';
 import { CommunityNotification, NotificationType } from '../modules/community/shared/models/notification.model';
 
@@ -50,7 +52,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
         ></button>
       }
 
-      <!-- ══ SIDEBAR (width driven by sidebarExpanded signal) ══ -->
+      <!-- â•â• SIDEBAR (width driven by sidebarExpanded signal) â•â• -->
       <aside
         class="sidebar-nav fixed inset-y-0 left-0 z-50 flex flex-col"
         [class.mobile-open]="mobileNavOpen()"
@@ -149,7 +151,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
         </div>
       </aside>
 
-      <!-- ══ MAIN AREA (offset by sidebar width) ══ -->
+      <!-- â•â• MAIN AREA (offset by sidebar width) â•â• -->
       <div class="main-shell flex flex-col flex-1 overflow-hidden" style="margin-left:60px;">
 
         <!-- TOPBAR -->
@@ -233,9 +235,9 @@ interface Notification { id: number; title: string; body: string; time: string; 
       <app-toast />
 
 
-      <!-- ══════════════════════════════════════ -->
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
       <!-- NOTIFICATIONS DROPDOWN               -->
-      <!-- ══════════════════════════════════════ -->
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
       @if (showNotifications()) {
         <div class="fixed inset-0 z-40" (click)="showNotifications.set(false)" aria-hidden="true"></div>
         <div
@@ -303,9 +305,9 @@ interface Notification { id: number; title: string; body: string; time: string; 
       }
 
 
-      <!-- ══════════════════════════════════════ -->
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
       <!-- PROFILE MODAL                        -->
-      <!-- ══════════════════════════════════════ -->
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
       @if (showProfile()) {
         <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="User profile">
           <div class="modal-backdrop" (click)="showProfile.set(false)"></div>
@@ -326,7 +328,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
                 {{ userInitials() }}
               </div>
               <h2 style="color:#fff; font-size:18px; font-weight:700; letter-spacing:-0.02em; margin:0 0 4px;">{{ userDisplayName() }}</h2>
-              <p style="color:rgb(229 231 235); font-size:13px; margin:0;">{{ userRoleLabel() }} · FoundersLab</p>
+              <p style="color:rgb(229 231 235); font-size:13px; margin:0;">{{ userRoleLabel() }} Â· FoundersLab</p>
               <span class="inline-flex items-center gap-1 mt-3 px-3 py-1 rounded-full text-xs font-semibold"
                 style="background:rgba(108,62,255,0.25); color:#93C5FD;">
                 <ng-icon name="lucideStar" [size]="'11'" />
@@ -389,9 +391,9 @@ interface Notification { id: number; title: string; body: string; time: string; 
       }
 
 
-      <!-- ══════════════════════════════════════ -->
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
       <!-- SETTINGS MODAL (sidebar layout)     -->
-      <!-- ══════════════════════════════════════ -->
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
       @if (showSettings()) {
         <div class="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Settings">
           <div class="modal-backdrop" (click)="showSettings.set(false)"></div>
@@ -445,7 +447,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
               <!-- Scrollable content area -->
               <div class="flex-1 overflow-y-auto" style="padding:0 24px 24px;">
 
-                <!-- ─── PROFILE TAB ─── -->
+                <!-- â”€â”€â”€ PROFILE TAB â”€â”€â”€ -->
                 @if (settingsTab() === 'profile') {
                   <div class="space-y-6">
                     <!-- Avatar upload -->
@@ -453,7 +455,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
                       <div class="relative">
                         <div class="flex items-center justify-center rounded-full"
                           style="width:80px; height:80px; background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; font-size:24px; font-weight:800;">
-                          MS
+                          {{ profileInitials() }}
                         </div>
                         <button class="absolute flex items-center justify-center rounded-full"
                           style="bottom:-2px; right:-2px; width:28px; height:28px; background:var(--surface); border:2px solid var(--border); cursor:pointer; color:var(--text-secondary);"
@@ -482,32 +484,32 @@ interface Notification { id: number; title: string; body: string; time: string; 
                       <div class="grid grid-cols-2 gap-4">
                         <div>
                           <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">First Name</label>
-                          <input type="text" value="Mohamed" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+                          <input type="text" [value]="profileFirstName()" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
                         </div>
                         <div>
                           <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Last Name</label>
-                          <input type="text" value="Slimane" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+                          <input type="text" [value]="profileLastName()" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
                         </div>
                       </div>
                       <div>
                         <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Email</label>
-                        <input type="email" value="slimane@founderslab.io" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+                        <input type="email" [value]="profileEmail()" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
                       </div>
                       <div>
                         <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Role</label>
-                        <input type="text" value="Founder & Admin" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+                        <input type="text" [value]="profileRoleLabel()" readonly class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
                       </div>
                       <div>
                         <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Bio</label>
-                        <textarea rows="3" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans); resize:vertical;" placeholder="Tell us about yourself...">Founder of FoundersLab, building the startup ecosystem in North Africa.</textarea>
+                        <textarea rows="3" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans); resize:vertical;" placeholder="Tell us about yourself..."></textarea>
                       </div>
                       <div>
                         <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Phone</label>
-                        <input type="tel" value="+213 555 0123" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+                        <input type="tel" value="" placeholder="Add a phone number" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
                       </div>
                       <div>
                         <label class="block text-xs font-semibold mb-1.5" style="color:var(--text-secondary);">Location</label>
-                        <input type="text" value="Algiers, Algeria" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
+                        <input type="text" value="" placeholder="Add a location" class="w-full text-sm rounded-lg border focus:outline-none" style="padding:8px 12px; background:var(--surface-input); border-color:var(--border); color:var(--text-primary); font-family:var(--font-sans);" />
                       </div>
                     </div>
 
@@ -518,7 +520,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
                   </div>
                 }
 
-                <!-- ─── APPEARANCE TAB ─── -->
+                <!-- â”€â”€â”€ APPEARANCE TAB â”€â”€â”€ -->
                 @if (settingsTab() === 'appearance') {
                   <div class="space-y-6">
                     <!-- Theme picker -->
@@ -567,7 +569,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
                   </div>
                 }
 
-                <!-- ─── NOTIFICATIONS TAB ─── -->
+                <!-- â”€â”€â”€ NOTIFICATIONS TAB â”€â”€â”€ -->
                 @if (settingsTab() === 'notifications') {
                   <div class="space-y-2">
                     @for (pref of notifPrefs; track pref.label) {
@@ -596,7 +598,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
                   </div>
                 }
 
-                <!-- ─── SECURITY TAB ─── -->
+                <!-- â”€â”€â”€ SECURITY TAB â”€â”€â”€ -->
                 @if (settingsTab() === 'security') {
                   <div class="space-y-4">
                     <!-- Change password -->
@@ -640,14 +642,14 @@ interface Notification { id: number; title: string; body: string; time: string; 
                       <div class="space-y-2">
                         <div class="flex items-center justify-between">
                           <div>
-                            <p class="text-xs font-medium" style="color:var(--text-primary);">MacBook Pro · Algiers</p>
-                            <p class="text-xs" style="color:var(--text-muted);">Current session · Last active now</p>
+                            <p class="text-xs font-medium" style="color:var(--text-primary);">MacBook Pro Â· Algiers</p>
+                            <p class="text-xs" style="color:var(--text-muted);">Current session Â· Last active now</p>
                           </div>
                           <span class="text-xs font-medium px-1.5 py-0.5 rounded" style="background:var(--badge-green-bg); color:var(--badge-green-text);">Active</span>
                         </div>
                         <div class="flex items-center justify-between">
                           <div>
-                            <p class="text-xs font-medium" style="color:var(--text-primary);">iPhone 15 · Algiers</p>
+                            <p class="text-xs font-medium" style="color:var(--text-primary);">iPhone 15 Â· Algiers</p>
                             <p class="text-xs" style="color:var(--text-muted);">Last active 2 hours ago</p>
                           </div>
                           <button class="text-xs font-medium cursor-pointer" style="background:transparent; border:none; color:var(--badge-red-text); font-family:var(--font-sans);">Revoke</button>
@@ -657,7 +659,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
                   </div>
                 }
 
-                <!-- ─── BILLING TAB ─── -->
+                <!-- â”€â”€â”€ BILLING TAB â”€â”€â”€ -->
                 @if (settingsTab() === 'billing') {
                   <div class="space-y-4">
                     <!-- Current plan -->
@@ -665,7 +667,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
                       <div class="flex items-center justify-between mb-2">
                         <div>
                           <p class="text-sm font-bold" style="color:#fff;">Premium Plan</p>
-                          <p class="text-xs" style="color:rgba(255,255,255,0.7);">$29/month · Renews Apr 15, 2026</p>
+                          <p class="text-xs" style="color:rgba(255,255,255,0.7);">$29/month Â· Renews Apr 15, 2026</p>
                         </div>
                         <span class="text-xs font-semibold px-2 py-0.5 rounded-full" style="background:rgba(255,255,255,0.2); color:#fff;">Active</span>
                       </div>
@@ -714,7 +716,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
                   </div>
                 }
 
-                <!-- ─── DANGER ZONE TAB ─── -->
+                <!-- â”€â”€â”€ DANGER ZONE TAB â”€â”€â”€ -->
                 @if (settingsTab() === 'danger') {
                   <div class="space-y-4">
                     <div class="rounded-xl p-4" style="background:var(--surface-subtle); border:1px solid var(--border);">
@@ -747,6 +749,27 @@ export class LayoutComponent {
   protected readonly authService = inject(AuthService);
   protected readonly themeService = inject(ThemeService);
   private readonly notificationService = inject(CommunityNotificationService);
+  private readonly userService = inject(UserService);
+
+  protected readonly currentUser = signal<User | null>(null);
+
+  protected readonly profileFirstName = computed(() => this.currentUser()?.prenom ?? '');
+  protected readonly profileLastName  = computed(() => this.currentUser()?.name ?? '');
+  protected readonly profileEmail     = computed(() => this.currentUser()?.email ?? this.authService.getEmail() ?? '');
+  protected readonly profileRoleLabel = computed(() => {
+    const role = this.currentUser()?.role ?? this.authService.getRole();
+    if (!role) return 'Member';
+    if (role === 'PARTENAIRE') return 'Partner';
+    return role.charAt(0) + role.slice(1).toLowerCase();
+  });
+  protected readonly profileInitials = computed(() => {
+    const f = this.profileFirstName();
+    const l = this.profileLastName();
+    const i = ((f[0] ?? '') + (l[0] ?? '')).toUpperCase();
+    if (i) return i;
+    const e = this.profileEmail();
+    return e ? e.charAt(0).toUpperCase() : 'FL';
+  });
 
   protected readonly sidebarExpanded   = signal(false);
   protected readonly showProfile      = signal(false);
@@ -766,9 +789,9 @@ export class LayoutComponent {
   ];
 
   protected readonly invoiceHistory = [
-    { date: 'Mar 1, 2026', amount: '€29.00', status: 'Paid', plan: 'Premium Plan' },
-    { date: 'Feb 1, 2026', amount: '€29.00', status: 'Paid', plan: 'Premium Plan' },
-    { date: 'Jan 1, 2026', amount: '€29.00', status: 'Paid', plan: 'Premium Plan' },
+    { date: 'Mar 1, 2026', amount: 'â‚¬29.00', status: 'Paid', plan: 'Premium Plan' },
+    { date: 'Feb 1, 2026', amount: 'â‚¬29.00', status: 'Paid', plan: 'Premium Plan' },
+    { date: 'Jan 1, 2026', amount: 'â‚¬29.00', status: 'Paid', plan: 'Premium Plan' },
   ];
 
   protected readonly activeSettingsLabel = computed(() =>
@@ -795,6 +818,12 @@ export class LayoutComponent {
     const userId = this.authService.getUserId()?.toString();
     if (userId) {
       this.notificationService.init(userId);
+    }
+    const idNum = this.authService.getUserId();
+    if (idNum) {
+      this.userService.getUserById(idNum)
+        .then((u) => this.currentUser.set(u))
+        .catch(() => { /* keep email-derived fallbacks */ });
     }
   }
 
@@ -875,11 +904,11 @@ export class LayoutComponent {
   protected getNotifTitle(type: NotificationType): string {
     switch (type) {
       case NotificationType.CONNECTION_REQUEST: return 'Demande de connexion';
-      case NotificationType.CONNECTION_ACCEPTED: return 'Connexion acceptée';
+      case NotificationType.CONNECTION_ACCEPTED: return 'Connexion acceptÃ©e';
       case NotificationType.NEW_POST: return 'Nouveau post';
       case NotificationType.NEW_COMMENT: return 'Nouveau commentaire';
       case NotificationType.APPLICATION_RECEIVED: return 'Nouvelle candidature';
-      case NotificationType.REPUTATION_GAINED: return 'Points gagnés';
+      case NotificationType.REPUTATION_GAINED: return 'Points gagnÃ©s';
       default: return 'Notification';
     }
   }
@@ -896,13 +925,8 @@ export class LayoutComponent {
     { icon: 'lucideLayoutDashboard', label: 'Dashboard',    route: '/app/dashboard'    },
     { icon: 'lucideRocket',          label: 'Projects',     route: '/app/projects'     },
     { icon: 'lucideUsers',           label: 'Community',    route: '/app/community'    },
-<<<<<<< HEAD
-    { icon: 'lucideScale',           label: 'Legal',        route: '/app/legal'        },
-    { icon: 'lucideTrendingUp',      label: 'Investments',  route: '/app/investments'  },
-=======
     { icon: 'lucideScale',           label: 'Procedures',   route: '/app/legal', roles: ['ADMIN'] },
     { icon: 'lucideTrendingUp',      label: 'Investments',  route: '/investment'       },
->>>>>>> cdd63f1c6858c4a9379161b6fcc6e1e98612415d
     { icon: 'lucideGraduationCap',   label: 'Mentoring',    route: '/app/mentoring'    },
     { icon: 'lucideMap',             label: 'Roadmaps',     route: '/app/roadmaps'     },
     { icon: 'lucideHandshake',       label: 'Partnerships', route: '/app/partenariat/list' },
