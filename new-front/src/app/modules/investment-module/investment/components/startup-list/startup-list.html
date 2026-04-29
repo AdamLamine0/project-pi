@@ -1,7 +1,7 @@
 <div class="page">
   <div class="header">
     <h2>Startups</h2>
-    <p class="sub">Liste de demonstration avec un bouton de demande d investissement.</p>
+    <p class="sub">Demo list with an investment request button.</p>
   </div>
 
   <div class="grid">
@@ -20,8 +20,10 @@
       </mat-card-content>
 
       <mat-card-actions align="end">
-        <button mat-raised-button color="primary" (click)="requestInvestment(s)">
-          Demande d investissement
+        <button mat-raised-button color="primary" 
+                (click)="requestInvestment(s)"
+                [disabled]="hasAlreadyRequested(s.id)">
+          {{ hasAlreadyRequested(s.id) ? 'Request Sent' : 'Request Investment' }}
         </button>
       </mat-card-actions>
     </mat-card>

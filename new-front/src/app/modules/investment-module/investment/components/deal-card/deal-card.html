@@ -17,6 +17,10 @@
       <span class="info-label">Sector</span>
       <span class="info-value">{{ card.startupSector || 'N/A' }}</span>
     </div>
+    <div class="info-item investor-info" *ngIf="!isInvestor">
+      <span class="info-label">Investor</span>
+      <span class="info-value">{{ currentInvestorName }}</span>
+    </div>
     <div class="info-item">
       <span class="info-label">Ticket</span>
       <span class="info-value">
@@ -35,8 +39,8 @@
     <button type="button" class="details-btn light" (click)="openDataRoom($event)" *ngIf="canOpenDataRoom">
       Data Room
     </button>
-    <button type="button" class="details-btn light" (click)="openHolding($event)" *ngIf="canOpenHolding">
-      Holding
+    <button type="button" class="details-btn light" (click)="openHolding($event)" *ngIf="canOpenHolding && isInvestor">
+      holding
     </button>
     <button type="button" class="details-btn" (click)="toggleDetails($event)">
       {{ expanded ? 'Hide details' : 'Details' }}
@@ -44,33 +48,31 @@
   </div>
 
   <div class="details" *ngIf="expanded">
-    <div class="detail-row">
-      <span class="detail-label">Startup</span>
-      <span class="detail-value">{{ card.startupName || 'N/A' }}</span>
-    </div>
-    <div class="detail-row">
-      <span class="detail-label">Sector</span>
-      <span class="detail-value">{{ card.startupSector || 'N/A' }}</span>
-    </div>
-    <div class="detail-row">
-      <span class="detail-label">Deal status</span>
-      <span class="detail-value">{{ statusLabel }}</span>
-    </div>
-    <div class="detail-row">
-      <span class="detail-label">Proposed ticket</span>
-      <span class="detail-value">
-        {{ card.ticketProposed != null ? (card.ticketProposed | number) + ' TND' : 'N/A' }}
-      </span>
-    </div>
-    <div class="detail-row">
-      <span class="detail-label">Last change</span>
-      <span class="detail-value">
-        {{ card.lastStatusChangeAt ? (card.lastStatusChangeAt | date:'dd/MM/yyyy HH:mm') : 'N/A' }}
-      </span>
-    </div>
-    <div class="detail-row">
-      <span class="detail-label">Column order</span>
-      <span class="detail-value">{{ card.columnOrder ?? 0 }}</span>
+    <div class="detail-grid">
+      <div class="detail-item">
+        <span class="detail-label">Startup</span>
+        <span class="detail-value">{{ card.startupName || 'N/A' }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Sector</span>
+        <span class="detail-value">{{ card.startupSector || 'N/A' }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Deal status</span>
+        <span class="detail-value">{{ statusLabel }}</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Proposed ticket</span>
+        <span class="detail-value">
+          {{ card.ticketProposed != null ? (card.ticketProposed | number) + ' TND' : 'N/A' }}
+        </span>
+      </div>
+      <div class="detail-item detail-item-full">
+        <span class="detail-label">Last change</span>
+        <span class="detail-value">
+          {{ card.lastStatusChangeAt ? (card.lastStatusChangeAt | date:'dd/MM/yyyy HH:mm') : 'N/A' }}
+        </span>
+      </div>
     </div>
 
     <section class="ai-panel">

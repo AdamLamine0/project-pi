@@ -19,4 +19,10 @@ export class DealsService {
   moveCard(data: MoveDealPayload): Observable<unknown> {
     return this.http.put(`${this.apiUrl}/move`, data);
   }
+  getKanbanByStartup(startupId: string) {
+  return this.http.get<KanbanBoardResponse>(
+    `${this.apiUrl}/kanban/startup/${startupId}`
+  );
 }
+}
+
