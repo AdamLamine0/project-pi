@@ -9,7 +9,10 @@ import {
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmProgressImports } from '@spartan-ng/helm/progress';
 import { EventService } from '../../services/event.service';
-import { EventMapMarker } from '../../models/event';
+import { EventMapMarker, Event as DomainEvent } from '../../models/event';
+import { AuthService } from '../../core/services/auth.service';
+import { UserService } from '../../core/services/user.service';
+import { User } from '../../core/models/user.model';
 
 interface Stat { label: string; value: string; delta: string; up: boolean; icon: string; color: string; bg: string; }
 interface Startup { name: string; sector: string; stage: string; score: number; status: string; founder: string; }
@@ -32,7 +35,7 @@ interface Activity { user: string; action: string; time: string; initials: strin
       <div class="page-header">
         <div>
           <h2 class="text-xl font-bold" style="color:var(--text-primary); letter-spacing:-0.02em;">
-            Welcome back, Farah Zouari 👋
+            Welcome back, {{ welcomeName() }} 👋
           </h2>
           <p class="text-sm mt-0.5" style="color:var(--text-secondary);">Here's what's happening across your ecosystem today.</p>
         </div>
@@ -149,6 +152,11 @@ interface Activity { user: string; action: string; time: string; initials: strin
               </a>
             </div>
             <div class="divide-y" style="divide-color:var(--border-subtle);">
+              @if (upcomingEvents.length === 0) {
+                <div class="px-5 py-6 text-center">
+                  <p class="text-xs" style="color:var(--text-muted);">No upcoming events.</p>
+                </div>
+              }
               @for (event of upcomingEvents; track event.title) {
                 <div class="flex gap-3 px-5 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                   <div class="flex items-center justify-center rounded-lg flex-shrink-0"
@@ -227,9 +235,26 @@ interface Activity { user: string; action: string; time: string; initials: strin
 export class HomeComponent implements OnInit {
   private readonly eventService = inject(EventService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly authService = inject(AuthService);
+  private readonly userService = inject(UserService);
 
   protected mapMarkers: EventMapMarker[] = [];
   protected loadingMapMarkers = true;
+  protected currentUser: User | null = null;
+  protected upcomingEvents: DashEvent[] = [];
+  protected eventsThisMonth = 0;
+
+  protected welcomeName(): string {
+    if (this.currentUser) {
+      const first = this.currentUser.prenom ?? '';
+      const last = this.currentUser.name ?? '';
+      const full = `${first} ${last}`.trim();
+      if (full) return full;
+    }
+    const email = this.authService.getEmail();
+    if (email) return email.split('@')[0].replace(/[._-]+/g, ' ');
+    return 'there';
+  }
 
   ngOnInit(): void {
     this.eventService.getEventsForMap().subscribe({
@@ -243,14 +268,72 @@ export class HomeComponent implements OnInit {
         this.cdr.markForCheck();
       },
     });
+
+    const userId = this.authService.getUserId();
+    if (userId) {
+      this.userService.getUserById(userId).then((user) => {
+        this.currentUser = user;
+        this.cdr.markForCheck();
+      }).catch(() => { /* fall back to email-derived name */ });
+    }
+
+    this.eventService.getAll().subscribe({
+      next: (events) => {
+        const now = Date.now();
+        const monthStart = new Date();
+        monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+        const monthEnd = new Date(monthStart);
+        monthEnd.setMonth(monthEnd.getMonth() + 1);
+
+        const visible = (events ?? []).filter(e => e.status !== 'BROUILLON' && e.status !== 'REJETE' && e.status !== 'ANNULE');
+
+        this.eventsThisMonth = visible.filter(e => {
+          const t = new Date(e.startDate).getTime();
+          return t >= monthStart.getTime() && t < monthEnd.getTime();
+        }).length;
+
+        this.upcomingEvents = visible
+          .filter(e => new Date(e.startDate).getTime() >= now)
+          .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+          .slice(0, 3)
+          .map(e => this.toDashEvent(e));
+
+        this.cdr.markForCheck();
+      },
+      error: () => { /* leave empty */ },
+    });
   }
 
-  protected readonly stats: Stat[] = [
-    { label: 'Total Startups',       value: '48',  delta: '+3 this month', up: true,  icon: 'lucideRocket',      color: 'var(--badge-purple-text)', bg: 'var(--badge-purple-bg)' },
-    { label: 'Active Mentors',        value: '127', delta: '+8 this month', up: true,  icon: 'lucideUsers',       color: 'var(--badge-blue-text)',   bg: 'var(--badge-blue-bg)'   },
-    { label: 'Investments Matched',   value: '23',  delta: '+2 this week',  up: true,  icon: 'lucideTrendingUp',  color: 'var(--badge-green-text)',  bg: 'var(--badge-green-bg)'  },
-    { label: 'Events This Month',     value: '12',  delta: '-1 vs last',    up: false, icon: 'lucideCalendar',    color: 'var(--badge-amber-text)',  bg: 'var(--badge-amber-bg)'  },
-  ];
+  private toDashEvent(e: DomainEvent): DashEvent {
+    const d = new Date(e.startDate);
+    const date = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const time = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+    const iconMap: Record<string, string> = {
+      WEBINAIRE: 'lucideVideo',
+      WORKSHOP: 'lucideActivity',
+      PITCH: 'lucideRocket',
+      BOOTCAMP: 'lucideUsers',
+      CONFERENCE: 'lucideMessageSquare',
+    };
+    const typeLabel = e.type.charAt(0) + e.type.slice(1).toLowerCase();
+    return {
+      title: e.title,
+      type: typeLabel,
+      date,
+      time,
+      attendees: e.registeredCount ?? 0,
+      icon: iconMap[e.type] ?? 'lucideCalendar',
+    };
+  }
+
+  protected get stats(): Stat[] {
+    return [
+      { label: 'Total Startups',       value: '—',  delta: '',  up: true,  icon: 'lucideRocket',      color: 'var(--badge-purple-text)', bg: 'var(--badge-purple-bg)' },
+      { label: 'Active Mentors',        value: '—', delta: '',  up: true,  icon: 'lucideUsers',       color: 'var(--badge-blue-text)',   bg: 'var(--badge-blue-bg)'   },
+      { label: 'Investments Matched',   value: '—',  delta: '',  up: true,  icon: 'lucideTrendingUp',  color: 'var(--badge-green-text)',  bg: 'var(--badge-green-bg)'  },
+      { label: 'Events This Month',     value: String(this.eventsThisMonth), delta: '', up: true, icon: 'lucideCalendar',    color: 'var(--badge-amber-text)',  bg: 'var(--badge-amber-bg)'  },
+    ];
+  }
 
   protected readonly startups: Startup[] = [
     { name: 'TechFlow',    sector: 'FinTech',      stage: 'Seed',      score: 87, status: 'Active', founder: 'Karim Bensalem'   },
@@ -261,11 +344,7 @@ export class HomeComponent implements OnInit {
     { name: 'LogiTrack',   sector: 'Logistics',    stage: 'Series A',  score: 85, status: 'Active', founder: 'Omar Ladraa'      },
   ];
 
-  protected readonly upcomingEvents: DashEvent[] = [
-    { title: 'Pitch Day Spring 2026',        type: 'Pitch',    date: 'Apr 10', time: '14:00', attendees: 87,  icon: 'lucideRocket'   },
-    { title: 'Fundraising Workshop',          type: 'Workshop', date: 'Apr 15', time: '10:00', attendees: 42,  icon: 'lucideActivity' },
-    { title: 'AI in Startups Webinar',        type: 'Webinar',  date: 'Apr 20', time: '18:00', attendees: 134, icon: 'lucideVideo'    },
-  ];
+
 
   protected readonly activity: Activity[] = [
     { user: 'Karim B.',  action: 'submitted a new project update for TechFlow.',   time: '2 min ago',  initials: 'KB', color: '#1C4FC3' },

@@ -4,5 +4,5 @@ export const environment = {
   apiGatewayUrl: 'http://localhost:8091',
   apiUrl: 'http://localhost:8091/api/community',
   usersApiUrl: 'http://localhost:8091/api/users',
-  wsUrl: 'http://localhost:8082/ws'
+  wsUrl: 'http://localhost:8084/ws'
 };

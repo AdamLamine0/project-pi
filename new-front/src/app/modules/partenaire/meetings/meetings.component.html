@@ -91,7 +91,7 @@
   <!-- ── UPDATE TIME PANEL (shown when user clicks "Update time" after TIME_SUGGESTED) ── -->
   <section class="respond-panel" *ngIf="updatingTime">
     <div class="respond-panel__header">
-      <h3>Update meeting time — {{ updatingTime.subject ?? updatingTime.message }}</h3>
+      <h3>Update meeting time — {{ updatingTime.subject }}</h3>
       <button class="icon-btn" (click)="cancelUpdateTime()">✕</button>
     </div>
     <p class="respond-meta">

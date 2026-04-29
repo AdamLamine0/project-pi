@@ -142,6 +142,7 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
     { id: 'events',       label: 'Events',       route: '/events',                              type: 'route' },
     { id: 'project-hub',  label: '⚡ Project Hub', route: '/app/projects',                      type: 'route', authRequired: true },
     { id: 'community',    label: 'Community',    route: '/community',                           type: 'route' },
+    { id: 'procedures',   label: 'Procedures',   route: '/procedures',                          type: 'route' },
     { id: 'partners',     label: 'Partnerships', route: '/app/partenariat/list',                type: 'route', roles: ['ADMIN', 'PARTNER', 'PARTENAIRE', 'USER'] },
     { id: 'organisation', label: 'Mon Organisation', route: '/app/partenariat/mon-organisation', type: 'route', roles: ['PARTNER', 'PARTENAIRE'] },
     { id: 'conventions',  label: 'Conventions',  route: '/app/partenariat/conventions',         type: 'route', roles: ['ADMIN', 'PARTNER', 'PARTENAIRE', 'USER'] },

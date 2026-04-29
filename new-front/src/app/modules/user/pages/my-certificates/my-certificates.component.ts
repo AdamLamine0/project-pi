@@ -1,9 +1,12 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { CertificateService } from '../../../../services/certificate.service';
 import { Certificate } from '../../../../models/certificate';
 
 @Component({
   selector: 'app-my-certificates',
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './my-certificates.component.html',
   styleUrls: ['./my-certificates.component.css']
 })

@@ -23,3 +23,10 @@ Thumbs.db
 !.env.example
 # Local generated apps
 PIcloud/
+
+# Python
+**/.venv/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
