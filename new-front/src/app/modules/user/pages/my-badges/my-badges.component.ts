@@ -1,9 +1,12 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { BadgeService } from '../../../../services/badge.service';
 import { Badge } from '../../../../models/badge';
 
 @Component({
   selector: 'app-my-badges',
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './my-badges.component.html',
   styleUrls: ['./my-badges.component.css']
 })

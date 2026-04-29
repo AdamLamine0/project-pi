@@ -1,9 +1,14 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { EventService } from '../../../../services/event.service';
 import { Event } from '../../../../models/event';
 
 @Component({
   selector: 'app-pending-events',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './pending-events.component.html',
   styleUrls: ['./pending-events.component.css']
 })

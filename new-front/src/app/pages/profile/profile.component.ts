@@ -642,13 +642,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
   protected closeProfile(): void {
     const roleValue = this.authService.getRole() as string;
     const isDashboardUser = this.authService.hasRole(
-<<<<<<< HEAD
-      Role.ADMIN, Role.MENTOR, Role.INVESTOR, Role.PARTNER, Role.PARTENAIRE
-    );
-=======
       Role.ADMIN, Role.MENTOR, Role.INVESTOR, Role.PARTNER
     ) || roleValue === 'PARTENAIRE';
->>>>>>> cdd63f1c6858c4a9379161b6fcc6e1e98612415d
     this.router.navigate([isDashboardUser ? '/app/dashboard' : '/']);
   }
 
@@ -657,9 +652,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   protected get isDashboardUser(): boolean {
-<<<<<<< HEAD
-    return this.authService.hasRole(Role.ADMIN, Role.MENTOR, Role.INVESTOR, Role.PARTNER, Role.PARTENAIRE);
-=======
     const roleValue = this.authService.getRole() as string;
     return this.authService.hasRole(Role.ADMIN, Role.MENTOR, Role.INVESTOR, Role.PARTNER)
       || roleValue === 'PARTENAIRE';
@@ -667,7 +659,6 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   protected get isInvestor(): boolean {
     return this.authService.hasRole(Role.INVESTOR);
->>>>>>> cdd63f1c6858c4a9379161b6fcc6e1e98612415d
   }
 
   protected get fullName(): string {
