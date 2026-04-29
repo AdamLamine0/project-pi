@@ -63,7 +63,7 @@ class LegalAiAnalysisServiceTest {
 
         assertThat(response.decision()).isEqualTo(AiDecision.REJECTED);
         assertThat(response.appliedStatus()).isEqualTo("REFUSE");
-        assertThat(response.remark()).contains("Corrigez les documents signales");
+        assertThat(response.remark()).contains("Fix the flagged documents");
         assertThat(response.technicalFindings())
                 .anyMatch(finding -> finding.contains("Document could not be processed"));
         assertThat(response.documents()).hasSize(1);
@@ -342,7 +342,7 @@ class LegalAiAnalysisServiceTest {
 
         assertThat(response.decision()).isEqualTo(AiDecision.REJECTED);
         assertThat(response.documents().get(0).detectedExpirationDate()).hasToString("2020-03-20");
-        assertThat(response.remark()).contains("Document expire depuis le 2020-03-20");
+        assertThat(response.remark()).contains("Document appears expired on 2020-03-20");
         assertThat(response.technicalFindings())
                 .anyMatch(finding -> finding.contains("2020-03-20"))
                 .noneMatch(finding -> finding.contains("1988-03-14"));
@@ -459,5 +459,55 @@ class LegalAiAnalysisServiceTest {
         assertThat(response.appliedStatus()).isEqualTo("REFUSE");
         assertThat(response.technicalFindings())
                 .anyMatch(finding -> finding.contains("diagonal overlay"));
+    }
+
+    @Test
+    void analyzeReturnsLocalReviewSummaryWhenGeminiIsUnavailable() throws Exception {
+        FileDownloadService fileDownloadService = mock(FileDownloadService.class);
+        TesseractOcrService ocrService = mock(TesseractOcrService.class);
+        OpenCvDocumentVisionService visionService = mock(OpenCvDocumentVisionService.class);
+        GeminiLegalReasoningService geminiService = mock(GeminiLegalReasoningService.class);
+        AiProperties properties = new AiProperties();
+        Path tempFile = Files.createTempFile("ai-test-local-review-", ".png");
+
+        when(fileDownloadService.downloadToTempFile(any())).thenReturn(tempFile);
+        when(visionService.analyze(any()))
+                .thenReturn(new OpenCvDocumentVisionService.VisionResult(true, 250.0, false, null));
+        when(ocrService.extractText(any()))
+                .thenReturn(new TesseractOcrService.OcrResult(
+                        true,
+                        "RNE SARL document lisible avec informations coherentes et sans date expiree.",
+                        null
+                ));
+        when(geminiService.analyze(any(), anyList(), anyList()))
+                .thenReturn(GeminiLegalReasoningService.LlmVerdict.unavailable("Gemini temporarily unavailable"));
+
+        LegalAiAnalysisService service = new LegalAiAnalysisService(
+                fileDownloadService,
+                ocrService,
+                visionService,
+                new DocumentRuleAnalysisService(properties),
+                geminiService,
+                properties
+        );
+
+        LegalAiAnalysisResponse response = service.analyze(new LegalAiAnalysisRequest(
+                UUID.randomUUID(),
+                "SARL",
+                "Demo",
+                List.of(new DocumentAnalysisRequest(
+                        UUID.randomUUID(),
+                        "RNE",
+                        "Extrait RNE",
+                        "http://localhost:8087/api/files/rne.png",
+                        null
+                ))
+        ));
+
+        assertThat(response.decision()).isEqualTo(AiDecision.REVIEW);
+        assertThat(response.llmAvailable()).isFalse();
+        assertThat(response.remark()).contains("Automated OCR/OpenCV review completed");
+        assertThat(response.remark()).contains("No blocking technical issue was detected");
+        assertThat(response.remark()).doesNotContain("Gemini analysis is temporarily unavailable");
     }
 }
