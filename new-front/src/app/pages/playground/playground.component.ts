@@ -106,7 +106,7 @@ export class PlaygroundComponent {
     if (file.size > 10 * 1024 * 1024) { this.error.set("File too large (max 10MB)"); return; }
     this.uploading.set(true); this.uploadedFile.set(file.name); this.error.set("");
     const fd = new FormData(); fd.append("file", file);
-    this.http.post<any>(${ML}/documents/pdf/analyze, fd).subscribe({
+    this.http.post<any>(`${ML}/documents/pdf/analyze`, fd).subscribe({
       next: (res) => {
         this.uploadedAnalysis.set(res?.analysis ?? null);
         const a = res?.analysis;
@@ -117,8 +117,13 @@ export class PlaygroundComponent {
           const msg = this.formatAnalysis(file.name, a);
           this.messages.update(m => [...m, { role: "assistant", content: msg, type: "feedback" }]);
         } else {
-          this.http.post<any>(${ML}/documents/pdf/extract, fd).subscribe({
-            next: (r2) => { this.uploadedText.set(r2?.text ?? ""); this.uploading.set(false); this.messages.update(m => [...m, { role: "assistant", content:  "" uploaded ( pages). Ask me to analyze it or generate documents based on it. }]); this.scrollChat(); },
+          this.http.post<any>(`${ML}/documents/pdf/extract`, fd).subscribe({
+            next: (r2) => { 
+              this.uploadedText.set(r2?.text ?? ""); 
+              this.uploading.set(false); 
+              this.messages.update(m => [...m, { role: "assistant", content: `📄 ${file.name} uploaded (${r2?.pages || 0} pages). Ask me to analyze it or generate documents based on it.` }]); 
+              this.scrollChat(); 
+            },
             error: () => { this.uploading.set(false); this.error.set("Could not read PDF."); }
           });
         }
@@ -129,12 +134,12 @@ export class PlaygroundComponent {
   }
 
   private formatAnalysis(filename: string, a: any): string {
-    const lines: string[] = [ Analysis of "", ""];
-    if (a.summary) lines.push( Summary: , "");
-    if (a.strengths?.length) { lines.push(" Strengths:"); a.strengths.forEach((s: string) => lines.push(   )); lines.push(""); }
-    if (a.weaknesses?.length) { lines.push(" Weaknesses:"); a.weaknesses.forEach((w: string) => lines.push(   )); lines.push(""); }
-    if (a.missing_elements?.length) { lines.push(" Missing elements:"); a.missing_elements.forEach((m: string) => lines.push(   )); lines.push(""); }
-    if (a.improvement_suggestions?.length) { lines.push(" Suggestions:"); a.improvement_suggestions.forEach((s: string) => lines.push(   )); }
+    const lines: string[] = [`📄 Analysis of "${filename}"`, ""];
+    if (a.summary) lines.push(`📝 Summary: ${a.summary}`, "");
+    if (a.strengths?.length) { lines.push("💪 Strengths:"); a.strengths.forEach((s: string) => lines.push(`  • ${s}`)); lines.push(""); }
+    if (a.weaknesses?.length) { lines.push("⚠️ Weaknesses:"); a.weaknesses.forEach((w: string) => lines.push(`  • ${w}`)); lines.push(""); }
+    if (a.missing_elements?.length) { lines.push("❌ Missing elements:"); a.missing_elements.forEach((m: string) => lines.push(`  • ${m}`)); lines.push(""); }
+    if (a.improvement_suggestions?.length) { lines.push("💡 Suggestions:"); a.improvement_suggestions.forEach((s: string) => lines.push(`  • ${s}`)); }
     return lines.join("\n");
   }
 
@@ -178,7 +183,7 @@ export class PlaygroundComponent {
     };
     if (this.uploadedText()) body.documents = [{ name: this.uploadedFile(), kind: "pdf", content: this.uploadedText().slice(0, 5000) }];
 
-    this.http.post<any>(${ML}/projects//playground, body).subscribe({
+    this.http.post<any>(`${ML}/projects/${this.selectedProjectId}/playground`, body).subscribe({
       next: (res) => {
         const score = res?.overall_score;
         const reply = res?.assistant_message ?? "Done.";
@@ -192,10 +197,10 @@ export class PlaygroundComponent {
 
   private formatPlaygroundResponse(res: any): string {
     const lines: string[] = [];
-    if (res.overall_score != null) lines.push( Score: /100, "");
-    if (res.strengths?.length) { lines.push(" Strengths:"); res.strengths.forEach((s: string) => lines.push(   )); lines.push(""); }
-    if (res.gaps?.length) { lines.push(" Areas to improve:"); res.gaps.forEach((g: string) => lines.push(   )); lines.push(""); }
-    if (res.improvements?.length) { lines.push(" Next steps:"); res.improvements.slice(0,3).forEach((i: string) => lines.push(   )); }
+    if (res.overall_score != null) lines.push(`📊 Score: ${res.overall_score}/100`, "");
+    if (res.strengths?.length) { lines.push("💪 Strengths:"); res.strengths.forEach((s: string) => lines.push(`  • ${s}`)); lines.push(""); }
+    if (res.gaps?.length) { lines.push("⚠️ Areas to improve:"); res.gaps.forEach((g: string) => lines.push(`  • ${g}`)); lines.push(""); }
+    if (res.improvements?.length) { lines.push("🎯 Next steps:"); res.improvements.slice(0,3).forEach((i: string) => lines.push(`  • ${i}`)); }
     if (!lines.length) lines.push(res.assistant_message ?? "Analysis complete.");
     return lines.join("\n");
   }
@@ -211,10 +216,10 @@ export class PlaygroundComponent {
 
     this.activeTab.set(type); this.generating.set(true); this.thinking.set(false);
     let endpoint = ""; let body: any = {};
-    if (type === "bmc") { endpoint = ${ML}/documents/bmc/generate; body = { startup_name: name, description: desc, sector, stage }; }
-    else if (type === "swot") { endpoint = ${ML}/documents/swot/generate; body = { startup_name: name, description: desc, market_context: sector }; }
-    else if (type === "pitch") { endpoint = ${ML}/documents/pitch/generate; body = { startup_name: name, description: desc, sector, team_size: project?.teamSize ?? "1", target_market: sector }; }
-    else { endpoint = ${ML}/projects//playground; body = { userMessage: "Generate a detailed budget with CAPEX, OPEX, runway and revenue projections", conversation: [], projectId: Number(this.selectedProjectId)||0, title: name, description: desc, sector, stage }; }
+    if (type === "bmc") { endpoint = `${ML}/documents/bmc/generate`; body = { startup_name: name, description: desc, sector, stage }; }
+    else if (type === "swot") { endpoint = `${ML}/documents/swot/generate`; body = { startup_name: name, description: desc, market_context: sector }; }
+    else if (type === "pitch") { endpoint = `${ML}/documents/pitch/generate`; body = { startup_name: name, description: desc, sector, team_size: project?.teamSize ?? "1", target_market: sector }; }
+    else { endpoint = `${ML}/projects/${this.selectedProjectId}/playground`; body = { userMessage: "Generate a detailed budget with CAPEX, OPEX, runway and revenue projections", conversation: [], projectId: Number(this.selectedProjectId)||0, title: name, description: desc, sector, stage }; }
 
     this.http.post<any>(endpoint, body).subscribe({
       next: (res) => {
@@ -223,7 +228,7 @@ export class PlaygroundComponent {
         else if (type === "pitch") this.rawDocs.pitch = res;
         else this.rawDocs.budget = res;
         this.generating.set(false);
-        this.messages.update(m => [...m, { role: "assistant", content:   generated! View it in the right panel. }]);
+        this.messages.update(m => [...m, { role: "assistant", content: `✅ ${this.getTabLabel(type)} generated! View it in the right panel.` }]);
         this.scrollChat();
       },
       error: () => { this.generating.set(false); this.error.set("Failed to generate. Is the ML service running on port 8001?"); this.thinking.set(false); }
@@ -235,7 +240,7 @@ export class PlaygroundComponent {
     const el = document.querySelector(".doc-export-area");
     if (!el) { window.print(); return; }
     const w = window.open("","_blank"); if (!w) return;
-    w.document.write(<html><head><title> - Export</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111;font-size:13px;}h2{font-size:18px;margin-bottom:16px;}h3,h4{margin:8px 0 4px;}ul{margin:0;padding-left:18px;}li{margin:3px 0;}.grid{display:grid;gap:6px;}.cell{border:1px solid #ddd;border-radius:6px;padding:10px;}.swot-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}.swot-cell{border-radius:8px;padding:14px;}.green{background:#f0fdf4;border:2px solid #4ade80;}.red{background:#fef2f2;border:2px solid #f87171;}.blue{background:#eff6ff;border:2px solid #60a5fa;}.orange{background:#fff7ed;border:2px solid #fb923c;}</style></head><body><h2></h2></body></html>);
+    w.document.write(`<html><head><title>${label} - Export</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111;font-size:13px;}h2{font-size:18px;margin-bottom:16px;}h3,h4{margin:8px 0 4px;}ul{margin:0;padding-left:18px;}li{margin:3px 0;}.grid{display:grid;gap:6px;}.cell{border:1px solid #ddd;border-radius:6px;padding:10px;}.swot-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}.swot-cell{border-radius:8px;padding:14px;}.green{background:#f0fdf4;border:2px solid #4ade80;}.red{background:#fef2f2;border:2px solid #f87171;}.blue{background:#eff6ff;border:2px solid #60a5fa;}.orange{background:#fff7ed;border:2px solid #fb923c;}</style></head><body><h2>${label}</h2>${el.innerHTML}</body></html>`);
     w.document.close(); w.focus(); setTimeout(() => { w.print(); w.close(); }, 600);
   }
 

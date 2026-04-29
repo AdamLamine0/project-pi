@@ -905,6 +905,7 @@ export class LayoutComponent {
 >>>>>>> cdd63f1c6858c4a9379161b6fcc6e1e98612415d
     { icon: 'lucideGraduationCap',   label: 'Mentoring',    route: '/app/mentoring'    },
     { icon: 'lucideMap',             label: 'Roadmaps',     route: '/app/roadmaps'     },
+    { icon: 'lucideZap',             label: 'Playground',   route: '/app/playground'   },
     { icon: 'lucideHandshake',       label: 'Partnerships', route: '/app/partenariat/list' },
     { icon: 'lucideCalendar',        label: 'Events',       route: '/app/events'       },
     { icon: 'lucideBuilding',        label: 'Mon Organisation', route: '/app/partenariat/mon-organisation', roles: ['PARTNER', 'PARTENAIRE'] },

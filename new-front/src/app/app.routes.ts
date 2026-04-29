@@ -16,6 +16,7 @@ import { InvestmentsComponent } from './pages/investments/investments.component'
 >>>>>>> cdd63f1c6858c4a9379161b6fcc6e1e98612415d
 import { MentoringComponent } from './pages/mentoring/mentoring.component';
 import { RoadmapsComponent } from './pages/roadmaps/roadmaps.component';
+import { PlaygroundComponent } from './pages/playground/playground.component';
 import { PartnershipsComponent } from './pages/partnerships/partnerships.component';
 import { EventsComponent } from './pages/events/events.component';
 import { ProfileComponent } from './pages/profile/profile.component';
@@ -75,6 +76,7 @@ export const routes: Routes = [
 >>>>>>> cdd63f1c6858c4a9379161b6fcc6e1e98612415d
       { path: 'mentoring', component: MentoringComponent },
       { path: 'roadmaps', component: RoadmapsComponent },
+      { path: 'playground', component: PlaygroundComponent },
       { path: 'partnerships', component: PartnershipsComponent },
       { path: 'events', component: EventsComponent },
       { path: 'profile', component: ProfileComponent },

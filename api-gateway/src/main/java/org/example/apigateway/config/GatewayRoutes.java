@@ -162,12 +162,6 @@ public class GatewayRoutes {
         // no authFilter — public endpoint for QR code scanning
     }
 
-
-
-
-<<<<<<< HEAD
-}
-=======
     @Bean
     public RouterFunction<ServerResponse> investmentServiceRoute() {
         return RouterFunctions
@@ -184,4 +178,3 @@ public class GatewayRoutes {
                 .filter(authFilter.jwtFilter());
     }
 }
->>>>>>> cdd63f1c6858c4a9379161b6fcc6e1e98612415d
