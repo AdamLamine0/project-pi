@@ -116,7 +116,7 @@ export class OnboardingWizardComponent {
     this.loading = true;
     setTimeout(() => {
       this.loading = false;
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['/app/projects']);
     }, 2400);
   }
 }

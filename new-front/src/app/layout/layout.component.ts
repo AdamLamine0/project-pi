@@ -11,6 +11,7 @@ import {
   lucideMonitor, lucideMenu, lucideCamera, lucideKey, lucideTrash2,
   lucideChevronRight, lucideLanguages, lucideCreditCard, lucideMessageSquare,
   lucideClipboardList, lucideBuilding, lucideFileText, lucideVideo,
+  lucideZap, lucideFolderKanban,
 } from '@ng-icons/lucide';
 import { filter } from 'rxjs/operators';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -20,6 +21,7 @@ import { CommunityNotificationService } from '../modules/community/shared/servic
 import { CommunityNotification, NotificationType } from '../modules/community/shared/models/notification.model';
 
 interface NavItem { icon: string; label: string; route: string; roles?: string[]; }
+interface NavGroup { icon: string; label: string; color: string; items: NavItem[]; }
 interface Notification { id: number; title: string; body: string; time: string; read: boolean; type: 'alert' | 'info' | 'success'; }
 
 @Component({
@@ -37,6 +39,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
       lucideMonitor, lucideMenu, lucideCamera, lucideKey, lucideTrash2,
       lucideChevronRight, lucideLanguages, lucideCreditCard, lucideMessageSquare,
       lucideClipboardList, lucideBuilding, lucideFileText, lucideVideo,
+      lucideZap, lucideFolderKanban,
     }),
   ],
   template: `
@@ -85,26 +88,77 @@ interface Notification { id: number; title: string; body: string; time: string; 
         </div>
 
         <!-- Nav items -->
-        <nav class="flex flex-col gap-0.5 py-3 flex-1" style="padding-inline:10px; overflow:hidden;">
+        <nav class="flex flex-col gap-0.5 py-3 flex-1" style="padding-inline:10px; overflow:hidden; overflow-y:auto;">
           @for (item of filteredNavItems(); track item.route) {
-            <a
-              [routerLink]="item.route"
-              routerLinkActive="active-nav"
-              (click)="closeMobileNav()"
-              class="nav-item relative flex items-center rounded-lg transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
-              style="height:40px; padding:0 2px; color:var(--text-secondary); text-decoration:none;"
-              [attr.aria-label]="item.label"
-            >
-              <div class="nav-icon-wrapper flex items-center justify-center" style="width:36px; height:36px; flex-shrink:0;">
-                <ng-icon [name]="item.icon" [size]="'17'" />
-              </div>
-              <span class="sidebar-label ml-2.5 text-sm font-medium"
-                [style.opacity]="sidebarExpanded() ? 1 : 0"
-                [style.transition-delay]="sidebarExpanded() ? '0.1s' : '0s'"
-                style="color:#D1D5DB;">
-                {{ item.label }}
-              </span>
-            </a>
+            <!-- Project Hub group button -->
+            @if (item.route === '__project_hub__') {
+              <button
+                type="button"
+                (click)="toggleProjectHub()"
+                class="nav-item relative flex items-center rounded-lg transition-colors duration-150 w-full"
+                style="height:40px; padding:0 2px; background:transparent; border:none; cursor:pointer;"
+                [attr.aria-label]="'Project Hub'"
+                [attr.aria-expanded]="projectHubOpen()"
+              >
+                <div class="nav-icon-wrapper flex items-center justify-center flex-shrink-0"
+                  style="width:36px; height:36px; border-radius:8px; background:linear-gradient(135deg,#1C4FC3,#1D1384);">
+                  <ng-icon name="lucideFolderKanban" [size]="'16'" style="color:#fff;" />
+                </div>
+                <span class="sidebar-label ml-2.5 text-sm font-medium flex-1 text-left"
+                  [style.opacity]="sidebarExpanded() ? 1 : 0"
+                  [style.transition-delay]="sidebarExpanded() ? '0.1s' : '0s'"
+                  style="color:#D1D5DB;">
+                  Project Hub
+                </span>
+                <ng-icon name="lucideChevronRight" [size]="'13'"
+                  class="sidebar-label flex-shrink-0 mr-1 transition-transform duration-200"
+                  [style.opacity]="sidebarExpanded() ? 1 : 0"
+                  [style.transform]="projectHubOpen() ? 'rotate(90deg)' : 'rotate(0deg)'"
+                  style="color:#9CA3AF;" />
+              </button>
+
+              <!-- Sub-items -->
+              @if (projectHubOpen() && sidebarExpanded()) {
+                <div style="margin-left:10px; border-left:2px solid rgba(99,102,241,0.3); padding-left:8px;">
+                  @for (sub of projectHubItems; track sub.route) {
+                    <a
+                      [routerLink]="sub.route"
+                      routerLinkActive="active-nav"
+                      (click)="closeMobileNav()"
+                      class="nav-item relative flex items-center rounded-lg transition-colors duration-150"
+                      style="height:36px; padding:0 2px; color:var(--text-secondary); text-decoration:none;"
+                      [attr.aria-label]="sub.label"
+                    >
+                      <div class="nav-icon-wrapper flex items-center justify-center" style="width:30px; height:30px; flex-shrink:0;">
+                        <ng-icon [name]="sub.icon" [size]="'15'" />
+                      </div>
+                      <span class="sidebar-label ml-2 text-xs font-medium" style="color:#D1D5DB;">
+                        {{ sub.label }}
+                      </span>
+                    </a>
+                  }
+                </div>
+              }
+            } @else {
+              <a
+                [routerLink]="item.route"
+                routerLinkActive="active-nav"
+                (click)="closeMobileNav()"
+                class="nav-item relative flex items-center rounded-lg transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+                style="height:40px; padding:0 2px; color:var(--text-secondary); text-decoration:none;"
+                [attr.aria-label]="item.label"
+              >
+                <div class="nav-icon-wrapper flex items-center justify-center" style="width:36px; height:36px; flex-shrink:0;">
+                  <ng-icon [name]="item.icon" [size]="'17'" />
+                </div>
+                <span class="sidebar-label ml-2.5 text-sm font-medium"
+                  [style.opacity]="sidebarExpanded() ? 1 : 0"
+                  [style.transition-delay]="sidebarExpanded() ? '0.1s' : '0s'"
+                  style="color:#D1D5DB;">
+                  {{ item.label }}
+                </span>
+              </a>
+            }
           }
         </nav>
 
@@ -796,6 +850,11 @@ export class LayoutComponent {
     if (userId) {
       this.notificationService.init(userId);
     }
+    // Auto-open Project Hub if current route is a hub sub-item
+    const cleanUrl = this.router.url.split('?')[0];
+    if (this.projectHubItems.some(i => cleanUrl.startsWith(i.route))) {
+      this.projectHubOpen.set(true);
+    }
   }
 
   protected markRead(n: CommunityNotification): void {
@@ -892,34 +951,48 @@ export class LayoutComponent {
     this.mobileNavOpen.set(false);
   }
 
+  // Project Hub sub-items (shown when group is expanded)
+  protected readonly projectHubItems: NavItem[] = [
+    { icon: 'lucideRocket',        label: 'Projects',     route: '/app/projects'          },
+    { icon: 'lucideLayoutDashboard', label: 'My Dashboard', route: '/app/projects/dashboard' },
+    { icon: 'lucideMap',           label: 'Roadmaps',     route: '/app/roadmaps'          },
+    { icon: 'lucideZap',           label: 'Playground',   route: '/app/playground'        },
+    { icon: 'lucideGraduationCap', label: 'Mentoring',    route: '/app/mentoring'         },
+  ];
+
+  protected readonly projectHubOpen = signal(false);
+
+  protected toggleProjectHub(): void {
+    if (this.sidebarExpanded()) {
+      this.projectHubOpen.update(v => !v);
+    } else {
+      // Expand sidebar first, then open hub
+      this.sidebarExpanded.set(true);
+      this.projectHubOpen.set(true);
+    }
+  }
+
   protected readonly navItems: NavItem[] = [
-    { icon: 'lucideLayoutDashboard', label: 'Dashboard',    route: '/app/dashboard'    },
-    { icon: 'lucideRocket',          label: 'Projects',     route: '/app/projects'     },
-    { icon: 'lucideUsers',           label: 'Community',    route: '/app/community'    },
-<<<<<<< HEAD
-    { icon: 'lucideScale',           label: 'Legal',        route: '/app/legal'        },
-    { icon: 'lucideTrendingUp',      label: 'Investments',  route: '/app/investments'  },
-=======
-    { icon: 'lucideScale',           label: 'Procedures',   route: '/app/legal', roles: ['ADMIN'] },
-    { icon: 'lucideTrendingUp',      label: 'Investments',  route: '/investment'       },
->>>>>>> cdd63f1c6858c4a9379161b6fcc6e1e98612415d
-    { icon: 'lucideGraduationCap',   label: 'Mentoring',    route: '/app/mentoring'    },
-    { icon: 'lucideMap',             label: 'Roadmaps',     route: '/app/roadmaps'     },
-    { icon: 'lucideZap',             label: 'Playground',   route: '/app/playground'   },
-    { icon: 'lucideHandshake',       label: 'Partnerships', route: '/app/partenariat/list' },
-    { icon: 'lucideCalendar',        label: 'Events',       route: '/app/events'       },
+    { icon: 'lucideLayoutDashboard', label: 'Dashboard',       route: '/app/dashboard'    },
+    { icon: 'lucideFolderKanban',    label: 'Project Hub',     route: '__project_hub__'   }, // sentinel — rendered as group button
+    { icon: 'lucideUsers',           label: 'Community',       route: '/app/community'    },
+    { icon: 'lucideScale',           label: 'Legal',           route: '/app/legal'        },
+    { icon: 'lucideTrendingUp',      label: 'Investments',     route: '/app/investments'  },
+    { icon: 'lucideHandshake',       label: 'Partnerships',    route: '/app/partenariat/list' },
+    { icon: 'lucideCalendar',        label: 'Events',          route: '/app/events'       },
     { icon: 'lucideBuilding',        label: 'Mon Organisation', route: '/app/partenariat/mon-organisation', roles: ['PARTNER', 'PARTENAIRE'] },
-    { icon: 'lucideFileText',        label: 'Conventions',  route: '/app/partenariat/conventions', roles: ['ADMIN', 'PARTNER', 'PARTENAIRE', 'USER'] },
-    { icon: 'lucideVideo',           label: 'Meeting',      route: '/app/partenariat/meetings', roles: ['ADMIN', 'PARTNER', 'PARTENAIRE', 'USER'] },
-    { icon: 'lucideClipboardList',   label: 'Registrations', route: '/app/registrations', roles: ['ADMIN'] },
-    { icon: 'lucideUsers',           label: 'Users',         route: '/app/users',         roles: ['ADMIN'] },
+    { icon: 'lucideFileText',        label: 'Conventions',     route: '/app/partenariat/conventions', roles: ['ADMIN', 'PARTNER', 'PARTENAIRE', 'USER'] },
+    { icon: 'lucideVideo',           label: 'Meeting',         route: '/app/partenariat/meetings', roles: ['ADMIN', 'PARTNER', 'PARTENAIRE', 'USER'] },
+    { icon: 'lucideClipboardList',   label: 'Registrations',   route: '/app/registrations', roles: ['ADMIN'] },
+    { icon: 'lucideUsers',           label: 'Users',           route: '/app/users',         roles: ['ADMIN'] },
   ];
 
   // Filter nav items based on user role
   protected readonly filteredNavItems = computed(() => {
     const userRole = this.authService.getRole();
     return this.navItems.filter(item => {
-      if (!item.roles) return true; // No role restriction
+      if (item.route === '__project_hub__') return true; // always show hub
+      if (!item.roles) return true;
       return item.roles.includes(userRole);
     });
   });
@@ -932,7 +1005,10 @@ export class LayoutComponent {
   protected readonly currentPageTitle = computed(() => {
     this.url();
     const cleanUrl = this.router.url.split('?')[0];
-    return this.filteredNavItems().find((item) => cleanUrl.startsWith(item.route))?.label ?? 'FoundersLab';
+    // Check hub sub-items first
+    const hubMatch = this.projectHubItems.find(i => cleanUrl.startsWith(i.route));
+    if (hubMatch) return hubMatch.label;
+    return this.filteredNavItems().find((item) => item.route !== '__project_hub__' && cleanUrl.startsWith(item.route))?.label ?? 'FoundersLab';
   });
 
   protected readonly userDisplayName = computed(() => {

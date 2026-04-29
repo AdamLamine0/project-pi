@@ -14,7 +14,7 @@ import {
   lucideLayoutDashboard, lucideLogOut,
   lucideSun, lucideMoon, lucideUser, lucideSettings, lucideChevronDown,
   lucideUsers, lucideBell, lucideCheck, lucideMessageSquare, lucideMail,
-  lucideBriefcase, lucideStar,
+  lucideBriefcase, lucideStar, lucideMap, lucideZap, lucideGraduationCap,
 } from '@ng-icons/lucide';
 import {
   trigger,
@@ -39,6 +39,7 @@ import { Router } from '@angular/router';
     lucideMenu, lucideX, lucideCalendar, lucideRocket, lucideLayoutDashboard, lucideLogOut,
     lucideSun, lucideMoon, lucideUser, lucideSettings, lucideChevronDown, lucideUsers,
     lucideBell, lucideCheck, lucideMessageSquare, lucideMail, lucideBriefcase, lucideStar,
+    lucideMap, lucideZap, lucideGraduationCap,
   })],
   templateUrl: './landing-layout.component.html',
   styleUrl:    './landing-layout.component.css',
@@ -139,6 +140,7 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
   protected readonly navLinks = [
     { id: 'home',         label: 'Home',         route: '/',                                    type: 'route' },
     { id: 'events',       label: 'Events',       route: '/events',                              type: 'route' },
+    { id: 'project-hub',  label: '⚡ Project Hub', route: '/app/projects',                      type: 'route', authRequired: true },
     { id: 'community',    label: 'Community',    route: '/community',                           type: 'route' },
     { id: 'partners',     label: 'Partnerships', route: '/app/partenariat/list',                type: 'route', roles: ['ADMIN', 'PARTNER', 'PARTENAIRE', 'USER'] },
     { id: 'organisation', label: 'Mon Organisation', route: '/app/partenariat/mon-organisation', type: 'route', roles: ['PARTNER', 'PARTENAIRE'] },
@@ -155,6 +157,8 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
     const isLoggedIn = this.authService.isLoggedIn();
     
     return this.navLinks.filter(link => {
+      // authRequired links always show (we handle redirect in template)
+      if ((link as any).authRequired) return true;
       // If link has no role restriction, show it
       if (!link.roles) return true;
       // If user is not logged in, hide role-restricted links
@@ -163,6 +167,14 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
       return link.roles.includes(userRole);
     });
   });
+
+  protected getHubRoute(link: any): string {
+    // If authRequired and not logged in, redirect to login
+    if (link.authRequired && !this.authService.isLoggedIn()) {
+      return '/auth/login';
+    }
+    return link.route;
+  }
 
   ngOnInit(): void {
     setTimeout(() => this.pillState.set('visible'), 60);

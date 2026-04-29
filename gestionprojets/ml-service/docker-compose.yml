@@ -1,0 +1,43 @@
+version: '3.9'
+
+services:
+  ml-api:
+    build: .
+    container_name: pi-ml-api
+    env_file:
+      - .env
+    ports:
+      - "8001:8001"
+    depends_on:
+      - redis
+      - mysql
+
+  ml-worker:
+    build: .
+    container_name: pi-ml-worker
+    command: celery -A app.core.celery_app.celery_app worker --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - mysql
+
+  redis:
+    image: redis:7-alpine
+    container_name: pi-ml-redis
+    ports:
+      - "6379:6379"
+
+  mysql:
+    image: mysql:8.4
+    container_name: pi-ml-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: pi_ml
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:

@@ -2,13 +2,18 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Component, ElementRef, OnInit, OnDestroy, ViewChild, NgZone, HostListener, ChangeDetectorRef } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-import ZoomMtgEmbedded from '@zoom/meetingsdk/embedded';
 import { AuthService } from '../../../core/services/auth.service';
 import { FloatingMeetingService } from '../../../services/floating-meeting.service';
 import { MeetingResponse, MeetingService, PartnerResponseRequest, UpdateMeetingTimeRequest } from '../../../services/meeting.service';
 import { ZoomService } from '../../../services/zoom.service';
 import { AudioRecorderService } from '../../../services/audio-recorder.service';
 import { TranscriptionService } from '../../../services/transcription.service';
+
+// Zoom SDK loaded dynamically to avoid compile-time errors when package is absent
+let ZoomMtgEmbedded: any = null;
+(async () => {
+  try { ZoomMtgEmbedded = (await import('@zoom/meetingsdk/embedded' as any)).default; } catch { /* SDK not installed */ }
+})();
 
 type MeetingViewMode = 'list' | 'calendar';
 

@@ -1,9 +1,9 @@
 <div class="roadmap-layout" *ngIf="!loading && project">
   <aside class="roadmap-side">
     <h5>Roadmap IA</h5>
-    <a [routerLink]="['/projects', project.id]">Fiche projet</a>
-    <a [routerLink]="['/projects', project.id, 'roadmap']" class="active">Timeline IA</a>
-    <a routerLink="/dashboard">Dashboard</a>
+    <a [routerLink]="['/app/projects', project.id]">Fiche projet</a>
+    <a [routerLink]="['/app/projects', project.id, 'roadmap']" class="active">Timeline IA</a>
+    <a routerLink="/app/projects/dashboard">Dashboard</a>
   </aside>
 
   <section class="roadmap-content">

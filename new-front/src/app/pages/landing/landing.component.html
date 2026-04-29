@@ -122,6 +122,74 @@
   </section>
 
   <!-- ═══════════════════════════════════════════════════
+       PROJECT HUB BANNER
+       ═══════════════════════════════════════════════════ -->
+  <section class="hub-banner-section">
+    <div class="container">
+      <div class="hub-banner">
+        <!-- Left: text -->
+        <div class="hub-banner__text">
+          <p class="section-eyebrow" style="color:#93C5FD;">● PROJECT MANAGEMENT</p>
+          <h2 class="hub-banner__title">Your <em>Project Hub</em><br>— all in one place</h2>
+          <p class="hub-banner__desc">
+            Manage your startup projects, generate AI-powered roadmaps, and use the
+            Playground to build your Business Model Canvas, SWOT analysis, budget plan
+            and pitch deck — all powered by our ML service.
+          </p>
+          <div class="hub-banner__actions">
+            <a routerLink="/app/projects" class="btn btn-primary">
+              Manage Projects
+            </a>
+            <a routerLink="/app/roadmaps" class="btn btn-ghost">
+              View Roadmaps →
+            </a>
+          </div>
+        </div>
+
+        <!-- Right: feature tiles -->
+        <div class="hub-banner__tiles">
+          <a routerLink="/app/projects" class="hub-tile">
+            <div class="hub-tile__icon" style="background:linear-gradient(135deg,#1C4FC3,#1D1384);">
+              <ng-icon name="lucideRocket" size="20" style="color:#fff;" />
+            </div>
+            <div>
+              <p class="hub-tile__label">Projects</p>
+              <p class="hub-tile__desc">Create &amp; track your startup projects</p>
+            </div>
+          </a>
+          <a routerLink="/app/roadmaps" class="hub-tile">
+            <div class="hub-tile__icon" style="background:linear-gradient(135deg,#059669,#047857);">
+              <ng-icon name="lucideMap" size="20" style="color:#fff;" />
+            </div>
+            <div>
+              <p class="hub-tile__label">Roadmaps</p>
+              <p class="hub-tile__desc">AI-generated milestone roadmaps</p>
+            </div>
+          </a>
+          <a routerLink="/app/playground" class="hub-tile">
+            <div class="hub-tile__icon" style="background:linear-gradient(135deg,#7C3AED,#6D28D9);">
+              <ng-icon name="lucideZap" size="20" style="color:#fff;" />
+            </div>
+            <div>
+              <p class="hub-tile__label">Playground</p>
+              <p class="hub-tile__desc">BMC, SWOT, Budget &amp; Pitch Deck</p>
+            </div>
+          </a>
+          <a routerLink="/app/mentoring" class="hub-tile">
+            <div class="hub-tile__icon" style="background:linear-gradient(135deg,#D97706,#B45309);">
+              <ng-icon name="lucideGraduationCap" size="20" style="color:#fff;" />
+            </div>
+            <div>
+              <p class="hub-tile__label">Mentoring</p>
+              <p class="hub-tile__desc">Connect with expert mentors</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════
        4. EVENTS TEASER (auth-gated)
        ═══════════════════════════════════════════════════ -->
   <section class="events-teaser-section" [@reveal]="eventsState()">

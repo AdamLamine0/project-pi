@@ -1,11 +1,16 @@
 import { Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import ZoomMtgEmbedded from '@zoom/meetingsdk/embedded';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { FloatingMeetingService, FloatingMeetingState } from '../../../services/floating-meeting.service';
 import { ZoomService } from '../../../services/zoom.service';
 import { AudioRecorderService } from '../../../services/audio-recorder.service';
 import { TranscriptionService } from '../../../services/transcription.service';
+
+// Zoom SDK loaded dynamically to avoid compile-time errors when package is absent
+let ZoomMtgEmbedded: any = null;
+(async () => {
+  try { ZoomMtgEmbedded = (await import('@zoom/meetingsdk/embedded' as any)).default; } catch { /* SDK not installed */ }
+})();
 
 @Component({
   selector: 'app-floating-zoom-meeting',

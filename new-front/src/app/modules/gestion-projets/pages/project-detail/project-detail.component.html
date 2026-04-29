@@ -4,7 +4,7 @@
       <button class="btn btn-sm btn-outline-secondary" (click)="goBack()">Retour</button>
       <div class="d-flex flex-wrap gap-2">
         <button *ngIf="canEditProject" class="btn btn-sm btn-primary" (click)="editProject()">Modifier</button>
-        <button *ngIf="canEditProject" class="btn btn-sm btn-outline-primary" [routerLink]="['/gestion-projets', project.id, 'playground']">Entrepreneur Playground</button>
+        <button *ngIf="canEditProject" class="btn btn-sm btn-outline-primary" [routerLink]="['/app/projects', project.id, 'playground']">Entrepreneur Playground</button>
         <button *ngIf="canInvestorInterest" class="btn btn-sm btn-outline-success">Exprimer interet</button>
         <!-- MENTOR: not yet requested -->
         <button *ngIf="canMentorProject && !hasSentMentoringRequest" class="btn btn-sm btn-outline-info" (click)="sendMentoringInterest()">
@@ -114,7 +114,7 @@
               <button class="btn btn-sm btn-outline-primary" (click)="generatePersonalizedRoadmap()" [disabled]="roadmapLoading">
                 {{ roadmapLoading ? 'Generation...' : 'Generer IA' }}
               </button>
-              <button class="btn btn-sm btn-outline-secondary" [routerLink]="['/projects', project.id, 'roadmap']">Timeline</button>
+              <button class="btn btn-sm btn-outline-secondary" [routerLink]="['/app/projects', project.id, 'roadmap']">Timeline</button>
             </div>
           </div>
 
@@ -212,7 +212,7 @@
                 </div>
               </div>
               <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-secondary" [routerLink]="['/gestion-projets', project.id, 'playground']">Editer AI</button>
+                <button class="btn btn-sm btn-outline-secondary" [routerLink]="['/app/projects', project.id, 'playground']">Editer AI</button>
                 <button *ngIf="canEditProject" class="btn btn-sm btn-outline-danger" (click)="deletePersistedDocument(doc.id)">✕</button>
               </div>
             </div>
