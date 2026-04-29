@@ -9,8 +9,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSliderModule } from '@angular/material/slider';
-import { NgIconComponent, provideIcons } from '@ng-icons/core';
-import { lucideUpload, lucideX } from '@ng-icons/lucide';
 import { Subscription } from 'rxjs';
 import { InvestmentCriteria } from '../../models/investment-criteria.model';
 import { InvestmentCriteriaService } from '../../services/investment-criteria.service';
@@ -18,8 +16,7 @@ import { AuthService } from '../../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-criteria-form',
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatCardModule, MatButtonModule, MatInputModule, MatFormFieldModule, MatSelectModule, MatCheckboxModule, MatSliderModule, NgIconComponent],
-  providers: [provideIcons({ lucideUpload, lucideX })],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatCardModule, MatButtonModule, MatInputModule, MatFormFieldModule, MatSelectModule, MatCheckboxModule, MatSliderModule],
   templateUrl: './criteria-form.html',
   styleUrl: './criteria-form.css',
 })
@@ -41,8 +38,6 @@ export class CriteriaForm implements OnInit, OnDestroy {
   existingCriteriaId = '';
   submitting = false;
   error = '';
-  selectedFileName = '';
-  selectedFile: File | null = null;
   private readonly sub = new Subscription();
 
   constructor(
@@ -278,26 +273,5 @@ export class CriteriaForm implements OnInit, OnDestroy {
   private resolveInvestorId(): string {
     const userId = this.authService.getUserId();
     return userId > 0 ? String(userId) : '';
-  }
-
-  onFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    
-    if (file && file.type === 'application/pdf') {
-      this.selectedFile = file;
-      this.selectedFileName = file.name;
-    } else {
-      this.selectedFile = null;
-      this.selectedFileName = '';
-      if (file) {
-        alert('Please select a PDF file only.');
-      }
-    }
-  }
-
-  removeFile(): void {
-    this.selectedFile = null;
-    this.selectedFileName = '';
   }
 }

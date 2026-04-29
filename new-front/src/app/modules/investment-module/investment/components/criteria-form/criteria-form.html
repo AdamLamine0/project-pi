@@ -11,7 +11,7 @@
   <div class="helper-card" *ngIf="!isEditMode && existingCriteriaId">
     <strong>Profile Already Exists</strong>
     <p>An investor can only have one criteria. Open the existing profile to edit it.</p>
-    <button type="button" class="btn secondary" (click)="openExistingCriteria()">Show my criteria</button>
+    <button type="button" class="btn secondary" (click)="openExistingCriteria()">Update my criteria</button>
   </div>
 
   <form class="card" (ngSubmit)="submit()">
@@ -127,30 +127,7 @@
         <p class="hint" *ngIf="criteria.stages.length === 0">No stages added yet.</p>
       </div>
 
-      <div class="field full">
-        <label for="presentationPdf">Investor Presentation (PDF)</label>
-        <div class="file-upload">
-          <input
-            id="presentationPdf"
-            type="file"
-            accept=".pdf"
-            (change)="onFileSelected($event)"
-            #fileInput
-          />
-          <div class="file-upload-label" (click)="fileInput.click()">
-            <ng-icon name="lucideUpload" size="20"></ng-icon>
-            <span>{{ selectedFileName || 'Click to upload PDF' }}</span>
           </div>
-          <p class="hint">Upload a PDF to introduce yourself and your investment thesis</p>
-          <div class="file-preview" *ngIf="selectedFileName">
-            <span class="file-name">{{ selectedFileName }}</span>
-            <button type="button" class="remove-file" (click)="removeFile()">
-              <ng-icon name="lucideX" size="16"></ng-icon>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <div class="actions">
       <button type="submit" class="btn primary" [disabled]="submitting">
