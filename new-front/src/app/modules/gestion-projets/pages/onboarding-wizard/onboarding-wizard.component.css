@@ -1,0 +1,134 @@
+.onboarding-shell {
+  min-height: calc(100vh - 90px);
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+  background: radial-gradient(circle at 12% 10%, #e0f2fe 0%, transparent 35%), radial-gradient(circle at 86% 20%, #fee2e2 0%, transparent 30%), #f8fafc;
+}
+
+.onboarding-card {
+  width: 100%;
+  max-width: 600px;
+  border: 1px solid #dbeafe;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 18px 40px rgba(30, 64, 175, 0.08);
+  padding: 1rem;
+}
+
+.stepper {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.step {
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 0.4rem;
+}
+
+.step.active {
+  background: #1d4ed8;
+  color: #fff;
+  border-color: #1d4ed8;
+}
+
+.step-content h3 {
+  color: #1e3a8a;
+  font-size: 1.1rem;
+}
+
+.chip-row {
+  display: flex;
+  gap: 8px;
+}
+
+.chip-row.wrap {
+  flex-wrap: wrap;
+}
+
+.chip {
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #fff;
+  color: #334155;
+  padding: 0.35rem 0.7rem;
+  font-size: 12px;
+}
+
+.chip.active {
+  background: #0ea5e9;
+  border-color: #0284c7;
+  color: #fff;
+}
+
+.missing-box {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.missing {
+  background: #fff7ed;
+  color: #9a3412;
+  border: 1px solid #fdba74;
+  border-radius: 999px;
+  padding: 0.3rem 0.6rem;
+  font-size: 12px;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.summary {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.loading-state {
+  border: 1px dashed #93c5fd;
+  border-radius: 10px;
+  padding: 0.7rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pulse {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #0ea5e9;
+  animation: pulse 1s infinite ease-in-out;
+}
+
+.pulse:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.pulse:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(0.7); opacity: 0.5; }
+  50% { transform: scale(1); opacity: 1; }
+}
+
+@media (max-width: 760px) {
+  .stepper {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

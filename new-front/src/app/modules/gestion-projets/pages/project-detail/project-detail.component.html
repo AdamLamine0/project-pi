@@ -1,0 +1,368 @@
+<div class="container-fluid py-4 detail-page" *ngIf="!loading && project">
+  <div class="detail-hero mb-4">
+    <div class="hero-topbar">
+      <button class="btn btn-sm btn-outline-secondary" (click)="goBack()">Retour</button>
+      <div class="d-flex flex-wrap gap-2">
+        <button *ngIf="canEditProject" class="btn btn-sm btn-primary" (click)="editProject()">Modifier</button>
+        <button *ngIf="canEditProject" class="btn btn-sm btn-outline-primary" [routerLink]="['/gestion-projets', project.id, 'playground']">Entrepreneur Playground</button>
+        <button *ngIf="canInvestorInterest" class="btn btn-sm btn-outline-success">Exprimer interet</button>
+        <!-- MENTOR: not yet requested -->
+        <button *ngIf="canMentorProject && !hasSentMentoringRequest" class="btn btn-sm btn-outline-info" (click)="sendMentoringInterest()">
+          🤝 Montrer mon intérêt
+        </button>
+        <!-- MENTOR: request pending -->
+        <span *ngIf="canMentorProject && myMentoringRequest?.status === 'PENDING'" class="badge text-bg-warning align-self-center px-3 py-2">
+          ⏳ Demande envoyée
+        </span>
+        <!-- MENTOR: accepted - open dashboard -->
+        <button *ngIf="canMentorProject && isAcceptedMentor" class="btn btn-sm btn-success" (click)="openMentorDashboard()">
+          📊 Mon Dashboard Mentor
+        </button>
+      </div>
+    </div>
+
+    <div class="hero-main align-items-start">
+      <div>
+        <h2 class="hero-title mb-2">{{ project.title }}</h2>
+        <div class="hero-badges">
+          <span class="badge bg-info">{{ project.status }}</span>
+          <span class="badge bg-warning text-dark">{{ project.priority }}</span>
+          <span class="badge" [ngClass]="isAuthenticProject ? 'bg-success' : 'bg-danger'">{{ authenticityBadgeLabel }}</span>
+        </div>
+      </div>
+
+      <div class="hero-score-block">
+        <p class="score-label mb-1">AI SCORE</p>
+        <h1 class="score-value mb-0">{{ displayAiScore }}/100</h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-8">
+      <ul class="nav nav-tabs mb-3" role="tablist">
+        <li class="nav-item"><button class="nav-link" [class.active]="activeTab === 'description'" (click)="setActiveTab('description')">Description</button></li>
+        <li class="nav-item"><button class="nav-link" [class.active]="activeTab === 'ai-score'" (click)="setActiveTab('ai-score')">AI Score</button></li>
+        <li class="nav-item"><button class="nav-link" [class.active]="activeTab === 'roadmap'" (click)="setActiveTab('roadmap')">Roadmap</button></li>
+        <li class="nav-item"><button class="nav-link" [class.active]="activeTab === 'team'" (click)="setActiveTab('team')">Team</button></li>
+        <li class="nav-item"><button class="nav-link" [class.active]="activeTab === 'documents'" (click)="setActiveTab('documents')">Documents</button></li>
+        <li class="nav-item"><button class="nav-link" [class.active]="activeTab === 'plagiarism'" (click)="setActiveTab('plagiarism')">Plagiat</button></li>
+      </ul>
+
+      <div *ngIf="activeTab === 'description'" class="card section-card">
+        <div class="card-body">
+          <p class="mb-3">{{ project.description }}</p>
+          <div class="row">
+            <div class="col-md-6">
+              <p><strong>Date de debut:</strong> {{ project.startDate | date:'dd/MM/yyyy' }}</p>
+              <p><strong>Date de fin:</strong> {{ project.endDate | date:'dd/MM/yyyy' }}</p>
+            </div>
+            <div class="col-md-6">
+              <p><strong>Budget:</strong> {{ (project.budget || 0) | currency }}</p>
+              <p><strong>Cree le:</strong> {{ project.createdAt | date:'dd/MM/yyyy' }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="activeTab === 'ai-score'" class="card section-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">Dimensions IA</h6>
+            <button class="btn btn-sm btn-outline-secondary" (click)="assessMaturity()" [disabled]="maturityLoading">Recalculer</button>
+          </div>
+
+          <div class="radar-wrapper mb-4">
+            <svg viewBox="0 0 300 300" class="radar-svg" role="img" aria-label="Radar AI Score">
+              <polygon class="radar-grid" points="150,40 245,95 245,205 150,260 55,205 55,95"></polygon>
+              <polygon class="radar-grid" points="150,65 223,108 223,192 150,235 77,192 77,108"></polygon>
+              <polygon class="radar-grid" points="150,88 204,120 204,180 150,212 96,180 96,120"></polygon>
+              <polygon class="radar-grid" points="150,111 185,132 185,168 150,189 115,168 115,132"></polygon>
+              <polygon class="radar-grid" points="150,134 166,144 166,156 150,166 134,156 134,144"></polygon>
+
+              <line *ngFor="let label of radarLabels; let i = index" [attr.x1]="150" [attr.y1]="150" [attr.x2]="radarAxisPoint(i).x" [attr.y2]="radarAxisPoint(i).y" class="radar-axis"></line>
+
+              <polygon class="radar-shape" [attr.points]="radarPoints"></polygon>
+
+              <circle *ngFor="let label of radarLabels; let i = index" [attr.cx]="radarAxisPoint(i, (aiScoreDimensions[i].value / 100) * 98).x" [attr.cy]="radarAxisPoint(i, (aiScoreDimensions[i].value / 100) * 98).y" r="3.8" class="radar-node"></circle>
+
+              <text *ngFor="let label of radarLabels; let i = index" [attr.x]="radarAxisPoint(i, 128).x" [attr.y]="radarAxisPoint(i, 128).y" class="radar-label">{{ label }}</text>
+            </svg>
+          </div>
+
+          <div *ngFor="let d of aiScoreDimensions" class="score-line mb-3">
+            <div class="d-flex justify-content-between mb-1">
+              <strong>{{ d.label }}</strong>
+              <span>{{ d.value }}%</span>
+            </div>
+            <div class="progress" style="height: 10px;">
+              <div class="progress-bar" [style.width.%]="d.value"></div>
+            </div>
+            <small class="text-muted d-block mt-1">{{ d.recommendation }}</small>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="activeTab === 'roadmap'" class="card section-card roadmap-board-card">
+        <div class="card-body">
+          <div class="roadmap-header">
+            <div>
+              <p class="roadmap-kicker mb-1">Roadmap visuelle</p>
+              <h6 class="mb-0">Board interactif par phases</h6>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm btn-outline-primary" (click)="generatePersonalizedRoadmap()" [disabled]="roadmapLoading">
+                {{ roadmapLoading ? 'Generation...' : 'Generer IA' }}
+              </button>
+              <button class="btn btn-sm btn-outline-secondary" [routerLink]="['/projects', project.id, 'roadmap']">Timeline</button>
+            </div>
+          </div>
+
+          <div *ngIf="roadmapError" class="alert alert-warning py-2 px-3 small mt-3 mb-0">{{ roadmapError }}</div>
+
+          <div class="roadmap-river mt-3">
+            <svg viewBox="0 0 1000 140" preserveAspectRatio="none" role="img" aria-label="Roadmap river">
+              <path d="M10,70 C140,5 220,135 340,70 C450,15 550,125 660,70 C770,20 860,120 990,70" fill="none" stroke="#93c5fd" stroke-width="8" stroke-linecap="round"></path>
+              <circle cx="10" cy="70" r="8" fill="#1d4ed8"></circle>
+              <circle cx="340" cy="70" r="8" fill="#3b82f6"></circle>
+              <circle cx="660" cy="70" r="8" fill="#0ea5e9"></circle>
+              <circle cx="990" cy="70" r="8" fill="#22c55e"></circle>
+            </svg>
+          </div>
+
+          <div class="roadmap-columns mt-3">
+            <div class="roadmap-column" *ngFor="let col of roadmapColumns" (dragover)="onRoadmapDragOver($event)" (drop)="onRoadmapDropToPhase(col.id, $event)">
+              <div class="column-head">
+                <h6 class="mb-0">{{ col.label }}</h6>
+                <span class="badge bg-light text-dark">{{ col.completion }}%</span>
+              </div>
+              <div class="column-progress mt-2 mb-2">
+                <div class="progress" style="height: 8px;"><div class="progress-bar" [style.width.%]="col.completion"></div></div>
+              </div>
+
+              <div class="roadmap-card" *ngFor="let task of col.tasks" draggable="true" (dragstart)="onRoadmapDragStart(task.id || 0)" (dragend)="onRoadmapDragEnd()" (dragover)="onRoadmapDragOver($event)" (drop)="onRoadmapDropOnTask(task.id || 0, $event)">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                  <strong class="task-title">{{ task.title }}</strong>
+                  <span class="badge" [ngClass]="'bg-' + getPriorityColor(task.priority)">{{ task.priority }}</span>
+                </div>
+                <p class="small text-muted mb-2">{{ task.description }}</p>
+                <div class="d-flex gap-2 align-items-center">
+                  <select class="form-select form-select-sm" [ngModel]="task.status" (ngModelChange)="onTaskStatusChange({ task: task, status: $event })">
+                    <option *ngFor="let st of roadmapStatusOptions" [value]="st">{{ st }}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="roadmap-feedback-box mt-3">
+            <label for="roadmapFeedback" class="form-label mb-1">Commentaire sur la roadmap generee</label>
+            <textarea id="roadmapFeedback" class="form-control" rows="3" [(ngModel)]="roadmapFeedback"></textarea>
+            <div class="d-flex justify-content-end gap-2 mt-2">
+              <button class="btn btn-sm btn-outline-secondary" (click)="roadmapFeedback = ''">Vider</button>
+              <button class="btn btn-sm btn-primary" (click)="regenerateRoadmapFromFeedback()" [disabled]="roadmapLoading">Regenerer selon commentaire</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="activeTab === 'team'" class="card section-card">
+        <div class="card-body">
+          <app-team-member-list [teamMembers]="project.teamMembers || []"></app-team-member-list>
+        </div>
+      </div>
+
+      <div *ngIf="activeTab === 'documents'" class="card section-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h6 class="mb-0">Documents & Intelligence Artificielle</h6>
+            <div class="d-flex gap-2" *ngIf="canUploadDocuments">
+              <button class="btn btn-sm btn-primary" (click)="generateBmc()" [disabled]="docLoading">Generer BMC</button>
+              <button class="btn btn-sm btn-info text-white" (click)="generateSwot()" [disabled]="docLoading">Generer SWOT</button>
+              <button class="btn btn-sm btn-success" (click)="generatePitch()" [disabled]="docLoading">Generer Pitch</button>
+            </div>
+          </div>
+
+          <div *ngIf="docError" class="alert alert-danger py-2 small">{{ docError }}</div>
+
+          <div class="upload-section mb-4 p-3 bg-light rounded-3">
+            <label for="roadmapDocs" class="form-label small fw-bold mb-2">Upload de documents locaux</label>
+            <input *ngIf="canUploadDocuments" id="roadmapDocs" type="file" class="form-control form-control-sm" multiple (change)="onDocumentsSelected($event)">
+            <p *ngIf="!canUploadDocuments" class="small text-muted mb-0">Lecture seule: les mentors peuvent consulter les documents uploades.</p>
+          </div>
+
+          <h6 class="small fw-bold text-uppercase text-muted mb-3">Documents Generes & Persistes</h6>
+          <div *ngIf="docLoading" class="text-center py-3">
+            <div class="spinner-border spinner-border-sm" role="status"></div>
+          </div>
+
+          <div *ngIf="!docLoading && persistedDocuments.length === 0" class="alert alert-light border small text-center py-4">
+            Aucun document genere pour le moment. Utilisez les boutons ci-dessus pour demarrer.
+          </div>
+
+          <div class="persisted-doc-list" *ngIf="!docLoading && persistedDocuments.length > 0">
+            <div class="doc-card mb-2 p-3 border rounded-3 d-flex justify-content-between align-items-center bg-white shadow-sm" *ngFor="let doc of persistedDocuments">
+              <div class="d-flex align-items-center gap-3">
+                <div class="doc-icon p-2 bg-primary bg-opacity-10 rounded text-primary">
+                  <i class="bi bi-file-earmark-text"></i>
+                </div>
+                <div>
+                  <h6 class="mb-0 fw-bold">{{ doc.title }}</h6>
+                  <p class="small text-muted mb-0">Type: {{ doc.type }} • Maj: {{ doc.updatedAt | date:'dd/MM/yyyy HH:mm' }}</p>
+                </div>
+              </div>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-secondary" [routerLink]="['/gestion-projets', project.id, 'playground']">Editer AI</button>
+                <button *ngIf="canEditProject" class="btn btn-sm btn-outline-danger" (click)="deletePersistedDocument(doc.id)">✕</button>
+              </div>
+            </div>
+          </div>
+
+          <h6 class="small fw-bold text-uppercase text-muted mt-4 mb-3">Uploads Temporaires (Session)</h6>
+          <div *ngIf="uploadedDocuments.length === 0" class="alert alert-light border small text-center py-3">Aucun upload manuel.</div>
+          <div class="doc-list" *ngIf="uploadedDocuments.length > 0">
+            <div class="doc-item border-bottom py-2 d-flex justify-content-between align-items-center" *ngFor="let doc of uploadedDocuments">
+              <div>
+                <span class="small fw-bold d-block">{{ doc.name }}</span>
+                <span class="small text-muted">Ajoute le {{ doc.uploadedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <button class="btn btn-sm btn-link text-primary text-decoration-none">Voir</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="activeTab === 'plagiarism'" class="card section-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="mb-0">Analyse plagiat</h6>
+            <button class="btn btn-sm btn-outline-secondary" (click)="analyzeProjectPlagiarism()" [disabled]="plagiarismLoading">
+              {{ plagiarismLoading ? 'Analyse...' : 'Relancer analyse' }}
+            </button>
+          </div>
+
+          <div class="plagiarism-score-wrap mb-3">
+            <div class="big-score">{{ originalityScore }}%</div>
+            <div>
+              <span class="badge" [ngClass]="isAuthenticProject ? 'bg-success' : 'bg-danger'">{{ authenticityBadgeLabel }}</span>
+              <p class="small text-muted mt-2 mb-0">Date analyse: {{ plagiarismAnalyzedAt | date:'dd/MM/yyyy HH:mm' }}</p>
+            </div>
+          </div>
+
+          <div *ngIf="plagiarismError" class="alert alert-warning">{{ plagiarismError }}</div>
+
+          <div *ngIf="plagiarismSources.length === 0" class="alert alert-light">Aucune source similaire detectee.</div>
+          <div *ngFor="let source of plagiarismSources" class="source-row">
+            <span class="source-percent">{{ source.score }}%</span>
+            <div>
+              <a [href]="source.url" target="_blank" rel="noreferrer">{{ source.title || source.url }}</a>
+              <p class="small text-muted mb-0">{{ source.snippet }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <!-- MENTORING REQUESTS PANEL (visible to project founder) -->
+      <div *ngIf="canEditProject && (mentoringRequests.length > 0)" class="card section-card mb-3 mentoring-requests-card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <h6 class="mb-0">🤝 Demandes de Mentorat</h6>
+          <span class="badge text-bg-primary">{{ pendingMentoringRequests.length }} en attente</span>
+        </div>
+        <div class="card-body p-0">
+          <div *ngFor="let req of mentoringRequests" class="mentoring-req-item"
+            [class.req-pending]="req.status === 'PENDING'"
+            [class.req-accepted]="req.status === 'ACCEPTED'"
+            [class.req-declined]="req.status === 'DECLINED'">
+            <div class="req-mentor-info">
+              <div class="req-avatar">{{ req.mentorName[0]?.toUpperCase() }}</div>
+              <div>
+                <strong>{{ req.mentorName }}</strong>
+                <p class="small text-muted mb-0">{{ req.mentorEmail }}</p>
+                <p class="small mb-0 mt-1">{{ req.message }}</p>
+              </div>
+            </div>
+            <div class="req-actions" *ngIf="req.status === 'PENDING'">
+              <button class="btn btn-sm btn-success" (click)="acceptMentoringRequest(req.id)">✓ Accepter</button>
+              <button class="btn btn-sm btn-outline-danger" (click)="declineMentoringRequest(req.id)">✕ Refuser</button>
+            </div>
+            <div *ngIf="req.status !== 'PENDING'">
+              <span class="badge" [class.text-bg-success]="req.status === 'ACCEPTED'" [class.text-bg-secondary]="req.status === 'DECLINED'">
+                {{ req.status === 'ACCEPTED' ? '✅ Accepté' : '❌ Refusé' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCEPTED MENTORS PANEL -->
+      <div *ngIf="canEditProject && acceptedMentoringRequests.length > 0" class="card section-card mb-3">
+        <div class="card-header"><h6 class="mb-0">👥 Mentors actifs</h6></div>
+        <div class="card-body">
+          <div *ngFor="let req of acceptedMentoringRequests" class="d-flex align-items-center gap-2 mb-2">
+            <div class="req-avatar small">{{ req.mentorName[0]?.toUpperCase() }}</div>
+            <div>
+              <strong class="small">{{ req.mentorName }}</strong>
+              <p class="small text-muted mb-0">{{ req.mentorEmail }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="canViewMentorProgress" class="card section-card mb-3">
+        <div class="card-header">
+          <h6 class="mb-0">Suivi mentor</h6>
+        </div>
+        <div class="card-body">
+          <p class="small text-muted mb-2">Progression globale</p>
+          <div class="progress mb-3" style="height: 10px;">
+            <div class="progress-bar" [style.width.%]="completionRate"></div>
+          </div>
+          <ul class="small mb-0 ps-3">
+            <li *ngFor="let m of milestones">{{ m.label }} - <strong>{{ m.done ? 'OK' : 'En cours' }}</strong></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card section-card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h6 class="mb-0">AI Copilot Projet</h6>
+          <button class="btn btn-sm btn-outline-primary" (click)="generateAiInsight()" [disabled]="aiLoading">{{ aiLoading ? 'Analyse...' : 'Generer' }}</button>
+        </div>
+        <div class="card-body">
+          <p class="small text-muted mb-3">Le backend gère la configuration OpenRouter. L’interface reste centrée sur les insights et le brouillon généré.</p>
+          <div *ngIf="aiError" class="alert alert-warning py-2 px-3 small mb-2">{{ aiError }}</div>
+          <pre *ngIf="aiInsight" class="ai-output">{{ aiInsight }}</pre>
+          <p *ngIf="!aiInsight && !aiError" class="small text-muted mb-0">Aucun insight genere pour le moment.</p>
+        </div>
+      </div>
+
+      <div class="card section-card">
+        <div class="card-header">
+          <h6 class="mb-0">Informations</h6>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <small class="text-muted d-block">JOURS RESTANTS</small>
+            <strong>{{ getRemainingDays() }}</strong>
+          </div>
+          <div class="mb-3">
+            <small class="text-muted d-block">TACHES COMPLETEES</small>
+            <strong>{{ getCompletedTasks() }}/{{ tasks.length }}</strong>
+          </div>
+          <div class="mb-3">
+            <small class="text-muted d-block">EQUIPE</small>
+            <strong>{{ project.teamMembers?.length || 0 }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="loading" class="text-center py-5">
+  <div class="spinner-border" role="status">
+    <span class="visually-hidden">Chargement...</span>
+  </div>
+</div>

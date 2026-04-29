@@ -1,0 +1,253 @@
+.playground-shell {
+  max-width: 1440px;
+}
+
+.playground-layout {
+  display: grid;
+  gap: 1rem;
+}
+
+.playground-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  border-radius: 24px;
+  padding: 1.4rem 1.5rem;
+  color: #eef2ff;
+  background:
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.35), transparent 42%),
+    radial-gradient(circle at 90% 20%, rgba(34, 197, 94, 0.22), transparent 36%),
+    linear-gradient(135deg, #0f172a 0%, #111827 45%, #1d4ed8 100%);
+}
+
+.hero-copy h2 {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.eyebrow,
+.panel-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(226, 232, 240, 0.72);
+}
+
+.hero-text {
+  max-width: 720px;
+  color: rgba(226, 232, 240, 0.88);
+}
+
+.hero-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.panel {
+  border: 1px solid #dbe4f0;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 16px 45px rgba(15, 23, 42, 0.08);
+}
+
+.panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.panel-chat,
+.panel-document,
+.panel-results,
+.panel-context {
+  padding: 1.2rem;
+}
+
+.chat-history {
+  display: grid;
+  gap: 0.9rem;
+  max-height: 520px;
+  overflow: auto;
+  padding-right: 0.2rem;
+}
+
+.chat-message {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.chat-message.user {
+  justify-items: end;
+}
+
+.message-meta {
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.message-bubble {
+  max-width: 92%;
+  white-space: pre-wrap;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  line-height: 1.55;
+  background: #f8fafc;
+  border: 1px solid #dbe4f0;
+}
+
+.chat-message.user .message-bubble {
+  background: linear-gradient(135deg, #1d4ed8, #0f766e);
+  color: #fff;
+  border-color: transparent;
+}
+
+.chat-empty,
+.empty-state {
+  border: 1px dashed #cbd5e1;
+  background: #f8fafc;
+  border-radius: 18px;
+  padding: 1rem;
+  color: #64748b;
+}
+
+.prompt-presets {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.preset-chip,
+.edit-chip {
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  padding: 0.55rem 0.85rem;
+  background: #fff;
+  color: #0f172a;
+  font-size: 0.9rem;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.preset-chip:hover,
+.edit-chip:hover {
+  transform: translateY(-1px);
+  border-color: #1d4ed8;
+  box-shadow: 0 10px 20px rgba(29, 78, 216, 0.12);
+}
+
+.composer {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.composer-input,
+.document-editor {
+  font-size: 0.95rem;
+  min-height: 140px;
+}
+
+.document-editor {
+  white-space: pre-wrap;
+}
+
+.document-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.document-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  align-items: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 0.85rem;
+  background: #f8fafc;
+}
+
+.result-grid,
+.context-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.result-card,
+.context-grid > div {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #f8fafc;
+  padding: 0.85rem;
+}
+
+.result-card span,
+.context-grid span {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  margin-bottom: 0.35rem;
+}
+
+.result-card strong,
+.context-grid strong {
+  font-size: 1.35rem;
+  color: #0f172a;
+}
+
+.result-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.dimension-row .progress-bar {
+  background: linear-gradient(90deg, #1d4ed8, #38bdf8);
+}
+
+.panel-context {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+@media (max-width: 1199.98px) {
+  .playground-hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .result-grid,
+  .context-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.custom-tabs .nav-link {
+  border-radius: 999px;
+  padding: 0.4rem 1.2rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.custom-tabs .nav-link:hover {
+  background: #e2e8f0;
+}
+
+.custom-tabs .nav-link.active {
+  background: #1d4ed8;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.25);
+}
