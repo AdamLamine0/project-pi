@@ -162,6 +162,9 @@ public class GatewayRoutes {
         // no authFilter — public endpoint for QR code scanning
     }
 
+
+
+
     @Bean
     public RouterFunction<ServerResponse> investmentServiceRoute() {
         return RouterFunctions
