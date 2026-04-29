@@ -31,16 +31,20 @@ export class InvestmentRequestService {
   }
 
   downloadDocument(documentUrl: string): Observable<Blob> {
-    const url = documentUrl.startsWith('http') 
-      ? documentUrl 
-      : `${this.apiUrl}/files/${documentUrl}`;
-    
-    console.log('Attempting to download document from URL:', url);
-    console.log('Original documentUrl:', documentUrl);
-    console.log('ApiUrl:', this.apiUrl);
-    
-    return this.http.get(url, { responseType: 'blob' });
+  let url = '';
+
+  if (documentUrl.startsWith('http')) {
+    url = documentUrl;
+  } else if (documentUrl.startsWith('/api/')) {
+    url = `${apiOrigin()}${documentUrl}`;
+  } else {
+    url = `${this.apiUrl}/files/${documentUrl}`;
   }
+
+  console.log('Attempting to download document from URL:', url);
+
+  return this.http.get(url, { responseType: 'blob' });
+}
 
   getByInvestor(id: string): Observable<InvestmentRequest[]> {
     return this.http.get<InvestmentRequest[]>(

@@ -9,6 +9,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSliderModule } from '@angular/material/slider';
+import { NgIconComponent, provideIcons } from '@ng-icons/core';
+import { lucideUpload, lucideX } from '@ng-icons/lucide';
 import { Subscription } from 'rxjs';
 import { InvestmentCriteria } from '../../models/investment-criteria.model';
 import { InvestmentCriteriaService } from '../../services/investment-criteria.service';
@@ -16,7 +18,8 @@ import { AuthService } from '../../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-criteria-form',
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatCardModule, MatButtonModule, MatInputModule, MatFormFieldModule, MatSelectModule, MatCheckboxModule, MatSliderModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatCardModule, MatButtonModule, MatInputModule, MatFormFieldModule, MatSelectModule, MatCheckboxModule, MatSliderModule, NgIconComponent],
+  providers: [provideIcons({ lucideUpload, lucideX })],
   templateUrl: './criteria-form.html',
   styleUrl: './criteria-form.css',
 })
@@ -38,6 +41,8 @@ export class CriteriaForm implements OnInit, OnDestroy {
   existingCriteriaId = '';
   submitting = false;
   error = '';
+  selectedFileName = '';
+  selectedFile: File | null = null;
   private readonly sub = new Subscription();
 
   constructor(
@@ -177,13 +182,15 @@ export class CriteriaForm implements OnInit, OnDestroy {
   }
 
   submit(): void {
-    if (
-      this.criteria.minBudget != null &&
-      this.criteria.maxBudget != null &&
-      this.criteria.maxBudget > 0 &&
-      this.criteria.minBudget > this.criteria.maxBudget
-    ) {
-      alert('Le budget minimum ne peut pas depasser le budget maximum.');
+    // Validate minimum budget must be greater than 500 DT
+    if (this.criteria.minBudget < 500) {
+      alert('Minimum budget must be greater than 500 DT.');
+      return;
+    }
+
+    // Validate maximum budget must be greater than minimum budget
+    if (this.criteria.maxBudget > 0 && this.criteria.minBudget >= this.criteria.maxBudget) {
+      alert('Maximum budget must be greater than minimum budget.');
       return;
     }
 
@@ -271,5 +278,26 @@ export class CriteriaForm implements OnInit, OnDestroy {
   private resolveInvestorId(): string {
     const userId = this.authService.getUserId();
     return userId > 0 ? String(userId) : '';
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    
+    if (file && file.type === 'application/pdf') {
+      this.selectedFile = file;
+      this.selectedFileName = file.name;
+    } else {
+      this.selectedFile = null;
+      this.selectedFileName = '';
+      if (file) {
+        alert('Please select a PDF file only.');
+      }
+    }
+  }
+
+  removeFile(): void {
+    this.selectedFile = null;
+    this.selectedFileName = '';
   }
 }

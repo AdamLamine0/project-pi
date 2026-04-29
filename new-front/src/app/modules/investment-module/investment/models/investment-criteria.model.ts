@@ -1,6 +1,7 @@
 export interface InvestmentCriteria {
   id?: string;
   name?: string;
+  email?: string;
   investorId: string;
   sectors: string[];
   stages: string[];

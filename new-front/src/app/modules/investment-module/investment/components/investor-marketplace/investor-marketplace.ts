@@ -144,6 +144,7 @@ export class InvestorMarketplace implements OnInit, OnDestroy {
     this.sub.add(
       this.criteriaService.getAllCriteriaAdmin().subscribe({
         next: (profiles) => {
+          console.log('Profiles from backend:', profiles);
           this.allProfiles = profiles
             .filter((profile) => this.criteriaService.isActive(profile))
             .sort((left, right) => (left.name || '').localeCompare(right.name || ''));
@@ -158,6 +159,8 @@ export class InvestorMarketplace implements OnInit, OnDestroy {
         },
       })
     );
+   
+  
   }
 
   private matchesBudget(profile: InvestmentCriteria): boolean {

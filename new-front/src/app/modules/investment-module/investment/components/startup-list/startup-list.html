@@ -4,8 +4,25 @@
     <p class="sub">Demo list with an investment request button.</p>
   </div>
 
+  <div class="top-filters" *ngIf="isEntrepreneurView">
+  <button
+    mat-stroked-button
+    (click)="selectedFilter='ALL'">
+    All Startups
+  </button>
+
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="selectedFilter='MY'">
+    My Startups
+  </button>
+</div>
+
   <div class="grid">
-    <mat-card class="card" *ngFor="let s of startups">
+    <mat-card class="card" 
+              [class.entrepreneur-highlight]="isEntrepreneurView && s.id === entrepreneurStartupId"
+              *ngFor="let s of visibleStartups">
       <mat-card-header>
         <mat-card-title>{{ s.name }}</mat-card-title>
         <mat-card-subtitle>{{ s.tagline }}</mat-card-subtitle>
@@ -20,12 +37,29 @@
       </mat-card-content>
 
       <mat-card-actions align="end">
-        <button mat-raised-button color="primary" 
-                (click)="requestInvestment(s)"
-                [disabled]="hasAlreadyRequested(s.id)">
-          {{ hasAlreadyRequested(s.id) ? 'Request Sent' : 'Request Investment' }}
-        </button>
-      </mat-card-actions>
+
+  <button *ngIf="isInvestorView"
+          mat-raised-button
+          color="primary"
+          (click)="requestInvestment(s)"
+          [disabled]="hasAlreadyRequested(s.id)">
+    {{ hasAlreadyRequested(s.id) ? 'Request Sent' : 'Request Investment' }}
+  </button>
+
+  <button *ngIf="isEntrepreneurView && s.id === entrepreneurStartupId"
+          mat-raised-button
+          color="accent"
+          (click)="viewMyRequests()">
+    View Requests
+  </button>
+
+  <button *ngIf="isEntrepreneurView && s.id !== entrepreneurStartupId"
+          mat-stroked-button
+          disabled>
+    External Startup
+  </button>
+
+</mat-card-actions>
     </mat-card>
   </div>
 </div>

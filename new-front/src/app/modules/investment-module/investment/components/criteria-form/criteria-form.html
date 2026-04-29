@@ -1,67 +1,69 @@
 <div class="page">
   <div class="header">
-    <h2>{{ isEditMode ? "Modifier le critere d'investissement" : "Critere d'investissement" }}</h2>
+    <h2>{{ isEditMode ? "Edit Investment Criteria" : "Investment Criteria" }}</h2>
     <p class="sub">
-      {{ isEditMode ? "Mets a jour le profil d'investissement en gardant la meme these." : "Definis ton profil d'investissement et les opportunites que tu recherches." }}
+      {{ isEditMode ? "Update your investment profile while maintaining the same thesis." : "Define your investment profile and the opportunities you're looking for." }}
     </p>
   </div>
 
   <p class="error" *ngIf="error">{{ error }}</p>
 
   <div class="helper-card" *ngIf="!isEditMode && existingCriteriaId">
-    <strong>Profil deja existant</strong>
-    <p>Un investisseur ne peut avoir qu un seul critere. Ouvre le profil existant pour le modifier.</p>
+    <strong>Profile Already Exists</strong>
+    <p>An investor can only have one criteria. Open the existing profile to edit it.</p>
     <button type="button" class="btn secondary" (click)="openExistingCriteria()">Show my criteria</button>
   </div>
 
   <form class="card" (ngSubmit)="submit()">
     <div class="grid">
       <div class="field">
-        <label for="location">Zone geographique</label>
+        <label for="location">Geographic Area</label>
         <input
           id="location"
           type="text"
           [(ngModel)]="criteria.location"
           name="location"
-          placeholder="ex: Europe, MENA, Remote"
+          placeholder="e.g: Europe, MENA, Remote"
         />
       </div>
 
       <div class="field">
-        <label for="minBudget">Budget minimum</label>
+        <label for="minBudget">Minimum Budget</label>
         <input
           id="minBudget"
           type="number"
-          min="0"
+          min="500"
           [(ngModel)]="criteria.minBudget"
           name="minBudget"
-          placeholder="0"
+          placeholder="500"
         />
+        <p class="hint">Minimum budget must be greater than 500 DT</p>
       </div>
 
       <div class="field">
-        <label for="maxBudget">Budget maximum</label>
+        <label for="maxBudget">Maximum Budget</label>
         <input
           id="maxBudget"
           type="number"
-          min="0"
+          min="501"
           [(ngModel)]="criteria.maxBudget"
           name="maxBudget"
-          placeholder="0"
+          placeholder="1000"
         />
+        <p class="hint">Maximum budget must be greater than minimum budget</p>
       </div>
 
       <div class="field full">
-        <label>Secteurs</label>
+        <label>Sectors</label>
         <div class="chipRow">
           <input
             type="text"
             [(ngModel)]="sectorDraft"
             name="sectorDraft"
-            placeholder="Saisis un secteur puis clique sur Ajouter"
+            placeholder="Enter a sector then click Add"
             (keydown.enter)="$event.preventDefault(); addSector()"
           />
-          <button type="button" class="btn secondary" (click)="addSector()">Ajouter</button>
+          <button type="button" class="btn secondary" (click)="addSector()">Add</button>
         </div>
         <div class="suggestions" *ngIf="filteredSectorSuggestions.length > 0">
           <button
@@ -85,20 +87,20 @@
             <span class="chipX">x</span>
           </button>
         </div>
-        <p class="hint" *ngIf="criteria.sectors.length === 0">Aucun secteur ajoute pour le moment.</p>
+        <p class="hint" *ngIf="criteria.sectors.length === 0">No sectors added yet.</p>
       </div>
 
       <div class="field full">
-        <label>Stades</label>
+        <label>Stages</label>
         <div class="chipRow">
           <input
             type="text"
             [(ngModel)]="stageDraft"
             name="stageDraft"
-            placeholder="Saisis un stade (Seed, Series A...) puis clique sur Ajouter"
+            placeholder="Enter a stage (Seed, Series A...) then click Add"
             (keydown.enter)="$event.preventDefault(); addStage()"
           />
-          <button type="button" class="btn secondary" (click)="addStage()">Ajouter</button>
+          <button type="button" class="btn secondary" (click)="addStage()">Add</button>
         </div>
         <div class="suggestions" *ngIf="filteredStageSuggestions.length > 0">
           <button
@@ -122,13 +124,37 @@
             <span class="chipX">x</span>
           </button>
         </div>
-        <p class="hint" *ngIf="criteria.stages.length === 0">Aucun stade ajoute pour le moment.</p>
+        <p class="hint" *ngIf="criteria.stages.length === 0">No stages added yet.</p>
+      </div>
+
+      <div class="field full">
+        <label for="presentationPdf">Investor Presentation (PDF)</label>
+        <div class="file-upload">
+          <input
+            id="presentationPdf"
+            type="file"
+            accept=".pdf"
+            (change)="onFileSelected($event)"
+            #fileInput
+          />
+          <div class="file-upload-label" (click)="fileInput.click()">
+            <ng-icon name="lucideUpload" size="20"></ng-icon>
+            <span>{{ selectedFileName || 'Click to upload PDF' }}</span>
+          </div>
+          <p class="hint">Upload a PDF to introduce yourself and your investment thesis</p>
+          <div class="file-preview" *ngIf="selectedFileName">
+            <span class="file-name">{{ selectedFileName }}</span>
+            <button type="button" class="remove-file" (click)="removeFile()">
+              <ng-icon name="lucideX" size="16"></ng-icon>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="actions">
       <button type="submit" class="btn primary" [disabled]="submitting">
-        {{ isEditMode ? 'Mettre a jour le critere' : 'Enregistrer le critere' }}
+        {{ isEditMode ? 'Update Criteria' : 'Save Criteria' }}
       </button>
     </div>
   </form>
