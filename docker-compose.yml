@@ -1,0 +1,242 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: project-pi-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - project-pi
+
+  mongodb:
+    image: mongo:7
+    container_name: project-pi-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - project-pi
+
+  eureka-server:
+    build:
+      context: ./eureka-server
+    image: project-pi/eureka-server:local
+    ports:
+      - "8761:8761"
+    networks:
+      - project-pi
+
+  user-service:
+    build:
+      context: ./userPI
+    image: project-pi/user-service:local
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/user_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECT_URI: http://localhost:8091/login/oauth2/code/google
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+    ports:
+      - "8081:8081"
+    networks:
+      - project-pi
+
+  partenariat-service:
+    build:
+      context: ./partenariat-pi
+    image: project-pi/partenariat-service:local
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/partenariat_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      ZOOM_CLIENT_ID: ${ZOOM_CLIENT_ID:-}
+      ZOOM_CLIENT_SECRET: ${ZOOM_CLIENT_SECRET:-}
+      ZOOM_ACCOUNT_ID: ${ZOOM_ACCOUNT_ID:-}
+    ports:
+      - "8084:8082"
+    networks:
+      - project-pi
+
+  event-service:
+    build:
+      context: ./event-pi
+    image: project-pi/event-service:local
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+      ml-service:
+        condition: service_started
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/event_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      ML_SERVICE_URL: http://ml-service:8085
+      APP_FRONTEND_URL: http://localhost:4200
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME:-}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      WEATHER_API_KEY: ${WEATHER_API_KEY:-}
+    ports:
+      - "8083:8083"
+    volumes:
+      - event-uploads:/app/uploads
+    networks:
+      - project-pi
+
+  ml-service:
+    build:
+      context: ./event-pi/ml-service
+    image: project-pi/ml-service:local
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: event_db
+      DB_USER: root
+      DB_PASSWORD: root
+    ports:
+      - "8085:8085"
+    networks:
+      - project-pi
+
+  legal-service:
+    build:
+      context: ./demo
+    image: project-pi/legal-service:local
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+      ai-service:
+        condition: service_started
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/legal_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      APP_AI_SERVICE_BASE_URL: http://ai-service:8092
+      APP_USERS_SERVICE_BASE_URL: http://api-gateway:8091/api/users
+      APP_USERS_SERVICE_FALLBACK_BASE_URL: http://user-service:8081/api/users
+      APP_BASE_URL: http://localhost:8087
+    ports:
+      - "8087:8087"
+    volumes:
+      - legal-uploads:/app/uploads
+    networks:
+      - project-pi
+
+  ai-service:
+    build:
+      context: ./ai-service
+    image: project-pi/ai-service:local
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      APP_AI_OCR_DATA_PATH: /usr/share/tesseract-ocr/5/tessdata
+    ports:
+      - "8092:8092"
+    networks:
+      - project-pi
+
+  community-service:
+    build:
+      context: ./community-service
+    image: project-pi/community-service:local
+    depends_on:
+      mongodb:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/community_db
+      SPRING_MONGODB_URI: mongodb://mongodb:27017/community_db
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      USER_SERVICE_URL: http://api-gateway:8091/api/users
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+    ports:
+      - "8082:8082"
+    networks:
+      - project-pi
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    image: project-pi/api-gateway:local
+    depends_on:
+      eureka-server:
+        condition: service_started
+      user-service:
+        condition: service_started
+      event-service:
+        condition: service_started
+      community-service:
+        condition: service_started
+      legal-service:
+        condition: service_started
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      SPRING_CLOUD_GATEWAY_MVC_ROUTES_2_URI: lb://community-service
+    ports:
+      - "8091:8091"
+    networks:
+      - project-pi
+
+  frontend:
+    build:
+      context: ./new-front
+    image: project-pi/frontend:local
+    depends_on:
+      api-gateway:
+        condition: service_started
+    ports:
+      - "4200:80"
+    networks:
+      - project-pi
+
+volumes:
+  mysql-data:
+  mongo-data:
+  event-uploads:
+  legal-uploads:
+
+networks:
+  project-pi:
+    driver: bridge

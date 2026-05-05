@@ -21,8 +21,22 @@ spring:
               - StripPrefix=0
 
           - id: community-service
-            uri: http://localhost:8082
+            uri: lb://community-service
             predicates:
               - Path=/api/community/**
+            filters:
+              - StripPrefix=0
+
+          - id: legal-service
+            uri: lb://legal-pi
+            predicates:
+              - Path=/api/legal-procedures/**, /api/procedure-types/**, /api/files/**
+            filters:
+              - StripPrefix=0
+
+          - id: partenariat-service
+            uri: lb://partenariat-pi
+            predicates:
+              - Path=/api/conventions/**, /api/meeting-invitations/**, /api/objectifs/**, /api/organisations/**
             filters:
               - StripPrefix=0
