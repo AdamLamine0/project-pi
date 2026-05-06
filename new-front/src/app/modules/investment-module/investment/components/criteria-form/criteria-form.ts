@@ -177,13 +177,15 @@ export class CriteriaForm implements OnInit, OnDestroy {
   }
 
   submit(): void {
-    if (
-      this.criteria.minBudget != null &&
-      this.criteria.maxBudget != null &&
-      this.criteria.maxBudget > 0 &&
-      this.criteria.minBudget > this.criteria.maxBudget
-    ) {
-      alert('Le budget minimum ne peut pas depasser le budget maximum.');
+    // Validate minimum budget must be greater than 500 DT
+    if (this.criteria.minBudget < 500) {
+      alert('Minimum budget must be greater than 500 DT.');
+      return;
+    }
+
+    // Validate maximum budget must be greater than minimum budget
+    if (this.criteria.maxBudget > 0 && this.criteria.minBudget >= this.criteria.maxBudget) {
+      alert('Maximum budget must be greater than minimum budget.');
       return;
     }
 

@@ -18,7 +18,7 @@ import { Subscription } from 'rxjs';
 import { InvestmentCriteria } from '../../models/investment-criteria.model';
 import { InvestmentCriteriaService } from '../../services/investment-criteria.service';
 
-type BudgetFilter = 'ALL' | 'UNDER_100K' | '100K_500K' | '500K_2M' | 'OVER_2M';
+type BudgetFilter = 'ALL' | 'UNDER_50K' | '50K_250K' | '250K_1M' | 'OVER_1M';
 
 @Component({
   selector: 'app-investor-marketplace',
@@ -144,6 +144,7 @@ export class InvestorMarketplace implements OnInit, OnDestroy {
     this.sub.add(
       this.criteriaService.getAllCriteriaAdmin().subscribe({
         next: (profiles) => {
+          console.log('Profiles from backend:', profiles);
           this.allProfiles = profiles
             .filter((profile) => this.criteriaService.isActive(profile))
             .sort((left, right) => (left.name || '').localeCompare(right.name || ''));
@@ -158,6 +159,8 @@ export class InvestorMarketplace implements OnInit, OnDestroy {
         },
       })
     );
+   
+  
   }
 
   private matchesBudget(profile: InvestmentCriteria): boolean {
@@ -166,20 +169,20 @@ export class InvestorMarketplace implements OnInit, OnDestroy {
     const upper = max > 0 ? max : min;
 
     switch (this.selectedBudget) {
-      case 'UNDER_100K':
-        return upper > 0 && upper <= 10000;
-      case '100K_500K':
-        return upper >= 10000 && min <= 50000;
-      case '500K_2M':
-        return upper >= 50000 && min <= 100000;
-      case 'OVER_2M':
-        return upper >= 100000;
+      case 'UNDER_50K':
+        return upper > 0 && upper <= 50000;
+      case '50K_250K':
+        return upper >= 50000 && min <= 250000;
+      case '250K_1M':
+        return upper >= 250000 && min <= 1000000;
+      case 'OVER_1M':
+        return upper >= 1000000;
       default:
         return true;
     }
   }
 
   formatBudget(value: number): string {
-    return `${value.toLocaleString('fr-TN')} TND`;
-  }
+  return `${value.toLocaleString('fr-TN')} TND`;
+}
 }

@@ -13,6 +13,8 @@ export interface DealPipeline {
   startupName?: string;
   startupId?: string;
   startupSector?: string;
+  investorName?: string;
+  investorId?: string;
   requestId?: string;
   status: DealStatus;
   ticketProposed?: number | null;

@@ -129,7 +129,8 @@
 .reset-btn,
 .profile-btn,
 .pdf-link,
-.state-panel button {
+.state-panel button,
+.investment-criteria {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -355,6 +356,7 @@
   color: var(--text-primary);
   background: var(--surface-subtle);
 }
+
 
 @keyframes spin {
   to {

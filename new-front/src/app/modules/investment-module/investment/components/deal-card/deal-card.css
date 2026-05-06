@@ -96,6 +96,25 @@
   color: var(--text-primary, #0f172a);
 }
 
+.info-item.investor-info {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.info-item.investor-info .info-label {
+  color: #64748b;
+}
+
+.info-item.investor-info .info-value {
+  color: #1e293b;
+  font-weight: 600;
+  word-break: break-all;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  max-width: 100%;
+}
+
 .status {
   font-weight: 700;
   color: #334155;
@@ -175,26 +194,41 @@
   padding: 12px;
   border-top: 1px solid rgba(37, 99, 235, 0.1);
   border-radius: 8px;
-  display: grid;
-  gap: 8px;
   background: var(--surface-subtle, #f8fafc);
 }
 
-.detail-row {
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.detail-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.12);
   display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 12px;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-item-full {
+  grid-column: 1 / -1;
 }
 
 .detail-label {
-  color: rgba(15, 23, 42, 0.58);
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(15, 23, 42, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .detail-value {
-  color: #0f172a;
+  font-size: 13px;
   font-weight: 700;
-  text-align: right;
+  color: #0f172a;
   word-break: break-word;
 }
 

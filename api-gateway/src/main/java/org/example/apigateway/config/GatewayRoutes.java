@@ -30,8 +30,7 @@ public class GatewayRoutes {
     public RouterFunction<ServerResponse> userAuthRoute() {
         return RouterFunctions
                 .route(path("/api/auth/**"), HandlerFunctions.http())
-                .filter(lb("user-pi"))
-                .filter(authFilter.jwtFilter());
+                .filter(lb("user-pi"));
     }
 
     @Bean
@@ -160,6 +159,24 @@ public class GatewayRoutes {
                 .route(path("/api/verify/**"), HandlerFunctions.http())
                 .filter(lb("event-pi"));
         // no authFilter — public endpoint for QR code scanning
+    }
+
+
+    // Investment service
+    @Bean
+    public RouterFunction<ServerResponse> investmentServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/invest-request/**")
+                        .or(path("/api/invest-criteria/**"))
+                        .or(path("/api/investments/**"))
+                        .or(path("/api/admin/investments/**"))
+                        .or(path("/api/deals/**"))
+                        .or(path("/api/data-room/**"))
+                        .or(path("/api/dataroom/**"))
+                        .or(path("/api/nda/**"))
+                        .or(path("/api/log/**")), HandlerFunctions.http())
+                .filter(lb("investment-pi"))
+                .filter(authFilter.jwtFilter());
     }
 
 

@@ -82,6 +82,26 @@ public class DealPipelineService {
                 .build();
     }
 
+
+
+    public KanbanBoard getBoardByStartup(String startupId) {
+        List<DealPipeline> deals = dealPipelineRepo.findByStartupIdOrderByColumnOrderAsc(startupId);
+
+        Map<DealStatus, List<DealCard>> columns = deals.stream()
+                .collect(Collectors.groupingBy(
+                        deal -> normalizeDisplayStatus(deal.getStatus()),
+                        Collectors.mapping(this::toDealCard, Collectors.toList())
+                ));
+
+        return KanbanBoard.builder()
+                .columns(columns)
+                .totalDeals(deals.size())
+                .build();
+    }
+
+
+
+
     @Transactional
     public DealCard createDealFromRequest(tn.esprit.backend.Entities.InvestmentRequest request) {
         DealPipeline deal = new DealPipeline();

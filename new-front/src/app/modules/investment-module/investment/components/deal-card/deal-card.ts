@@ -11,6 +11,7 @@ import { DealPipeline } from '../../models/deal-kanban.models';
 import { NextBestAction } from '../../models/next-best-action.model';
 import { NextBestActionService } from '../../services/next-best-action.service';
 import { NextBestActionCard } from '../next-best-action-card/next-best-action-card';
+import { AuthService } from '../../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-deal-card',
@@ -30,7 +31,8 @@ export class DealCard {
   constructor(
     private router: Router,
     private dataRoomApi: DataRoomApiService,
-    private nextBestActionService: NextBestActionService
+    private nextBestActionService: NextBestActionService,
+    private authService: AuthService
   ) {}
 
   get alertClass(): string {
@@ -50,6 +52,19 @@ export class DealCard {
 
   get canOpenDataRoom(): boolean {
     return !!this.card.id && this.card.status === 'NEGOTIATION';
+  }
+
+  get isInvestor(): boolean {
+    return this.authService.hasRole('INVESTOR');
+  }
+
+  get currentInvestorName(): string {
+    if (this.isInvestor) {
+      return 'Current Investor'; // Investors don't need to see their own name
+    }
+    
+    // For entrepreneurs, show the investor name from the card or fallback to email
+    return this.card.investorName || this.authService.getEmail() || 'Unknown Investor';
   }
 
   get statusLabel(): string {

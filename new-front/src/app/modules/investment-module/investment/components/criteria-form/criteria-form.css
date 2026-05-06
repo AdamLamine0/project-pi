@@ -200,6 +200,7 @@ input:focus {
   background: #f9fafb;
 }
 
+
 @media (max-width: 720px) {
   .grid {
     grid-template-columns: 1fr;

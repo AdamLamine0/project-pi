@@ -96,6 +96,7 @@
         Dashboard
       </a>
       }
+      
       <!-- User dropdown -->
       <div class="user-menu">
         <button class="user-menu-trigger" (click)="toggleUserDropdown()">
@@ -114,6 +115,24 @@
             (click)="closeUserDropdown()">
             <ng-icon name="lucideSettings" size="14" /> Settings
           </a>
+          @if (isInvestor()) {
+      <a routerLink="/investment/startups" class="cta-ghost startups-link">
+        <ng-icon name="lucideRocket" size="14" />
+        Startups
+      </a>
+    }
+    @if (canAccessInvestmentRequests()) {
+      <a routerLink="/investment/kanban" class="cta-ghost deals-link">
+        <ng-icon name="lucideBriefcase" size="14" />
+        Deals
+      </a>
+      }
+      @if (canAccessInvestmentRequests()) {
+      <a routerLink="/investment/demandes" class="cta-ghost requests-link">
+        <ng-icon name="lucideMail" size="14" />
+        Requests
+      </a>
+      }
           <a routerLink="/profile" [queryParams]="{tab:'tickets'}" class="user-dropdown-item"
             (click)="closeUserDropdown()">
             <ng-icon name="lucideCalendar" size="14" /> My Reservations
@@ -178,6 +197,13 @@
       Reservations</a>
     @if (canAccessDashboard()) {
     <a routerLink="/app/dashboard" class="mobile-link" (click)="mobileMenu.set(false)">Dashboard</a>
+    }
+    @if (isInvestor()) {
+    <a routerLink="/investment/startups" class="mobile-link" (click)="mobileMenu.set(false)">Startups</a>
+    <a routerLink="/investment/kanban" class="mobile-link" (click)="mobileMenu.set(false)">Deals</a>
+    }
+    @if (canAccessInvestmentRequests()) {
+    <a routerLink="/investment/demandes" class="mobile-link" (click)="mobileMenu.set(false)">Requests</a>
     }
     <button class="mobile-link" (click)="logout()">Sign out</button>
     } @else {

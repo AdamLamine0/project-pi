@@ -661,6 +661,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
     return this.authService.hasRole(Role.INVESTOR);
   }
 
+  protected get isInvestor(): boolean {
+    return this.authService.hasRole(Role.INVESTOR);
+  }
+
   protected get fullName(): string {
     return [this.user?.name, this.user?.prenom].filter(Boolean).join(' ').trim();
   }

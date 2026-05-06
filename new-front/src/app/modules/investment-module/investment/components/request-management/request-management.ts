@@ -11,7 +11,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { InvestmentRequestService } from '../../services/investment-request.service';
 import { InvestmentRequest } from '../../models/investment-request';
 import { AuthService } from '../../../../../core/services/auth.service';
-import { STARTUP_CATALOG_BY_ID } from '../../models/startup-catalog';
+import {
+  STARTUP_CATALOG_BY_ID,
+  getStartupByEntrepreneurId
+} from '../../data/startup-catalog';
 
 type RequestStatusFilter = 'ALL' | 'PENDING' | 'ACCEPTED' | 'REJECTED';
 type RequestViewMode = 'INVESTOR' | 'STARTUP';
@@ -160,9 +163,13 @@ export class RequestManagement implements OnInit {
   }
 
   download(req: InvestmentRequest): void {
+    console.log('Download called for request:', req.id);
+    console.log('Document URL:', req.investorDocUrl);
+    
     if (req.investorDocUrl) {
       this.requestService.downloadDocument(req.investorDocUrl).subscribe({
         next: (blob: Blob) => {
+          console.log('Document downloaded successfully, blob size:', blob.size);
           const url = window.URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
@@ -174,10 +181,14 @@ export class RequestManagement implements OnInit {
         },
         error: (err) => {
           console.error('Error downloading document:', err);
+          console.error('Error status:', err.status);
+          console.error('Error message:', err.message);
+          console.error('Full error:', err);
           alert('Failed to download document. Please try again.');
         }
       });
     } else {
+      console.warn('No document URL available for request:', req.id);
       alert('No document available for this request.');
     }
   }
@@ -240,12 +251,18 @@ export class RequestManagement implements OnInit {
   }
 
   private resolveStartupId(): string {
-    const stored = this.safeStorageGet('investment.startup.id');
-    if (stored) return stored;
+  const stored = this.safeStorageGet('investment.startup.id');
+  if (stored) return stored;
 
-    const userId = this.authService.getUserId();
-    return userId > 0 ? String(userId) : 's-001';
+  const userId = this.authService.getUserId();
+
+  if (userId > 0) {
+    const startup = getStartupByEntrepreneurId(String(userId));
+    return startup ? startup.id : 's-001';
   }
+
+  return 's-001';
+}
 
   private safeStorageGet(key: string): string | null {
     if (typeof window === 'undefined') return null;

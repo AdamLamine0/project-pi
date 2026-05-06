@@ -8,9 +8,13 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { DealsService } from '../../services/deals.service';
 import { DealPipeline, DealStatus, KanbanBoardResponse, MoveDealPayload } from '../../models/deal-kanban.models';
-import { STARTUP_CATALOG_BY_ID } from '../../models/startup-catalog';
+import { STARTUP_CATALOG_BY_ID, getStartupByEntrepreneurId } from '../../data/startup-catalog';
 import { KanbanColumn, KanbanDropEvent } from '../kanban-column/kanban-column';
 import { AuthService } from '../../../../../core/services/auth.service';
+
+
+
+type KanbanViewMode = 'INVESTOR' | 'STARTUP';
 
 @Component({
   selector: 'app-kanban-board',
@@ -19,7 +23,9 @@ import { AuthService } from '../../../../../core/services/auth.service';
   styleUrl: './kanban-board.css',
 })
 export class KanbanBoard implements OnInit {
+  viewMode: KanbanViewMode = 'INVESTOR';
   investorId = '';
+  startupId = '';
   loading = false;
   error: string | null = null;
 
@@ -40,6 +46,7 @@ export class KanbanBoard implements OnInit {
     CLOSED: 'Closed',
     REJECTED: 'Rejected',
   };
+ 
 
   private readonly statusOrder: DealStatus[] = this.statuses;
 
@@ -51,9 +58,17 @@ export class KanbanBoard implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.investorId = this.resolveInvestorId();
-    this.loadBoard();
-  }
+  const userId = this.authService.getUserId();
+
+  this.viewMode = this.authService.hasRole('ENTREPRENEUR')
+    ? 'STARTUP'
+    : 'INVESTOR';
+
+  this.investorId = this.resolveInvestorId();
+  this.startupId = this.resolveStartupId(userId);
+
+  this.loadBoard();
+}
 
   loadBoard() {
     this.loading = true;
@@ -61,7 +76,12 @@ export class KanbanBoard implements OnInit {
 
     console.log('Loading Kanban board for investorId:', this.investorId);
     
-    this.dealService.getKanban(this.investorId).subscribe({
+    const id = this.isStartupView ? this.startupId : this.investorId;
+
+    const board$ = this.isStartupView
+      ? this.dealService.getKanbanByStartup(this.startupId)
+      : this.dealService.getKanban(this.investorId);
+      board$.subscribe({
       next: (res) => {
         console.log('Kanban API response:', res);
         this.columns = this.normalizeBoard(res);
@@ -214,4 +234,29 @@ export class KanbanBoard implements OnInit {
     const userId = this.authService.getUserId();
     return userId > 0 ? String(userId) : 'dev-investor';
   }
+  private resolveStartupId(userId: number): string {
+  const stored = this.safeStorageGet('investment.startup.id');
+  if (stored) return stored;
+
+  // ⚠️ réutilisation du mapping que tu as déjà
+  const startup = getStartupByEntrepreneurId(String(userId));
+
+  return startup ? startup.id : 's-001';
+}
+
+get isStartupView(): boolean {
+  return this.viewMode === 'STARTUP';
+}
+
+get isInvestorView(): boolean {
+  return this.viewMode === 'INVESTOR';
+}
+
+private safeStorageGet(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
 }

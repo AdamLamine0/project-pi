@@ -25,6 +25,12 @@ public class DealPipelineController {
         return dealPipelineService.getBoard(investorId);
     }
 
+
+    @GetMapping("/kanban/startup/{startupId}")
+    public KanbanBoard getKanbanByStartup(@PathVariable String startupId) {
+        return dealPipelineService.getBoardByStartup(startupId);
+    }
+
     @PostMapping("/create-from-request")
     public DealCard createDealFromRequest(@RequestBody tn.esprit.backend.Entities.InvestmentRequest request) {
         return dealPipelineService.createDealFromRequest(request);
