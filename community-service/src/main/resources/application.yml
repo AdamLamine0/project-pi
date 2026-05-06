@@ -1,18 +1,18 @@
 server:
-  port: 8082
+  port: 8084
 
 spring:
   application:
     name: community-service
   data:
     mongodb:
-      uri: mongodb+srv://YOUR_MONGO_USER:YOUR_MONGO_PASSWORD@YOUR_CLUSTER.mongodb.net/community_db?appName=Cluster0
+      uri: ${MONGODB_URI:mongodb://localhost:27017/community_db}
   mongodb:
-    uri: mongodb+srv://YOUR_MONGO_USER:YOUR_MONGO_PASSWORD@YOUR_CLUSTER.mongodb.net/community_db?appName=Cluster0
+    uri: ${MONGODB_URI:mongodb://localhost:27017/community_db}
 
 groq:
   api:
-    key: YOUR_GROQ_API_KEY_HERE
+    key: ${GROQ_API_KEY:}
 
 user:
   service:

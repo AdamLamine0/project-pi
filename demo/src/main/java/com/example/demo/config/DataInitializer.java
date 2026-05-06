@@ -17,79 +17,85 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) {
 
         // SARL
-        saveOrUpdate(ProcedureType.SARL, "CIN", "National ID copy",
-                "Copy of the manager's national identity document.", true);
-        saveOrUpdate(ProcedureType.SARL, "STATUTS", "Signed bylaws",
-                "Signed legal bylaws of the company.", true);
-        saveOrUpdate(ProcedureType.SARL, "SIEGE", "Registered office proof",
-                "Lease agreement, domiciliation certificate, or ownership title.", true);
-        saveOrUpdate(ProcedureType.SARL, "CAPITAL", "Capital deposit certificate",
-                "Bank certificate related to the share capital.", true);
+        saveIfNotExists(ProcedureType.SARL, "CIN", "Copie de la CIN",
+                "Copie de la pièce d'identité du gérant.", true);
+        saveIfNotExists(ProcedureType.SARL, "STATUTS", "Statuts signés",
+                "Statuts juridiques signés de la société.", true);
+        saveIfNotExists(ProcedureType.SARL, "SIEGE", "Justificatif de siège",
+                "Contrat de location, domiciliation ou titre de propriété.", true);
+        saveIfNotExists(ProcedureType.SARL, "CAPITAL", "Attestation dépôt de capital",
+                "Attestation bancaire liée au capital social.", true);
 
         // SUARL
-        saveOrUpdate(ProcedureType.SUARL, "CIN", "National ID copy",
-                "Copy of the sole shareholder's national identity document.", true);
-        saveOrUpdate(ProcedureType.SUARL, "STATUTS", "Bylaws",
-                "Signed SUARL bylaws.", true);
-        saveOrUpdate(ProcedureType.SUARL, "SIEGE", "Registered office proof",
-                "Lease agreement, domiciliation certificate, or ownership title.", true);
-        saveOrUpdate(ProcedureType.SUARL, "CAPITAL", "Capital deposit certificate",
-                "Bank certificate related to the share capital.", true);
+        saveIfNotExists(ProcedureType.SUARL, "CIN", "Copie CIN",
+                "Copie de la pièce d'identité de l'associé unique.", true);
+        saveIfNotExists(ProcedureType.SUARL, "STATUTS", "Statuts",
+                "Statuts signés de la SUARL.", true);
+        saveIfNotExists(ProcedureType.SUARL, "SIEGE", "Justificatif de siège",
+                "Contrat de location, domiciliation ou titre de propriété.", true);
+        saveIfNotExists(ProcedureType.SUARL, "CAPITAL", "Attestation dépôt de capital",
+                "Attestation bancaire liée au capital social.", true);
 
         // LABEL_STARTUP
-        saveOrUpdate(ProcedureType.LABEL_STARTUP, "FORMULAIRE_LABEL", "Startup Label application form",
-                "Official Startup Label application form.", true);
-        saveOrUpdate(ProcedureType.LABEL_STARTUP, "PITCH_DECK", "Pitch deck",
-                "Project or startup presentation deck.", true);
-        saveOrUpdate(ProcedureType.LABEL_STARTUP, "DEMO_PRODUIT", "Product demo / POC",
-                "Proof of concept or functional product demonstration.", true);
-        saveOrUpdate(ProcedureType.LABEL_STARTUP, "STATUTS", "Company bylaws",
-                "Bylaws if the company has already been incorporated.", false);
-        saveOrUpdate(ProcedureType.LABEL_STARTUP, "RNE", "RNE extract",
-                "Recent extract from the National Business Register.", false);
+        saveIfNotExists(ProcedureType.LABEL_STARTUP, "FORMULAIRE_LABEL", "Formulaire de demande Label",
+                "Formulaire de demande du Label Startup.", true);
+        saveIfNotExists(ProcedureType.LABEL_STARTUP, "PITCH_DECK", "Pitch deck",
+                "Présentation du projet ou de la startup.", true);
+        saveIfNotExists(ProcedureType.LABEL_STARTUP, "DEMO_PRODUIT", "Démo produit / POC",
+                "Preuve de concept ou démonstration fonctionnelle.", true);
+        saveIfNotExists(ProcedureType.LABEL_STARTUP, "STATUTS", "Statuts de la société",
+                "Statuts si la société est déjà créée.", false);
+        saveIfNotExists(ProcedureType.LABEL_STARTUP, "RNE", "Extrait RNE",
+                "Extrait récent du Registre National des Entreprises.", false);
 
-        // Intellectual property
-        saveOrUpdate(ProcedureType.PI, "FORMULAIRE_DEPOT", "Filing form",
-                "Official intellectual property filing form.", true);
-        saveOrUpdate(ProcedureType.PI, "QUITTANCE", "Payment receipt",
-                "Proof of payment of the filing fees.", true);
-        saveOrUpdate(ProcedureType.PI, "POUVOIR", "Representative power of attorney",
-                "Required if the filing is handled by a representative.", false);
-        saveOrUpdate(ProcedureType.PI, "DESCRIPTION", "Technical description",
-                "Technical description or memorandum depending on the filing type.", false);
+        // PI
+        saveIfNotExists(ProcedureType.PI, "FORMULAIRE_DEPOT", "Formulaire de dépôt",
+                "Formulaire officiel de dépôt PI.", true);
+        saveIfNotExists(ProcedureType.PI, "QUITTANCE", "Quittance de paiement",
+                "Preuve de paiement des frais de dépôt.", true);
+        saveIfNotExists(ProcedureType.PI, "POUVOIR", "Pouvoir du mandataire",
+                "À fournir si le dépôt est effectué par un mandataire.", false);
+        saveIfNotExists(ProcedureType.PI, "DESCRIPTION", "Description technique",
+                "Description technique ou mémoire selon le type de dépôt.", false);
 
-        // Tax support
-        saveOrUpdate(ProcedureType.FISCALITE, "RNE", "Recent RNE extract",
-                "Recent extract from the National Business Register.", true);
-        saveOrUpdate(ProcedureType.FISCALITE, "CIN_REPRESENTANT", "Legal representative ID",
-                "Copy of the legal representative's identity document.", true);
-        saveOrUpdate(ProcedureType.FISCALITE, "DECLARATIONS_FISCALES", "Tax declarations",
-                "Tax declarations or statements relevant to the case.", true);
-        saveOrUpdate(ProcedureType.FISCALITE, "NOTE_EXPLICATIVE", "Explanatory note",
-                "Summary of the tax need or request.", true);
+        // FISCALITE
+        saveIfNotExists(ProcedureType.FISCALITE, "RNE", "Extrait RNE récent",
+                "Extrait récent du Registre National des Entreprises.", true);
+        saveIfNotExists(ProcedureType.FISCALITE, "CIN_REPRESENTANT", "CIN du représentant légal",
+                "Copie de la pièce d'identité du représentant légal.", true);
+        saveIfNotExists(ProcedureType.FISCALITE, "DECLARATIONS_FISCALES", "Déclarations fiscales",
+                "Déclarations ou relevés fiscaux utiles au dossier.", true);
+        saveIfNotExists(ProcedureType.FISCALITE, "NOTE_EXPLICATIVE", "Note explicative",
+                "Résumé du besoin ou de la demande fiscale.", true);
 
-        // Compliance
-        saveOrUpdate(ProcedureType.CONFORMITE, "RNE", "Recent RNE extract",
-                "Recent extract from the National Business Register.", true);
-        saveOrUpdate(ProcedureType.CONFORMITE, "STATUTS", "Updated bylaws",
-                "Current version of the company bylaws.", true);
-        saveOrUpdate(ProcedureType.CONFORMITE, "JUSTIFICATIFS", "Compliance supporting documents",
-                "Documents proving compliance or explaining identified gaps.", true);
-        saveOrUpdate(ProcedureType.CONFORMITE, "RAPPORT_AUDIT", "Audit report",
-                "Audit report or diagnostic document, if available.", false);
+        // CONFORMITE
+        saveIfNotExists(ProcedureType.CONFORMITE, "RNE", "Extrait RNE récent",
+                "Extrait récent du Registre National des Entreprises.", true);
+        saveIfNotExists(ProcedureType.CONFORMITE, "STATUTS", "Statuts à jour",
+                "Version à jour des statuts.", true);
+        saveIfNotExists(ProcedureType.CONFORMITE, "JUSTIFICATIFS", "Justificatifs de conformité",
+                "Pièces démontrant la conformité ou les écarts.", true);
+        saveIfNotExists(ProcedureType.CONFORMITE, "RAPPORT_AUDIT", "Rapport d'audit",
+                "Rapport d'audit ou diagnostic si disponible.", false);
+
+        // AUTRE
+        saveIfNotExists(ProcedureType.AUTRE, "NOTE_DEMANDE", "Note de demande",
+                "Description détaillée du besoin juridique.", true);
+        saveIfNotExists(ProcedureType.AUTRE, "PIECES_JUSTIFICATIVES", "Pièces justificatives",
+                "Toute pièce utile au traitement du dossier.", true);
     }
 
-    private void saveOrUpdate(ProcedureType procedureType, String code, String label, String description, boolean required) {
-        ProcedureDocumentRequirement requirement = repository
-                .findByProcedureTypeAndCode(procedureType, code)
-                .orElseGet(() -> ProcedureDocumentRequirement.builder()
-                        .procedureType(procedureType)
-                        .code(code)
-                        .build());
-
-        requirement.setLabel(label);
-        requirement.setDescription(description);
-        requirement.setRequired(required);
-        repository.save(requirement);
+    private void saveIfNotExists(ProcedureType procedureType, String code, String label, String description, boolean required) {
+        if (!repository.existsByProcedureTypeAndCode(procedureType, code)) {
+            repository.save(
+                    ProcedureDocumentRequirement.builder()
+                            .procedureType(procedureType)
+                            .code(code)
+                            .label(label)
+                            .description(description)
+                            .required(required)
+                            .build()
+            );
+        }
     }
 }

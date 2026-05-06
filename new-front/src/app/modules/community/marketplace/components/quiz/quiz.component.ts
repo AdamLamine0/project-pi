@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MarketplaceService } from '../../services/marketplace.service';
 import { provideIcons } from '@ng-icons/core';
@@ -147,8 +147,7 @@ export class QuizComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private marketplaceService: MarketplaceService,
-    private ngZone: NgZone
+    private marketplaceService: MarketplaceService
   ) {}
 
   ngOnInit() {
@@ -184,14 +183,12 @@ export class QuizComponent implements OnInit, OnDestroy {
   startTimer() {
     if (this.timerInterval) clearInterval(this.timerInterval);
     this.timerInterval = setInterval(() => {
-      this.ngZone.run(() => {
-        if (this.timeLeft > 0) {
-          this.timeLeft--;
-        } else {
-          clearInterval(this.timerInterval);
-          this.submitQuiz(true);
-        }
-      });
+      if (this.timeLeft > 0) {
+        this.timeLeft--;
+      } else {
+        clearInterval(this.timerInterval);
+        this.submitQuiz(true);
+      }
     }, 1000);
   }
 

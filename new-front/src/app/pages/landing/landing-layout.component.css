@@ -489,3 +489,15 @@ html.dark .user-dropdown-item:hover { background: rgba(42,125,225,0.12); }
 html.dark .user-dropdown-divider { background: rgba(42,125,225,0.15); }
 .user-dropdown-logout { color: #DC2626 !important; }
 html.dark .user-dropdown-logout { color: #FCA5A5 !important; }
+
+/* Project Hub link styling */
+.nav-link--hub {
+  background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.15));
+  border-radius: 8px;
+  padding: 6px 12px !important;
+  font-weight: 600;
+}
+
+.nav-link--hub:hover {
+  background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(139,92,246,0.25));
+}

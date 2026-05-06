@@ -15,17 +15,18 @@
 
     <!-- ── Center pill: Navigation links ── -->
     <nav class="pill pill-nav" [@pillCenter]="pillState()" aria-label="Primary navigation">
-      @for (link of navLinks; track link.id) {
-      @if (link.type === 'route') {
-      <a class="nav-link" [routerLink]="link.route" [class.active]="activeLink() === link.id"
-        (click)="setActive(link.id)">
-        {{ link.label }}
-      </a>
-      } @else {
-      <button class="nav-link" [class.active]="activeLink() === link.id" (click)="scrollTo(link.anchor!)">
-        {{ link.label }}
-      </button>
-      }
+      @for (link of filteredNavLinks(); track link.id) {
+        @if (link.type === 'route') {
+          <a class="nav-link" [routerLink]="getHubRoute(link)" [class.active]="activeLink() === link.id"
+            (click)="setActive(link.id)"
+            [class.nav-link--hub]="link.id === 'project-hub'">
+            {{ link.label }}
+          </a>
+        } @else {
+          <button class="nav-link" [class.active]="activeLink() === link.id" (click)="scrollTo(link.anchor!)">
+            {{ link.label }}
+          </button>
+        }
       }
     </nav>
 
@@ -157,9 +158,9 @@
   <!-- ── Mobile menu overlay ── -->
   @if (mobileMenu()) {
   <div class="mobile-menu" [@mobileOverlay] role="dialog" aria-modal="true">
-    @for (link of navLinks; track link.id) {
+    @for (link of filteredNavLinks(); track link.id) {
     @if (link.type === 'route') {
-    <a class="mobile-link" [routerLink]="link.route" (click)="mobileMenu.set(false); setActive(link.id)">
+    <a class="mobile-link" [routerLink]="getHubRoute(link)" (click)="mobileMenu.set(false); setActive(link.id)">
       {{ link.label }}
     </a>
     } @else {
@@ -223,10 +224,13 @@
         <p class="footer-heading">Platform</p>
         <div class="footer-links">
           <a routerLink="/events" class="footer-link">Events</a>
-          <a routerLink="/app/projects" class="footer-link">Startups</a>
+          <a routerLink="/app/projects" class="footer-link">Projects</a>
+          <a routerLink="/app/roadmaps" class="footer-link">Roadmaps</a>
+          <a routerLink="/app/playground" class="footer-link">Playground</a>
           <a routerLink="/app/mentoring" class="footer-link">Mentors</a>
           <a routerLink="/app/investments" class="footer-link">Investors</a>
           <a routerLink="/app/community" class="footer-link">Community</a>
+          <a routerLink="/procedures" class="footer-link">Procedures</a>
         </div>
       </div>
 

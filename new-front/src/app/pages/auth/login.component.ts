@@ -72,4 +72,11 @@ export class LoginComponent {
       this.isSubmitting.set(false);
     }
   }
+
+  protected loginWithGoogle(): void {
+    // Go directly to user-pi (port 8081) — OAuth2 requires browser redirects
+    // with session cookies that the stateless API gateway cannot handle.
+    const googleAuthUrl = 'http://localhost:8081/oauth2/authorization/google';
+    window.location.href = googleAuthUrl;
+  }
 }

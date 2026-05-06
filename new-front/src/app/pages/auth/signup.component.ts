@@ -21,7 +21,6 @@ import {
   trigger,
 } from '@angular/animations';
 import { AuthService } from '../../core/services/auth.service';
-import { Role } from '../../core/models/user.model';
 
 function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
   const fg = control as FormGroup;
@@ -56,14 +55,6 @@ export class SignupComponent {
 
   protected readonly showPassword = signal(false);
   protected readonly showConfirm = signal(false);
-  protected readonly roleOptions = [
-    Role.USER,
-    Role.ENTREPRENEUR,
-    Role.EXPERT,
-    Role.MENTOR,
-    Role.INVESTOR,
-    Role.PARTNER,
-  ];
   protected readonly isSubmitting = signal(false);
   protected readonly errorMessage = signal('');
 
@@ -71,7 +62,6 @@ export class SignupComponent {
     {
       fullName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
-      role: ['', Validators.required],
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', Validators.required],
     },
@@ -88,13 +78,13 @@ export class SignupComponent {
     this.errorMessage.set('');
 
     try {
-      const { fullName, email, role, password } = this.form.getRawValue();
+      const { fullName, email, password } = this.form.getRawValue();
       const trimmed = (fullName as string).trim();
       const spaceIdx = trimmed.indexOf(' ');
       const name = spaceIdx >= 0 ? trimmed.slice(0, spaceIdx) : trimmed;
       const prenom = spaceIdx >= 0 ? trimmed.slice(spaceIdx + 1) : '';
 
-      await this.authService.register({ name, prenom, email, role, password });
+      await this.authService.register({ name, prenom, email, password });
       await this.router.navigateByUrl(this.authService.getPostAuthRedirectPath());
     } catch (error: unknown) {
       const err = error as { error?: { message?: string; error?: string } };
@@ -104,9 +94,5 @@ export class SignupComponent {
     } finally {
       this.isSubmitting.set(false);
     }
-  }
-
-  protected displayRole(role: Role): string {
-    return role === Role.PARTNER ? 'Partner' : role.charAt(0) + role.slice(1).toLowerCase();
   }
 }

@@ -35,5 +35,5 @@ public class OrganisationPartenaire {
     private Integer userId;
 
     @Enumerated(EnumType.STRING)
-    private StatutPartenaire statut = StatutPartenaire.EN_ATTENTE;
+    private StatutPartenaire statut = StatutPartenaire.ACTIVE;
 }

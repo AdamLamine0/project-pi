@@ -33,14 +33,12 @@ public class PredictionController {
     private final MlServiceClient mlServiceClient;
     private final EventRepository eventRepository;
 
-    //predict count registration
     @PostMapping("/registrations")
     public ResponseEntity<RegistrationPredictionResponse> predictRegistrations(
             @RequestBody PredictionInputRequest request) {
         return ResponseEntity.ok(mlServiceClient.predictRegistrations(request));
     }
 
-    //predict success score (0-100)
     @PostMapping("/success-score")
     public ResponseEntity<SuccessPredictionResponse> predictSuccessScore(
             @RequestBody PredictionInputRequest request) {

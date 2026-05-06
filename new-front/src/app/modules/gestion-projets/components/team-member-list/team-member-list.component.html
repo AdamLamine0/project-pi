@@ -1,0 +1,31 @@
+<div *ngIf="teamMembers.length === 0" class="alert alert-info">
+  Aucun membre dans l'équipe
+</div>
+
+<div *ngIf="teamMembers.length > 0" class="list-group">
+  <div class="list-group-item" *ngFor="let member of teamMembers">
+    <div class="d-flex align-items-center">
+      <div class="avatar me-3" [ngClass]="getAvatarColor(member.userName)">
+        <span class="text-white fw-bold">{{ getInitials(member.userName) }}</span>
+      </div>
+      <div class="flex-grow-1">
+        <h6 class="mb-1">{{ member.userName }}</h6>
+        <small class="text-muted d-block">{{ member.email }}</small>
+        <small class="text-muted d-block">Rôle: {{ member.role }}</small>
+      </div>
+      <small class="text-muted">Depuis {{ member.joinedAt | date:'dd/MM/yyyy' }}</small>
+    </div>
+  </div>
+</div>
+
+<style>
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+</style>

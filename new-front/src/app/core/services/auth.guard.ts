@@ -12,14 +12,31 @@ export const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
     return false;
   }
 
-  // Regular users belong on the public site, not the dashboard.
-  if (authService.hasRole('USER')) {
-    router.navigate(['/']);
-    return false;
+  // Walk down to the deepest matched route so a parent layout guard can see
+  // the child's role data (Angular doesn't merge route.data automatically).
+  let leaf: ActivatedRouteSnapshot = route;
+  while (leaf.firstChild) {
+    leaf = leaf.firstChild;
   }
 
-  const requiredRole = route.data['role'] as UserRole | undefined;
-  const requiredRoles = route.data['roles'] as UserRole[] | undefined;
+  const requiredRole =
+    (route.data['role'] as UserRole | undefined) ??
+    (leaf.data['role'] as UserRole | undefined);
+  const requiredRoles =
+    (route.data['roles'] as UserRole[] | undefined) ??
+    (leaf.data['roles'] as UserRole[] | undefined);
+
+  // Regular users belong on the public site, except for routes that explicitly
+  // allow the USER role (e.g. shared partenariat pages).
+  if (authService.hasRole('USER')) {
+    const userAllowed =
+      (requiredRoles && requiredRoles.includes('USER')) ||
+      requiredRole === 'USER';
+    if (!userAllowed) {
+      router.navigate(['/']);
+      return false;
+    }
+  }
 
   if (requiredRoles && !authService.hasRole(...requiredRoles)) {
     router.navigate(['/app/dashboard']);

@@ -67,32 +67,17 @@ public class GatewayRoutes {
     }
 
     @Bean
-    public RouterFunction<ServerResponse> legalProcedureServiceRoute() {
-        return RouterFunctions
-                .route(path("/api/legal-procedures/**"), HandlerFunctions.http())
-                .filter(lb("legal-pi"))
-                .filter(authFilter.jwtFilter());
-    }
-
-    @Bean
-    public RouterFunction<ServerResponse> procedureTypeServiceRoute() {
-        return RouterFunctions
-                .route(path("/api/procedure-types/**"), HandlerFunctions.http())
-                .filter(lb("legal-pi"))
-                .filter(authFilter.jwtFilter());
-    }
-
-    @Bean
-    public RouterFunction<ServerResponse> legalFileServiceRoute() {
-        return RouterFunctions
-                .route(path("/api/files/**"), HandlerFunctions.http())
-                .filter(lb("legal-pi"));
-    }
-
-    @Bean
     public RouterFunction<ServerResponse> meetingServiceRoute() {
         return RouterFunctions
                 .route(path("/api/meeting-invitations/**"), HandlerFunctions.http())
+                .filter(lb("partenariat-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> zoomSignatureRoute() {
+        return RouterFunctions
+                .route(path("/api/zoom/**"), HandlerFunctions.http())
                 .filter(lb("partenariat-pi"))
                 .filter(authFilter.jwtFilter());
     }
@@ -129,6 +114,13 @@ public class GatewayRoutes {
                 });
     }
 
+    @Bean
+    public RouterFunction<ServerResponse> transcriptionServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/transcripts/**"), HandlerFunctions.http())
+                .filter(lb("partenariat-pi"))           // ← Vers votre backend Spring Boot
+                .filter(authFilter.jwtFilter());         // ← Auth JWT requise
+    }
 
     @Bean
     public RouterFunction<ServerResponse> speakerServiceRoute() {
@@ -173,4 +165,31 @@ public class GatewayRoutes {
 
 
 
+    @Bean
+    public RouterFunction<ServerResponse> legalServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/legal-procedures/**")
+                        .or(path("/api/legal-procedures"))
+                        .or(path("/api/procedure-types/**"))
+                        .or(path("/api/procedure-types"))
+                        .or(path("/api/files/**")), HandlerFunctions.http())
+                .filter(lb("legal-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> investmentServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/invest-request/**")
+                        .or(path("/api/invest-criteria/**"))
+                        .or(path("/api/investments/**"))
+                        .or(path("/api/admin/investments/**"))
+                        .or(path("/api/deals/**"))
+                        .or(path("/api/data-room/**"))
+                        .or(path("/api/dataroom/**"))
+                        .or(path("/api/nda/**"))
+                        .or(path("/api/log/**")), HandlerFunctions.http())
+                .filter(lb("investment-pi"))
+                .filter(authFilter.jwtFilter());
+    }
 }

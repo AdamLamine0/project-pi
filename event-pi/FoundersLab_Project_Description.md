@@ -13,7 +13,7 @@ FoundersLab is built on a **microservices architecture** with an Angular fronten
 ```
 Angular Frontend (port 4200)
         ↓  JWT in Authorization header
-API Gateway (port 8091)
+API Gateway (port 8090)
         ↓  validates JWT → injects X-User-Id, X-User-Role headers
         ↓
    ┌──────────────────────────────────────────┐

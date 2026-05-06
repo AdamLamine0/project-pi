@@ -27,16 +27,24 @@ spring:
             filters:
               - StripPrefix=0
 
-          - id: legal-service
-            uri: lb://legal-pi
-            predicates:
-              - Path=/api/legal-procedures/**, /api/procedure-types/**, /api/files/**
-            filters:
-              - StripPrefix=0
-
           - id: partenariat-service
             uri: lb://partenariat-pi
             predicates:
-              - Path=/api/conventions/**, /api/meeting-invitations/**, /api/objectifs/**, /api/organisations/**
+              - Path=/api/organisations/**, /api/conventions/**, /api/objectifs/**, /api/meeting-invitations/**, /api/zoom/**
             filters:
               - StripPrefix=0
+
+          - id: legal-service
+            uri: lb://legal-pi
+            predicates:
+              - Path=/api/legal-procedures, /api/legal-procedures/**, /api/procedure-types/**, /api/procedure-types, /api/files/**
+            filters:
+              - StripPrefix=0
+
+eureka:
+  client:
+    enabled: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true

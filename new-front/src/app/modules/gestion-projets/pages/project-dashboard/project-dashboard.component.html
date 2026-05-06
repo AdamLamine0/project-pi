@@ -1,0 +1,92 @@
+<div class="dash-layout">
+  <aside class="dash-sidebar">
+    <h5>Founder Hub</h5>
+    <a routerLink="/app/projects/dashboard" class="active">Dashboard</a>
+    <a routerLink="/app/projects/new">Creer projet</a>
+    <a routerLink="/app/projects">Mes projets</a>
+    <a routerLink="/app/projects/dashboard">Onboarding</a>
+  </aside>
+
+  <section class="dash-content">
+    <header class="dash-topbar">
+      <div>
+        <h3>Bonjour {{ userName }}</h3>
+        <p>{{ today | date:'EEEE dd MMMM y' }}</p>
+      </div>
+      <div class="topbar-actions">
+        <button class="notif">🔔 <span>3</span></button>
+        <div class="avatar">{{ (userName || 'K').charAt(0) | uppercase }}</div>
+      </div>
+    </header>
+
+    <div class="stats-grid">
+      <article class="stat-card" *ngFor="let stat of stats">
+        <p>{{ stat.label }}</p>
+        <h4>{{ stat.value }}</h4>
+      </article>
+    </div>
+
+    <div class="main-grid">
+      <div class="left-col">
+        <article class="card-x">
+          <h5>Projet principal</h5>
+          <h4>{{ mainProject?.title || 'Aucun projet actif' }}</h4>
+          <p>{{ mainProject?.description || 'Creez votre projet pour activer les analyses IA.' }}</p>
+          <div class="badge-row">
+            <span class="badge bg-info">{{ mainProject?.status || 'BROUILLON' }}</span>
+            <span class="badge bg-warning text-dark">{{ mainProject?.priority || 'NORMALE' }}</span>
+          </div>
+          <div class="progress mt-3"><div class="progress-bar" style="width: 67%"></div></div>
+        </article>
+
+        <article class="card-x session-card">
+          <h5>Session prochaine</h5>
+          <div class="session-row">
+            <div class="mentor-avatar">AM</div>
+            <div>
+              <strong>Amel B. - Mentor Product</strong>
+              <p>Demain 10:00 · 45 min</p>
+            </div>
+            <button class="btn btn-primary btn-sm">Rejoindre</button>
+          </div>
+        </article>
+
+        <article class="card-x">
+          <h5>Notifications</h5>
+          <ul>
+            <li *ngFor="let n of notifications">{{ n }}</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="right-col">
+        <article class="card-x">
+          <h5>Roadmap condensee</h5>
+          <div class="timeline-mini">
+            <div *ngFor="let step of roadmapMini" class="line-item" [class.done]="step.done">
+              <span class="dot"></span>
+              <span>{{ step.label }}</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card-x">
+          <h5>Demarches juridiques</h5>
+          <div class="legal-row" *ngFor="let item of legalSteps">
+            <span>{{ item.label }}</span>
+            <span class="pill">{{ item.status }}</span>
+          </div>
+        </article>
+
+        <article class="card-x">
+          <h5>Actions rapides</h5>
+          <div class="actions-col">
+            <a class="btn btn-outline-primary btn-sm" routerLink="/app/projects/new">Soumettre projet IA</a>
+            <a class="btn btn-outline-secondary btn-sm" routerLink="/app/projects">Ouvrir roadmap</a>
+            <a class="btn btn-outline-dark btn-sm" routerLink="/user/profile">Mettre a jour profil</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+</div>
