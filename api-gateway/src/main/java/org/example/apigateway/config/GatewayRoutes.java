@@ -161,27 +161,6 @@ public class GatewayRoutes {
         // no authFilter — public endpoint for QR code scanning
     }
 
-
-    // Investment service
-    @Bean
-    public RouterFunction<ServerResponse> investmentServiceRoute() {
-        return RouterFunctions
-                .route(path("/api/invest-request/**")
-                        .or(path("/api/invest-criteria/**"))
-                        .or(path("/api/investments/**"))
-                        .or(path("/api/admin/investments/**"))
-                        .or(path("/api/deals/**"))
-                        .or(path("/api/data-room/**"))
-                        .or(path("/api/dataroom/**"))
-                        .or(path("/api/nda/**"))
-                        .or(path("/api/log/**")), HandlerFunctions.http())
-                .filter(lb("investment-pi"))
-                .filter(authFilter.jwtFilter());
-    }
-
-
-
-
     @Bean
     public RouterFunction<ServerResponse> legalServiceRoute() {
         return RouterFunctions

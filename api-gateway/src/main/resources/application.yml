@@ -41,6 +41,13 @@ spring:
             filters:
               - StripPrefix=0
 
+          - id: investment-service
+            uri: lb://investment-pi
+            predicates:
+              - Path=/api/invest-request/**, /api/invest-criteria/**, /api/investments/**, /api/admin/investments/**, /api/deals/**, /api/data-room/**, /api/dataroom/**, /api/nda/**, /api/log/**
+            filters:
+              - StripPrefix=0
+
 eureka:
   client:
     enabled: true

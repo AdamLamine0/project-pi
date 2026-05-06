@@ -195,6 +195,31 @@ services:
     networks:
       - project-pi
 
+  investment-service:
+    build:
+      context: ./investment-pi
+    image: project-pi/investment-service:local
+    depends_on:
+      mongodb:
+        condition: service_started
+      eureka-server:
+        condition: service_started
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/investment_db
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-sk_test_dummy_key}
+      STRIPE_SUCCESS_URL: http://localhost:4200/app/investments/payment-success?session_id={CHECKOUT_SESSION_ID}
+      STRIPE_CANCEL_URL: http://localhost:4200/app/investments/payment-cancel
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
+    ports:
+      - "8086:8085"
+    volumes:
+      - investment-storage:/app/storage
+    networks:
+      - project-pi
+
   api-gateway:
     build:
       context: ./api-gateway
@@ -209,6 +234,8 @@ services:
       community-service:
         condition: service_started
       legal-service:
+        condition: service_started
+      investment-service:
         condition: service_started
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
@@ -236,6 +263,7 @@ volumes:
   mongo-data:
   event-uploads:
   legal-uploads:
+  investment-storage:
 
 networks:
   project-pi:
