@@ -14,7 +14,7 @@ import {
   lucideLayoutDashboard, lucideLogOut,
   lucideSun, lucideMoon, lucideUser, lucideSettings, lucideChevronDown,
   lucideUsers, lucideBell, lucideCheck, lucideMessageSquare, lucideMail,
-  lucideBriefcase, lucideStar,
+  lucideBriefcase, lucideStar, lucideMap, lucideZap, lucideGraduationCap,
 } from '@ng-icons/lucide';
 import {
   trigger,
@@ -31,15 +31,6 @@ import { NotificationType, CommunityNotification } from '../../modules/community
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 
-interface LandingNavLink {
-  id: string;
-  label: string;
-  route?: string;
-  anchor?: string;
-  type: 'route' | 'anchor';
-  roles?: string[];
-}
-
 @Component({
   selector: 'app-landing-layout',
   standalone: false,
@@ -48,6 +39,7 @@ interface LandingNavLink {
     lucideMenu, lucideX, lucideCalendar, lucideRocket, lucideLayoutDashboard, lucideLogOut,
     lucideSun, lucideMoon, lucideUser, lucideSettings, lucideChevronDown, lucideUsers,
     lucideBell, lucideCheck, lucideMessageSquare, lucideMail, lucideBriefcase, lucideStar,
+    lucideMap, lucideZap, lucideGraduationCap,
   })],
   templateUrl: './landing-layout.component.html',
   styleUrl:    './landing-layout.component.css',
@@ -128,10 +120,7 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
 
   protected readonly isLoggedIn         = computed(() => this.authService.isLoggedIn());
   protected readonly canAccessDashboard = computed(() =>
-      this.authService.hasRole('ADMIN', 'MENTOR', 'PARTNER', 'PARTENAIRE' as any)
-  );
-  protected readonly canAccessInvestment = computed(() =>
-      this.authService.hasRole('INVESTOR', 'ENTREPRENEUR')
+    this.authService.hasRole('ADMIN', 'MENTOR', 'PARTNER', 'PARTENAIRE')
   );
   protected readonly userInitial = computed(() => {
     const e = this.authService.getEmail();
@@ -148,20 +137,45 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
 
   private badgeTimer?: ReturnType<typeof setTimeout>;
 
-  protected readonly navLinks: LandingNavLink[] = [
-    { id: 'home',      label: 'Home',      route: '/',          type: 'route' },
-    { id: 'events',    label: 'Events',    route: '/events',    type: 'route' },
-    { id: 'community', label: 'Community', route: '/community', type: 'route' },
-    { id: 'procedures', label: 'Procedures', route: '/procedures', type: 'route' },
-    { id: 'investment', label: 'Investments', route: '/investment/demandes', type: 'route', roles: ['INVESTOR', 'ENTREPRENEUR'] },
-    { id: 'services',  label: 'Services',  anchor: 'services',  type: 'anchor' },
-    { id: 'about',     label: 'About',     anchor: 'about',     type: 'anchor' },
-    { id: 'contact',   label: 'Contact',   anchor: 'contact',   type: 'anchor' },
+  protected readonly navLinks = [
+    { id: 'home',         label: 'Home',         route: '/',                                    type: 'route' },
+    { id: 'events',       label: 'Events',       route: '/events',                              type: 'route' },
+    { id: 'project-hub',  label: '⚡ Project Hub', route: '/app/projects',                      type: 'route', authRequired: true },
+    { id: 'community',    label: 'Community',    route: '/community',                           type: 'route' },
+    { id: 'procedures',   label: 'Procedures',   route: '/procedures',                          type: 'route' },
+    { id: 'partners',     label: 'Partnerships', route: '/app/partenariat/list',                type: 'route', roles: ['ADMIN', 'PARTNER', 'PARTENAIRE', 'USER'] },
+    { id: 'organisation', label: 'Mon Organisation', route: '/app/partenariat/mon-organisation', type: 'route', roles: ['PARTNER', 'PARTENAIRE'] },
+    { id: 'conventions',  label: 'Conventions',  route: '/app/partenariat/conventions',         type: 'route', roles: ['ADMIN', 'PARTNER', 'PARTENAIRE', 'USER'] },
+    { id: 'meetings',     label: 'Meeting',      route: '/app/partenariat/meetings',            type: 'route', roles: ['ADMIN', 'PARTNER', 'PARTENAIRE', 'USER'] },
+    { id: 'services',     label: 'Services',     anchor: 'services',                            type: 'anchor' },
+    { id: 'about',        label: 'About',        anchor: 'about',                               type: 'anchor' },
+    { id: 'contact',      label: 'Contact',      anchor: 'contact',                             type: 'anchor' },
   ];
 
-  protected readonly visibleNavLinks = computed(() =>
-    this.navLinks.filter(link => !link.roles || link.roles.some(role => this.authService.hasRole(role as any)))
-  );
+  // Filter nav links based on user role
+  protected readonly filteredNavLinks = computed(() => {
+    const userRole = this.authService.getRole();
+    const isLoggedIn = this.authService.isLoggedIn();
+    
+    return this.navLinks.filter(link => {
+      // authRequired links always show (we handle redirect in template)
+      if ((link as any).authRequired) return true;
+      // If link has no role restriction, show it
+      if (!link.roles) return true;
+      // If user is not logged in, hide role-restricted links
+      if (!isLoggedIn) return false;
+      // Check if user has required role
+      return link.roles.includes(userRole);
+    });
+  });
+
+  protected getHubRoute(link: any): string {
+    // If authRequired and not logged in, redirect to login
+    if (link.authRequired && !this.authService.isLoggedIn()) {
+      return '/auth/login';
+    }
+    return link.route;
+  }
 
   ngOnInit(): void {
     setTimeout(() => this.pillState.set('visible'), 60);
@@ -169,9 +183,9 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
     setTimeout(() => this.showBadge.set(true), 950);
     this.badgeTimer = setTimeout(() => this.showBadge.set(false), 5000);
 
-    const userId = this.authService.getUserId();
-    if (this.authService.isLoggedIn() && userId > 0) {
-      this.notificationService.init(String(userId));
+    const userId = this.authService.getUserId()?.toString();
+    if (userId) {
+      this.notificationService.init(userId);
     }
   }
 

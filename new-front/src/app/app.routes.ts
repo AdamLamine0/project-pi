@@ -16,6 +16,8 @@ import { EventsComponent } from './pages/events/events.component';
 import { ProfileComponent } from './pages/profile/profile.component';
 import { VerifyCertificateComponent } from './pages/verify-certificate/verify-certificate.component';
 import { AdminRegistrationsComponent } from './pages/admin-registrations/admin-registrations.component';
+import { UsersListComponent } from './pages/users-list/users-list.component';
+import { Oauth2CallbackComponent } from './auth/oauth2-callback/oauth2-callback';
 
 export const routes: Routes = [
   {
@@ -31,6 +33,8 @@ export const routes: Routes = [
       { path: 'investment', loadChildren: () => import('./modules/investment-module/investment/investment-module').then(m => m.InvestmentModule), canActivate: [loginGuard] },
       // Profile accessible to any authenticated user (including USER role)
       { path: 'profile', component: ProfileComponent, canActivate: [loginGuard] },
+      // Partenariat pages â€” accessible to all logged-in users (USER, PARTNER, ADMIN)
+      { path: 'partenariat', loadChildren: () => import('./modules/partenaire/partenaire.module').then(m => m.PartenaireModule), canActivate: [loginGuard] },
     ],
   },
   {
@@ -41,6 +45,8 @@ export const routes: Routes = [
       { path: 'login', component: LoginComponent },
       { path: 'register', component: SignupComponent },
       { path: 'signup', component: SignupComponent }, // Keep both for compatibility
+      { path: 'reset-password', loadComponent: () => import('./auth/reset-password/reset-password').then(m => m.ResetPasswordComponent) },
+      { path: 'oauth2-callback', component: Oauth2CallbackComponent },
     ],
   },
   {
@@ -49,7 +55,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: HomeComponent, canActivate: [authGuard], data: { role: 'ADMIN' } },
+      { path: 'dashboard', component: HomeComponent },
       { path: 'projects', component: ProjectsComponent },
       { path: 'community', loadChildren: () => import('./modules/community/community.module').then(m => m.CommunityModule) },
       { path: 'legal', loadChildren: () => import('./modules/legal/legal.module').then(m => m.LegalModule), canActivate: [authGuard], data: { role: 'ADMIN' } },
@@ -59,7 +65,9 @@ export const routes: Routes = [
       { path: 'partnerships', component: PartnershipsComponent },
       { path: 'events', component: EventsComponent },
       { path: 'profile', component: ProfileComponent },
-      { path: 'registrations', component: AdminRegistrationsComponent },
+      { path: 'registrations', component: AdminRegistrationsComponent, canActivate: [authGuard], data: { role: 'ADMIN' } },
+      { path: 'users', component: UsersListComponent, canActivate: [authGuard], data: { role: 'ADMIN' } },
+      { path: 'partenariat', loadChildren: () => import('./modules/partenaire/partenaire.module').then(m => m.PartenaireModule) },
     ],
   },
   { path: 'verify/:token', component: VerifyCertificateComponent },

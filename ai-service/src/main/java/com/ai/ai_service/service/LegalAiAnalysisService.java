@@ -85,7 +85,7 @@ public class LegalAiAnalysisService {
                 hasBlockingTechnicalIssue,
                 llmVerdict.decision()
         );
-        String remark = buildRemark(finalDecision, technicalFindings, llmVerdict);
+        String remark = buildRemark(finalDecision, technicalFindings, llmVerdict, documentResponses);
         String appliedStatus = finalDecision == AiDecision.REJECTED ? "REFUSE" : "EN_ATTENTE_EXPERT";
 
         return new LegalAiAnalysisResponse(
@@ -109,7 +109,7 @@ public class LegalAiAnalysisService {
                 AiDecision.REVIEW,
                 "EN_ATTENTE_EXPERT",
                 false,
-                buildRemark(AiDecision.REVIEW, findings, llmVerdict),
+                buildRemark(AiDecision.REVIEW, findings, llmVerdict, List.of()),
                 findings,
                 List.of(),
                 List.of()
@@ -242,7 +242,8 @@ public class LegalAiAnalysisService {
     private String buildRemark(
             AiDecision decision,
             List<String> technicalFindings,
-            GeminiLegalReasoningService.LlmVerdict llmVerdict
+            GeminiLegalReasoningService.LlmVerdict llmVerdict,
+            List<DocumentAiAnalysisResponse> documents
     ) {
         StringBuilder remark = new StringBuilder();
         if (decision == AiDecision.REJECTED && !technicalFindings.isEmpty()) {
@@ -257,7 +258,48 @@ public class LegalAiAnalysisService {
                     .toString();
         }
 
+        if (!llmVerdict.available()) {
+            return buildLocalReviewRemark(technicalFindings, documents);
+        }
+
         return llmVerdict.remark();
+    }
+
+    private String buildLocalReviewRemark(
+            List<String> technicalFindings,
+            List<DocumentAiAnalysisResponse> documents
+    ) {
+        long readableDocuments = documents.stream().filter(DocumentAiAnalysisResponse::ocrAvailable).count();
+        long visuallyCheckedDocuments = documents.stream().filter(DocumentAiAnalysisResponse::visionAvailable).count();
+        int documentCount = documents.size();
+
+        StringBuilder remark = new StringBuilder();
+        remark.append("Automated OCR/OpenCV review completed.");
+
+        if (documentCount > 0) {
+            remark.append(" ")
+                    .append(readableDocuments)
+                    .append("/")
+                    .append(documentCount)
+                    .append(" document(s) had readable OCR text, and ")
+                    .append(visuallyCheckedDocuments)
+                    .append("/")
+                    .append(documentCount)
+                    .append(" document(s) passed image inspection.");
+        }
+
+        if (technicalFindings == null || technicalFindings.isEmpty()) {
+            remark.append(" No blocking technical issue was detected. The case is sent to the expert for final legal review.");
+            return remark.toString();
+        }
+
+        remark.append(" The case needs expert review because some checks need confirmation.");
+        remark.append("\n\nPoints to verify:");
+        groupFindingsByDocument(technicalFindings).forEach((document, findings) -> {
+            remark.append("\n- ").append(document).append(":");
+            findings.forEach(finding -> remark.append("\n  - ").append(toUserFacingFinding(finding)));
+        });
+        return remark.toString();
     }
 
     private Map<String, List<String>> groupFindingsByDocument(List<String> technicalFindings) {

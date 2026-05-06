@@ -15,6 +15,8 @@ import {
   lucideTrendingUp,
   lucideUsers,
   lucideGraduationCap,
+  lucideMap,
+  lucideZap,
   lucideHandshake,
   lucideCalendar,
   lucideShield,
@@ -52,6 +54,7 @@ import { Event } from '../../models/event';
   providers: [
     provideIcons({
       lucideRocket, lucideTrendingUp, lucideUsers, lucideGraduationCap,
+      lucideMap, lucideZap,
       lucideHandshake, lucideCalendar, lucideShield,
       lucideArrowRight, lucideCheck, lucideStar, lucideGlobe,
       lucideSparkles, lucideMapPin, lucideClock3, lucideChevronRight,

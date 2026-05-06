@@ -6,6 +6,8 @@ import com.ai.ai_service.dto.LegalAiAnalysisRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -20,6 +22,8 @@ import java.util.Set;
 
 @Service
 public class GeminiLegalReasoningService {
+
+    private static final Logger log = LoggerFactory.getLogger(GeminiLegalReasoningService.class);
 
     private final AiProperties properties;
     private final WebClient.Builder webClientBuilder;
@@ -85,6 +89,7 @@ public class GeminiLegalReasoningService {
             }
         }
 
+        log.warn("Gemini legal analysis unavailable: {}", lastError);
         return LlmVerdict.unavailable(lastError);
     }
 
@@ -92,8 +97,8 @@ public class GeminiLegalReasoningService {
         return client.post()
                 .uri(uriBuilder -> uriBuilder
                         .path("/v1beta/models/{model}:generateContent")
-                        .queryParam("key", properties.getGemini().getApiKey())
                         .build(model))
+                .header("x-goog-api-key", properties.getGemini().getApiKey())
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(JsonNode.class)

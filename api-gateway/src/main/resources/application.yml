@@ -7,43 +7,37 @@ spring:
       mvc:
         routes:
           - id: user-service
-            uri: lb://user-pi
+            uri: http://localhost:8081
             predicates:
               - Path=/api/auth/**, /api/users/**
             filters:
               - StripPrefix=0
 
           - id: event-service
-            uri: lb://event-pi
+            uri: http://localhost:8083
             predicates:
               - Path=/api/events/**, /api/weather, /api/weather/**, /api/verify/**, /api/tickets/**, /api/registrations/**, /api/speakers/**, /api/programs/**, /api/feedback/**, /api/badges/**, /api/certificates/**, /api/predictions/**
             filters:
               - StripPrefix=0
 
           - id: community-service
-            uri: http://localhost:8082
+            uri: http://localhost:8084
             predicates:
               - Path=/api/community/**
             filters:
               - StripPrefix=0
 
-          - id: investment-service
-            uri: lb://investment-pi
+          - id: partenariat-service
+            uri: http://localhost:8082
             predicates:
-              - Path=/api/data-room/**, /api/dataroom/**, /api/deals/**, /api/invest-criteria/**, /api/invest-request/**, /api/investments/**, /api/admin/investments/holding/**
+              - Path=/api/organisations/**, /api/conventions/**, /api/objectifs/**, /api/meeting-invitations/**, /api/zoom/**
             filters:
               - StripPrefix=0
 
-          - id: legal-service
-            uri: lb://legal-pi
-            predicates:
-              - Path=/api/legal-procedures/**
-            filters:
-              - StripPrefix=0
-
-          - id: ai-service
-            uri: lb://ai-service
-            predicates:
-              - Path=/api/ai/**
-            filters:
-              - StripPrefix=0
+eureka:
+  client:
+    enabled: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true

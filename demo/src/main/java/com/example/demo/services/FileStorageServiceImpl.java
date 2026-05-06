@@ -22,7 +22,7 @@ public class FileStorageServiceImpl implements FileStorageService {
 
         String dir = uploadProperties.getUpload() != null ? uploadProperties.getUpload().getDir() : null;
         if (dir == null || dir.isBlank()) {
-            throw new IllegalStateException("The app.upload.dir property is missing or empty.");
+            throw new IllegalStateException("La propriété app.upload.dir est absente ou vide.");
         }
 
         this.uploadPath = Paths.get(dir).toAbsolutePath().normalize();
@@ -57,27 +57,27 @@ public class FileStorageServiceImpl implements FileStorageService {
             return baseUrl + "/api/files/" + generatedName;
 
         } catch (IOException e) {
-            throw new RuntimeException("An error occurred while storing the file.", e);
+            throw new RuntimeException("Erreur lors du stockage du fichier.", e);
         }
     }
 
     @Override
-    public String storeGenerated(String filenamePrefix, String extension, byte[] content) {
+    public String storeGenerated(String prefix, String extension, byte[] content) {
         try {
             if (content == null || content.length == 0) {
-                throw new IllegalArgumentException("Le document genere est vide.");
+                throw new IllegalArgumentException("Le contenu genere est vide.");
             }
 
-            String safePrefix = StringUtils.cleanPath(filenamePrefix == null ? "document-final" : filenamePrefix)
-                    .replaceAll("[^a-zA-Z0-9._-]", "-");
-            String safeExtension = extension == null || extension.isBlank() ? ".html" : extension;
+            String safePrefix = StringUtils.cleanPath(prefix == null || prefix.isBlank() ? "document" : prefix);
+            String safeExtension = extension == null || extension.isBlank() ? ".bin" : extension;
             if (!safeExtension.startsWith(".")) {
                 safeExtension = "." + safeExtension;
             }
 
             String generatedName = safePrefix + "-" + UUID.randomUUID() + safeExtension;
             Path targetLocation = this.uploadPath.resolve(generatedName);
-            Files.write(targetLocation, content, StandardOpenOption.CREATE_NEW);
+
+            Files.write(targetLocation, content, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
             String baseUrl = uploadProperties.getBaseUrl();
             if (baseUrl == null || baseUrl.isBlank()) {
@@ -85,8 +85,9 @@ public class FileStorageServiceImpl implements FileStorageService {
             }
 
             return baseUrl + "/api/files/" + generatedName;
+
         } catch (IOException e) {
-            throw new RuntimeException("An error occurred while storing the generated document.", e);
+            throw new RuntimeException("Erreur lors du stockage du fichier genere.", e);
         }
     }
 }
