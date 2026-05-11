@@ -1,14 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { EntrepreneurPlaygroundRequest, EntrepreneurPlaygroundResult, MentoringRequest, MentoringRequestStatus, Project, Task, TeamMember } from '../../../models/project';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GestionProjetsService {
-  private apiUrl = 'http://localhost:8090/api/projects';
-  private docsUrl = 'http://localhost:8090/api/documents';
+  private apiUrl = 'http://localhost:8091/api/projects';
+  private docsUrl = 'http://localhost:8091/api/documents';
   private readonly MENTORING_KEY = 'pi_mentoring_requests';
 
   constructor(private http: HttpClient) { }
@@ -63,7 +64,15 @@ export class GestionProjetsService {
   }
 
   getProjects(): Observable<Project[]> {
-    return this.http.get<Project[]>(this.apiUrl);
+    return this.http.get<Project[] | { value: Project[], Count: number }>(this.apiUrl).pipe(
+      map(response => {
+        // Handle both array and wrapped response formats
+        if (Array.isArray(response)) {
+          return response;
+        }
+        return response.value || [];
+      })
+    );
   }
 
   getProject(id: number): Observable<Project> {

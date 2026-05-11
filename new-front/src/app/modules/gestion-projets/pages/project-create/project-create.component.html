@@ -1,100 +1,137 @@
-<div class="onboarding-shell">
+<div style="min-height:100vh; background:var(--background); display:flex; flex-direction:column; align-items:center; padding:0 1rem 4rem; font-family:var(--font-sans);">
   <!-- Progress bar -->
-  <div class="ob-progress-bar">
-    <div class="ob-progress-fill" [style.width.%]="progressWidth"></div>
+  <div style="width:100%; height:3px; background:var(--border-subtle); position:sticky; top:0; z-index:10;">
+    <div style="height:100%; background:linear-gradient(90deg,#1C4FC3,#1D1384); transition:width 0.5s cubic-bezier(0.4,0,0.2,1);" [style.width.%]="progressWidth"></div>
   </div>
 
-  <div class="onboarding-card">
+  <div style="width:100%; max-width:680px; background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:2.5rem; margin-top:2.5rem; box-shadow:0 4px 16px rgba(11,15,42,0.08);">
     <!-- Stepper -->
-    <div class="stepper">
-      <div class="step-item" *ngFor="let s of steps" [class.active]="step === s.num" [class.done]="step > s.num">
-        <div class="step-circle">
+    <div style="display:flex; gap:0.5rem; margin-bottom:2.5rem; align-items:center;">
+      <div *ngFor="let s of steps" style="display:flex; align-items:center; gap:0.5rem; flex:1; transition:opacity 0.3s;" [style.opacity]="step === s.num || step > s.num ? '1' : '0.4'">
+        <div style="width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:700; flex-shrink:0; border:2px solid; transition:all 0.3s;"
+          [style.background]="step === s.num ? 'linear-gradient(135deg,#1C4FC3,#1D1384)' : step > s.num ? 'var(--badge-green-bg)' : 'transparent'"
+          [style.border-color]="step === s.num ? '#1C4FC3' : step > s.num ? 'var(--badge-green-text)' : 'var(--border)'"
+          [style.color]="step === s.num || step > s.num ? '#fff' : 'var(--text-muted)'"
+          [style.box-shadow]="step === s.num ? '0 0 16px rgba(28,79,195,0.3)' : 'none'">
           <span *ngIf="step <= s.num">{{ s.num }}</span>
           <svg *ngIf="step > s.num" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
-        <span class="step-label">{{ s.label }}</span>
+        <span style="font-size:0.72rem; font-weight:600; white-space:nowrap;"
+          [style.color]="step === s.num ? '#1C4FC3' : step > s.num ? 'var(--badge-green-text)' : 'var(--text-muted)'">
+          {{ s.label }}
+        </span>
+        <div *ngIf="s.num < 4" style="flex:1; height:2px; margin:0 0.25rem;"
+          [style.background]="step > s.num ? '#1C4FC3' : 'var(--border-subtle)'"></div>
       </div>
     </div>
 
     <form [formGroup]="form">
 
       <!-- STEP 1: Project -->
-      <div class="step-content" *ngIf="step === 1">
-        <div class="step-header">
-          <div class="step-icon">🚀</div>
-          <h3>Votre Projet</h3>
-          <p>Décrivez l'essence de votre idea.</p>
+      <div *ngIf="step === 1" style="animation:fadeIn 0.3s ease-in;">
+        <div style="text-align:center; margin-bottom:2rem;">
+          <div style="font-size:2.5rem; margin-bottom:0.75rem;">🚀</div>
+          <h3 style="color:var(--text-primary); font-size:1.5rem; font-weight:700; margin-bottom:0.35rem;">Votre Projet</h3>
+          <p style="color:var(--text-secondary); margin:0; font-size:0.92rem;">Décrivez l'essence de votre idée.</p>
         </div>
 
-        <div class="field-group">
-          <label>Nom du projet <span class="req">*</span></label>
-          <input class="ob-input" formControlName="title" placeholder="Ex: FinTrack AI" />
-          <div class="field-error" *ngIf="form.get('title')?.touched && form.get('title')?.invalid">
+        <div style="margin-bottom:1.25rem;">
+          <label style="display:block; color:var(--text-secondary); font-size:0.82rem; font-weight:600; margin-bottom:0.5rem;">
+            Nom du projet <span style="color:var(--badge-red-text); margin-left:2px;">*</span>
+          </label>
+          <input formControlName="title" placeholder="Ex: FinTrack AI"
+            style="width:100%; background:var(--surface-input); border:1px solid var(--border); border-radius:10px; padding:0.75rem 1rem; color:var(--text-primary); font-size:0.95rem; transition:border-color 0.2s, box-shadow 0.2s; outline:none; font-family:var(--font-sans);"
+            [style.border-color]="form.get('title')?.touched && form.get('title')?.invalid ? 'var(--badge-red-text)' : 'var(--border)'" />
+          <div *ngIf="form.get('title')?.touched && form.get('title')?.invalid" style="color:var(--badge-red-text); font-size:0.82rem; margin-top:0.35rem;">
             Minimum 3 caractères requis.
           </div>
         </div>
 
-        <div class="two-cols">
-          <div class="field-group">
-            <label>Secteur <span class="req">*</span></label>
-            <select class="ob-select" formControlName="sector">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.25rem;">
+          <div>
+            <label style="display:block; color:var(--text-secondary); font-size:0.82rem; font-weight:600; margin-bottom:0.5rem;">
+              Secteur <span style="color:var(--badge-red-text); margin-left:2px;">*</span>
+            </label>
+            <select formControlName="sector"
+              style="width:100%; background:var(--surface-input); border:1px solid var(--border); border-radius:10px; padding:0.75rem 1rem; color:var(--text-primary); font-size:0.95rem; transition:border-color 0.2s, box-shadow 0.2s; outline:none; font-family:var(--font-sans);">
               <option value="">Choisir un secteur</option>
               <option *ngFor="let s of sectors" [value]="s">{{ s }}</option>
             </select>
           </div>
-          <div class="field-group">
-            <label>Budget estimé (MAD)</label>
-            <input class="ob-input" type="number" formControlName="budget" placeholder="0" min="0" />
+          <div>
+            <label style="display:block; color:var(--text-secondary); font-size:0.82rem; font-weight:600; margin-bottom:0.5rem;">
+              Budget estimé (MAD)
+            </label>
+            <input type="number" formControlName="budget" placeholder="0" min="0"
+              style="width:100%; background:var(--surface-input); border:1px solid var(--border); border-radius:10px; padding:0.75rem 1rem; color:var(--text-primary); font-size:0.95rem; transition:border-color 0.2s, box-shadow 0.2s; outline:none; font-family:var(--font-sans);" />
           </div>
         </div>
 
-        <div class="field-group">
-          <label>Stade actuel</label>
-          <div class="chip-row">
-            <button type="button" class="stage-chip" *ngFor="let stage of stages"
-              [class.active]="selectedStage === stage" (click)="setStage(stage)">{{ stage }}</button>
+        <div style="margin-bottom:1.25rem;">
+          <label style="display:block; color:var(--text-secondary); font-size:0.82rem; font-weight:600; margin-bottom:0.5rem;">
+            Stade actuel
+          </label>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button type="button" *ngFor="let stage of stages" (click)="setStage(stage)"
+              style="padding:0.45rem 1rem; border-radius:999px; border:1px solid; font-size:0.82rem; font-weight:600; cursor:pointer; transition:all 0.2s; font-family:var(--font-sans);"
+              [style.background]="selectedStage === stage ? 'var(--chip-active-bg)' : 'var(--chip-inactive-bg)'"
+              [style.color]="selectedStage === stage ? 'var(--chip-active-text)' : 'var(--chip-inactive-text)'"
+              [style.border-color]="selectedStage === stage ? 'var(--chip-active-border)' : 'var(--chip-inactive-border)'">
+              {{ stage }}
+            </button>
           </div>
         </div>
 
-        <div class="field-group">
-          <label>Description <span class="req">*</span></label>
-          <textarea class="ob-textarea" rows="4" formControlName="description"
-            placeholder="Décrivez votre projet en détail..."></textarea>
+        <div style="margin-bottom:1.25rem;">
+          <label style="display:block; color:var(--text-secondary); font-size:0.82rem; font-weight:600; margin-bottom:0.5rem;">
+            Description <span style="color:var(--badge-red-text); margin-left:2px;">*</span>
+          </label>
+          <textarea rows="4" formControlName="description" placeholder="Décrivez votre projet en détail..."
+            style="width:100%; background:var(--surface-input); border:1px solid var(--border); border-radius:10px; padding:0.75rem 1rem; color:var(--text-primary); font-size:0.95rem; transition:border-color 0.2s, box-shadow 0.2s; outline:none; resize:vertical; min-height:90px; font-family:var(--font-sans);"></textarea>
         </div>
 
-        <div class="field-group">
-          <label>Problème résolu <span class="req">*</span></label>
-          <textarea class="ob-textarea" rows="3" formControlName="problemSolved"
-            placeholder="Quel problème clé résolvez-vous?"></textarea>
+        <div style="margin-bottom:1.25rem;">
+          <label style="display:block; color:var(--text-secondary); font-size:0.82rem; font-weight:600; margin-bottom:0.5rem;">
+            Problème résolu <span style="color:var(--badge-red-text); margin-left:2px;">*</span>
+          </label>
+          <textarea rows="3" formControlName="problemSolved" placeholder="Quel problème clé résolvez-vous?"
+            style="width:100%; background:var(--surface-input); border:1px solid var(--border); border-radius:10px; padding:0.75rem 1rem; color:var(--text-primary); font-size:0.95rem; transition:border-color 0.2s, box-shadow 0.2s; outline:none; resize:vertical; min-height:90px; font-family:var(--font-sans);"></textarea>
         </div>
 
-        <div class="field-group">
-          <label>Documents (pitch deck, etc.) <span class="optional">optionnel</span></label>
-          <div class="upload-zone" (click)="docInput.click()">
+        <div style="margin-bottom:1.25rem;">
+          <label style="display:block; color:var(--text-secondary); font-size:0.82rem; font-weight:600; margin-bottom:0.5rem;">
+            Documents (pitch deck, etc.) <span style="color:var(--text-muted); font-weight:400; font-size:0.75rem;">optionnel</span>
+          </label>
+          <div (click)="docInput.click()"
+            style="border:2px dashed var(--border); border-radius:12px; padding:1.5rem; text-align:center; cursor:pointer; transition:border-color 0.2s, background 0.2s; color:var(--text-muted);">
             <input #docInput type="file" multiple style="display:none" (change)="onDocsSelected($event)" />
-            <div class="upload-icon">📎</div>
-            <p>Glisser ou cliquer pour charger</p>
+            <div style="font-size:1.8rem; margin-bottom:0.5rem;">📎</div>
+            <p style="margin:0; font-size:0.85rem;">Glisser ou cliquer pour charger</p>
           </div>
-          <ul class="file-list" *ngIf="uploadedDocuments.length > 0">
-            <li *ngFor="let doc of uploadedDocuments; let i = index">
+          <ul *ngIf="uploadedDocuments.length > 0" style="list-style:none; padding:0.75rem 0 0; margin:0; display:flex; flex-direction:column; gap:0.4rem;">
+            <li *ngFor="let doc of uploadedDocuments; let i = index"
+              style="display:flex; justify-content:space-between; align-items:center; background:var(--surface-subtle); border-radius:8px; padding:0.4rem 0.75rem; font-size:0.82rem; color:var(--text-secondary);">
               <span>📄 {{ doc.name }}</span>
-              <button type="button" class="remove-file" (click)="removeDoc(i)">✕</button>
+              <button type="button" (click)="removeDoc(i)" style="background:none; border:none; color:var(--badge-red-text); cursor:pointer; font-size:0.9rem; padding:0 4px;">✕</button>
             </li>
           </ul>
         </div>
       </div>
 
       <!-- STEP 2: Team -->
-      <div class="step-content" *ngIf="step === 2">
-        <div class="step-header">
-          <div class="step-icon">👥</div>
-          <h3>Votre Équipe</h3>
-          <p>Renseignez les compétences présentes et manquantes.</p>
+      <div *ngIf="step === 2" style="animation:fadeIn 0.3s ease-in;">
+        <div style="text-align:center; margin-bottom:2rem;">
+          <div style="font-size:2.5rem; margin-bottom:0.75rem;">👥</div>
+          <h3 style="color:var(--text-primary); font-size:1.5rem; font-weight:700; margin-bottom:0.35rem;">Votre Équipe</h3>
+          <p style="color:var(--text-secondary); margin:0; font-size:0.92rem;">Renseignez les compétences présentes et manquantes.</p>
         </div>
 
-        <div class="field-group">
-          <label>Taille de l'équipe</label>
-          <select class="ob-select" formControlName="teamSize">
+        <div style="margin-bottom:1.25rem;">
+          <label style="display:block; color:var(--text-secondary); font-size:0.82rem; font-weight:600; margin-bottom:0.5rem;">
+            Taille de l'équipe
+          </label>
+          <select formControlName="teamSize"
+            style="width:100%; background:var(--surface-input); border:1px solid var(--border); border-radius:10px; padding:0.75rem 1rem; color:var(--text-primary); font-size:0.95rem; transition:border-color 0.2s, box-shadow 0.2s; outline:none; font-family:var(--font-sans);">
             <option value="1">Solo founder</option>
             <option value="1-3">2 à 3 personnes</option>
             <option value="4-10">4 à 10 personnes</option>
@@ -102,24 +139,39 @@
           </select>
         </div>
 
-        <div class="field-group">
-          <label>Compétences présentes</label>
-          <div class="chip-row wrap">
-            <button type="button" class="skill-chip" *ngFor="let skill of skills"
-              [class.active]="selectedSkills.includes(skill)" (click)="toggleSkill(skill)">{{ skill }}</button>
+        <div style="margin-bottom:1.25rem;">
+          <label style="display:block; color:var(--text-secondary); font-size:0.82rem; font-weight:600; margin-bottom:0.5rem;">
+            Compétences présentes
+          </label>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button type="button" *ngFor="let skill of skills" (click)="toggleSkill(skill)"
+              style="padding:0.45rem 1rem; border-radius:999px; border:1px solid; font-size:0.82rem; font-weight:600; cursor:pointer; transition:all 0.2s; font-family:var(--font-sans);"
+              [style.background]="selectedSkills.includes(skill) ? 'var(--chip-active-bg)' : 'var(--chip-inactive-bg)'"
+              [style.color]="selectedSkills.includes(skill) ? 'var(--chip-active-text)' : 'var(--chip-inactive-text)'"
+              [style.border-color]="selectedSkills.includes(skill) ? 'var(--chip-active-border)' : 'var(--chip-inactive-border)'">
+              {{ skill }}
+            </button>
           </div>
         </div>
 
-        <div class="field-group" *ngIf="missingSkills.length > 0">
-          <label>Compétences manquantes détectées</label>
-          <div class="missing-box">
-            <span class="missing-chip" *ngFor="let item of missingSkills">⚠ {{ item }}</span>
+        <div *ngIf="missingSkills.length > 0" style="margin-bottom:1.25rem;">
+          <label style="display:block; color:var(--text-secondary); font-size:0.82rem; font-weight:600; margin-bottom:0.5rem;">
+            Compétences manquantes détectées
+          </label>
+          <div style="display:flex; flex-wrap:wrap; gap:0.4rem; padding:0.75rem; background:var(--badge-amber-bg); border:1px solid var(--badge-amber-text); border-radius:10px;">
+            <span *ngFor="let item of missingSkills"
+              style="font-size:0.78rem; color:var(--badge-amber-text); background:rgba(251,191,36,0.2); padding:0.3rem 0.7rem; border-radius:999px; font-weight:600;">
+              ⚠ {{ item }}
+            </span>
           </div>
         </div>
 
-        <div class="field-group">
-          <label>Modèle de revenu <span class="req">*</span></label>
-          <select class="ob-select" formControlName="revenueModel">
+        <div style="margin-bottom:1.25rem;">
+          <label style="display:block; color:var(--text-secondary); font-size:0.82rem; font-weight:600; margin-bottom:0.5rem;">
+            Modèle de revenu <span style="color:var(--badge-red-text); margin-left:2px;">*</span>
+          </label>
+          <select formControlName="revenueModel"
+            style="width:100%; background:var(--surface-input); border:1px solid var(--border); border-radius:10px; padding:0.75rem 1rem; color:var(--text-primary); font-size:0.95rem; transition:border-color 0.2s, box-shadow 0.2s; outline:none; font-family:var(--font-sans);">
             <option value="">Choisir un modèle</option>
             <option *ngFor="let m of revenueModels" [value]="m">{{ m }}</option>
           </select>
@@ -127,81 +179,136 @@
       </div>
 
       <!-- STEP 3: Needs -->
-      <div class="step-content" *ngIf="step === 3">
-        <div class="step-header">
-          <div class="step-icon">🎯</div>
-          <h3>Vos Besoins</h3>
-          <p>Définissez vos objectifs pour les prochains mois.</p>
+      <div *ngIf="step === 3" style="animation:fadeIn 0.3s ease-in;">
+        <div style="text-align:center; margin-bottom:2rem;">
+          <div style="font-size:2.5rem; margin-bottom:0.75rem;">🎯</div>
+          <h3 style="color:var(--text-primary); font-size:1.5rem; font-weight:700; margin-bottom:0.35rem;">Vos Besoins</h3>
+          <p style="color:var(--text-secondary); margin:0; font-size:0.92rem;">Définissez vos objectifs pour les prochains mois.</p>
         </div>
 
-        <div class="field-group">
-          <label>Besoin principal</label>
-          <div class="chip-row wrap">
-            <button type="button" class="stage-chip" *ngFor="let need of needs"
-              [class.active]="form.get('mainNeed')?.value === need"
-              (click)="form.get('mainNeed')?.setValue(need)">{{ need }}</button>
+        <div style="margin-bottom:1.25rem;">
+          <label style="display:block; color:var(--text-secondary); font-size:0.82rem; font-weight:600; margin-bottom:0.5rem;">
+            Besoin principal
+          </label>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <button type="button" *ngFor="let need of needs"
+              (click)="form.get('mainNeed')?.setValue(need)"
+              style="padding:0.45rem 1rem; border-radius:999px; border:1px solid; font-size:0.82rem; font-weight:600; cursor:pointer; transition:all 0.2s; font-family:var(--font-sans);"
+              [style.background]="form.get('mainNeed')?.value === need ? 'var(--chip-active-bg)' : 'var(--chip-inactive-bg)'"
+              [style.color]="form.get('mainNeed')?.value === need ? 'var(--chip-active-text)' : 'var(--chip-inactive-text)'"
+              [style.border-color]="form.get('mainNeed')?.value === need ? 'var(--chip-active-border)' : 'var(--chip-inactive-border)'">
+              {{ need }}
+            </button>
           </div>
         </div>
 
-        <div class="field-group">
-          <label>Objectif à 6 mois <span class="req">*</span></label>
-          <textarea class="ob-textarea" rows="4" formControlName="objective6Months"
-            placeholder="Où voulez-vous être dans 6 mois? (lever des fonds, trouver 100 clients, ...)"></textarea>
-          <div class="field-error" *ngIf="form.get('objective6Months')?.touched && form.get('objective6Months')?.invalid">
+        <div style="margin-bottom:1.25rem;">
+          <label style="display:block; color:var(--text-secondary); font-size:0.82rem; font-weight:600; margin-bottom:0.5rem;">
+            Objectif à 6 mois <span style="color:var(--badge-red-text); margin-left:2px;">*</span>
+          </label>
+          <textarea rows="4" formControlName="objective6Months"
+            placeholder="Où voulez-vous être dans 6 mois? (lever des fonds, trouver 100 clients, ...)"
+            style="width:100%; background:var(--surface-input); border:1px solid var(--border); border-radius:10px; padding:0.75rem 1rem; color:var(--text-primary); font-size:0.95rem; transition:border-color 0.2s, box-shadow 0.2s; outline:none; resize:vertical; min-height:90px; font-family:var(--font-sans);"></textarea>
+          <div *ngIf="form.get('objective6Months')?.touched && form.get('objective6Months')?.invalid" style="color:var(--badge-red-text); font-size:0.82rem; margin-top:0.35rem;">
             Minimum 15 caractères requis.
           </div>
         </div>
       </div>
 
       <!-- STEP 4: Confirmation -->
-      <div class="step-content" *ngIf="step === 4">
-        <div class="step-header">
-          <div class="step-icon">✨</div>
-          <h3>Confirmation</h3>
-          <p>Vérifiez votre projet avant de lancer l'analyse IA.</p>
+      <div *ngIf="step === 4" style="animation:fadeIn 0.3s ease-in;">
+        <div style="text-align:center; margin-bottom:2rem;">
+          <div style="font-size:2.5rem; margin-bottom:0.75rem;">✨</div>
+          <h3 style="color:var(--text-primary); font-size:1.5rem; font-weight:700; margin-bottom:0.35rem;">Confirmation</h3>
+          <p style="color:var(--text-secondary); margin:0; font-size:0.92rem;">Vérifiez votre projet avant de lancer l'analyse IA.</p>
         </div>
 
-        <div class="summary-card">
-          <div class="summary-row"><span class="sum-label">Projet</span><span class="sum-value">{{ form.get('title')?.value }}</span></div>
-          <div class="summary-row"><span class="sum-label">Secteur</span><span class="sum-value">{{ form.get('sector')?.value }}</span></div>
-          <div class="summary-row"><span class="sum-label">Stade</span><span class="sum-value">{{ selectedStage }}</span></div>
-          <div class="summary-row"><span class="sum-label">Équipe</span><span class="sum-value">{{ form.get('teamSize')?.value }}</span></div>
-          <div class="summary-row"><span class="sum-label">Compétences</span><span class="sum-value">{{ selectedSkills.join(', ') || 'Aucune sélectionnée' }}</span></div>
-          <div class="summary-row" *ngIf="missingSkills.length > 0"><span class="sum-label">Manquantes</span><span class="sum-value text-warning">{{ missingSkills.join(', ') }}</span></div>
-          <div class="summary-row"><span class="sum-label">Besoin</span><span class="sum-value">{{ form.get('mainNeed')?.value }}</span></div>
-          <div class="summary-row"><span class="sum-label">Budget</span><span class="sum-value">{{ form.get('budget')?.value || 0 }} MAD</span></div>
-          <div class="summary-row"><span class="sum-label">Documents</span><span class="sum-value">{{ uploadedDocuments.length }} fichier(s)</span></div>
+        <div style="background:var(--surface-subtle); border:1px solid var(--border); border-radius:14px; padding:1.25rem; margin-bottom:1.5rem; display:flex; flex-direction:column; gap:0.6rem;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; font-size:0.88rem;">
+            <span style="color:var(--text-muted); font-weight:600; white-space:nowrap;">Projet</span>
+            <span style="color:var(--text-primary); text-align:right;">{{ form.get('title')?.value }}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; font-size:0.88rem;">
+            <span style="color:var(--text-muted); font-weight:600; white-space:nowrap;">Secteur</span>
+            <span style="color:var(--text-primary); text-align:right;">{{ form.get('sector')?.value }}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; font-size:0.88rem;">
+            <span style="color:var(--text-muted); font-weight:600; white-space:nowrap;">Stade</span>
+            <span style="color:var(--text-primary); text-align:right;">{{ selectedStage }}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; font-size:0.88rem;">
+            <span style="color:var(--text-muted); font-weight:600; white-space:nowrap;">Équipe</span>
+            <span style="color:var(--text-primary); text-align:right;">{{ form.get('teamSize')?.value }}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; font-size:0.88rem;">
+            <span style="color:var(--text-muted); font-weight:600; white-space:nowrap;">Compétences</span>
+            <span style="color:var(--text-primary); text-align:right;">{{ selectedSkills.join(', ') || 'Aucune sélectionnée' }}</span>
+          </div>
+          <div *ngIf="missingSkills.length > 0" style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; font-size:0.88rem;">
+            <span style="color:var(--text-muted); font-weight:600; white-space:nowrap;">Manquantes</span>
+            <span style="color:var(--badge-amber-text); text-align:right;">{{ missingSkills.join(', ') }}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; font-size:0.88rem;">
+            <span style="color:var(--text-muted); font-weight:600; white-space:nowrap;">Besoin</span>
+            <span style="color:var(--text-primary); text-align:right;">{{ form.get('mainNeed')?.value }}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; font-size:0.88rem;">
+            <span style="color:var(--text-muted); font-weight:600; white-space:nowrap;">Budget</span>
+            <span style="color:var(--text-primary); text-align:right;">{{ form.get('budget')?.value || 0 }} MAD</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; font-size:0.88rem;">
+            <span style="color:var(--text-muted); font-weight:600; white-space:nowrap;">Documents</span>
+            <span style="color:var(--text-primary); text-align:right;">{{ uploadedDocuments.length }} fichier(s)</span>
+          </div>
         </div>
 
-        <div class="ai-preview">
-          <h6>L'IA va générer automatiquement :</h6>
-          <ul>
-            <li>✅ Score de maturité XGBoost (5 dimensions)</li>
-            <li>✅ Roadmap personnalisée avec jalons</li>
-            <li>✅ Analyse de plagiat sémantique</li>
+        <div style="background:var(--badge-blue-bg); border:1px solid var(--badge-blue-text); border-radius:12px; padding:1.1rem 1.25rem; margin-bottom:1.5rem;">
+          <h6 style="color:var(--badge-blue-text); font-size:0.85rem; margin-bottom:0.75rem; font-weight:700;">L'IA va générer automatiquement :</h6>
+          <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0.35rem;">
+            <li style="color:var(--badge-blue-text); font-size:0.85rem;">✅ Score de maturité XGBoost (5 dimensions)</li>
+            <li style="color:var(--badge-blue-text); font-size:0.85rem;">✅ Roadmap personnalisée avec jalons</li>
+            <li style="color:var(--badge-blue-text); font-size:0.85rem;">✅ Analyse de plagiat sémantique</li>
           </ul>
         </div>
 
-        <button class="ob-launch-btn" type="button" (click)="launchProject()" [disabled]="submitting">
+        <button type="button" (click)="launchProject()" [disabled]="submitting"
+          style="width:100%; padding:1rem; background:linear-gradient(135deg,#1C4FC3,#1D1384); border:none; border-radius:12px; color:#fff; font-size:1rem; font-weight:700; cursor:pointer; letter-spacing:0.02em; transition:opacity 0.2s, transform 0.1s, box-shadow 0.2s; box-shadow:0 8px 24px rgba(28,79,195,0.35); font-family:var(--font-sans);"
+          [style.opacity]="submitting ? '0.5' : '1'"
+          [style.cursor]="submitting ? 'not-allowed' : 'pointer'">
           <span *ngIf="!submitting">🚀 Lancer l'analyse IA</span>
           <span *ngIf="submitting">Création en cours...</span>
         </button>
 
-        <div class="field-error mt-3" *ngIf="errorMessage && step === 4">{{ errorMessage }}</div>
+        <div *ngIf="errorMessage && step === 4" style="color:var(--badge-red-text); font-size:0.82rem; margin-top:1rem; text-align:center;">
+          {{ errorMessage }}
+        </div>
       </div>
 
     </form>
 
     <!-- Error message for steps 1-3 -->
-    <div class="field-error mt-2" *ngIf="errorMessage && step < 4">{{ errorMessage }}</div>
+    <div *ngIf="errorMessage && step < 4" style="color:var(--badge-red-text); font-size:0.82rem; margin-top:1rem;">
+      {{ errorMessage }}
+    </div>
 
     <!-- Navigation -->
-    <div class="ob-actions" *ngIf="step < 4">
-      <button class="ob-btn-back" type="button" (click)="previous()" [disabled]="step === 1">← Précédent</button>
-      <button class="ob-btn-next" type="button" (click)="next()">Suivant →</button>
+    <div *ngIf="step < 4" style="display:flex; justify-content:space-between; margin-top:2rem; gap:1rem;">
+      <button type="button" (click)="previous()" [disabled]="step === 1"
+        style="padding:0.65rem 1.5rem; border:1px solid var(--border); border-radius:10px; background:transparent; color:var(--text-secondary); font-size:0.9rem; font-weight:600; cursor:pointer; transition:all 0.2s; font-family:var(--font-sans);"
+        [style.opacity]="step === 1 ? '0.3' : '1'"
+        [style.cursor]="step === 1 ? 'not-allowed' : 'pointer'">
+        ← Précédent
+      </button>
+      <button type="button" (click)="next()"
+        style="padding:0.65rem 2rem; background:linear-gradient(135deg,#1C4FC3,#1D1384); border:none; border-radius:10px; color:#fff; font-size:0.9rem; font-weight:700; cursor:pointer; transition:all 0.2s; box-shadow:0 4px 16px rgba(28,79,195,0.3); font-family:var(--font-sans);">
+        Suivant →
+      </button>
     </div>
-    <div class="ob-actions back-only" *ngIf="step === 4">
-      <button class="ob-btn-back" type="button" (click)="previous()">← Modifier</button>
+    <div *ngIf="step === 4" style="display:flex; justify-content:flex-start; margin-top:2rem;">
+      <button type="button" (click)="previous()"
+        style="padding:0.65rem 1.5rem; border:1px solid var(--border); border-radius:10px; background:transparent; color:var(--text-secondary); font-size:0.9rem; font-weight:600; cursor:pointer; transition:all 0.2s; font-family:var(--font-sans);">
+        ← Modifier
+      </button>
     </div>
   </div>
 </div>

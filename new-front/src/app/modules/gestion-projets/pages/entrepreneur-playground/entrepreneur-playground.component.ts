@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { EntrepreneurPlaygroundChatMessage, EntrepreneurPlaygroundDocument, EntrepreneurPlaygroundRequest, EntrepreneurPlaygroundResult, Project } from '../../../../models/project';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -54,7 +54,8 @@ export class EntrepreneurPlaygroundComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private authService: AuthService,
-    private projectService: GestionProjetsService
+    private projectService: GestionProjetsService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -114,11 +115,13 @@ export class EntrepreneurPlaygroundComponent implements OnInit {
     this.projectService.getProject(this.projectId).subscribe({
       next: (project) => {
         this.project = project;
+        this.cdr.detectChanges();
         this.loadPersistedDocuments(project);
       },
       error: () => {
         this.loadingProject = false;
         this.error = 'Impossible de charger le projet pour le playground.';
+        this.cdr.detectChanges();
       },
     });
   }
@@ -149,6 +152,7 @@ export class EntrepreneurPlaygroundComponent implements OnInit {
           },
         ];
         this.loadingProject = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         // Fallback to default drafts if loading fails
@@ -157,6 +161,7 @@ export class EntrepreneurPlaygroundComponent implements OnInit {
         this.documentDrafts['swot'] = this.buildDefaultDraft(project, 'swot');
         this.documentDrafts['budget'] = this.buildDefaultDraft(project, 'budget');
         this.loadingProject = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -189,8 +194,12 @@ export class EntrepreneurPlaygroundComponent implements OnInit {
       next: (res) => {
         this.docIds[this.activeTab] = res.id;
         alert('Document enregistré avec succès !');
+        this.cdr.detectChanges();
       },
-      error: () => alert('Erreur lors de l\'enregistrement.')
+      error: () => {
+        alert('Erreur lors de l\'enregistrement.');
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -301,11 +310,13 @@ export class EntrepreneurPlaygroundComponent implements OnInit {
           },
         ];
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Playground error:', err);
         this.error = 'Le copilote OpenRouter est indisponible pour le moment. Mode local actif: le brouillon reste editable.';
         this.loading = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -326,6 +337,273 @@ export class EntrepreneurPlaygroundComponent implements OnInit {
 
   clearDocuments(): void {
     this.documents = [];
+  }
+
+  exportCurrentDocument(): void {
+    if (!this.project) {
+      return;
+    }
+
+    const popup = window.open('', '_blank', 'width=1200,height=900');
+    if (!popup) {
+      return;
+    }
+
+    popup.document.write(this.buildPrintableDocument(this.activeTab));
+    popup.document.close();
+    popup.focus();
+    popup.onafterprint = () => popup.close();
+    setTimeout(() => popup.print(), 200);
+  }
+
+  getDocTitle(): string {
+    return this.documentTitles[this.activeTab];
+  }
+
+  getDocCharCount(): number {
+    return (this.documentDrafts[this.activeTab] || '').length;
+  }
+
+  getResultStrengthCount(): number {
+    return this.result?.strengths?.length || 0;
+  }
+
+  getResultGapCount(): number {
+    return this.result?.gaps?.length || 0;
+  }
+
+  hasResultDimensions(): boolean {
+    return !!this.result?.dimensions?.length;
+  }
+
+  getPitchPreview(): { problem: string; solution: string; market: string; model: string; team: string } {
+    return {
+      problem: this.extractSection('pitch', 'Problème') || 'À préciser avec le besoin principal du marché.',
+      solution: this.extractSection('pitch', 'Solution') || this.project?.description || 'À affiner avec une proposition de valeur plus nette.',
+      market: this.extractSection('pitch', 'Marché & Traction') || this.extractSection('pitch', 'Traction') || 'Ajoutez des signaux de marché, des clients pilotes ou des usages actifs.',
+      model: this.extractBulletValue('pitch', 'Modele de revenu') || this.extractBulletValue('pitch', 'Modèle de revenu') || this.project?.revenueModel || 'À définir.',
+      team: this.extractBulletValue('pitch', 'Competences') || this.extractBulletValue('pitch', 'Compétences') || this.project?.teamSize || 'Équipe à détailler.',
+    };
+  }
+
+  getBmcPreview(): Array<{ label: string; value: string; tone: string }> {
+    return [
+      { label: 'Segments de clientèle', value: this.extractBulletValue('bmc', 'Segments de clientèle') || 'Décrivez les premiers clients ciblés.', tone: 'blue' },
+      { label: 'Proposition de valeur', value: this.extractBulletValue('bmc', 'Proposition de valeur') || 'Expliquez ce qui rend le produit incontournable.', tone: 'emerald' },
+      { label: 'Canaux', value: this.extractBulletValue('bmc', 'Canaux') || 'Précisez comment le produit est livré et découvert.', tone: 'amber' },
+      { label: 'Relations clients', value: this.extractBulletValue('bmc', 'Relations clients') || 'Automatisation, accompagnement ou self-service.', tone: 'violet' },
+      { label: 'Flux de revenus', value: this.extractBulletValue('bmc', 'Flux de revenus') || this.project?.revenueModel || 'Abonnement, licence ou service.', tone: 'rose' },
+      { label: 'Ressources clés', value: this.extractBulletValue('bmc', 'Ressources clés') || 'Équipe, données, IP ou distribution.', tone: 'slate' },
+      { label: 'Activités clés', value: this.extractBulletValue('bmc', 'Activités clés') || 'Ce qui doit être exécuté chaque semaine.', tone: 'cyan' },
+      { label: 'Partenaires clés', value: this.extractBulletValue('bmc', 'Partenaires clés') || 'Partenaires, fournisseurs et intégrations.', tone: 'green' },
+      { label: 'Structure de coûts', value: this.extractBulletValue('bmc', 'Structure de coûts') || 'Coûts fixes, variables et outils.', tone: 'orange' },
+    ];
+  }
+
+  getSwotPreview(): Array<{ label: string; value: string; tone: string }> {
+    return [
+      { label: 'Forces', value: this.extractSection('swot', 'Forces') || 'Avantages internes à mettre en avant.', tone: 'emerald' },
+      { label: 'Faiblesses', value: this.extractSection('swot', 'Faiblesses') || 'Points faibles à assumer et corriger.', tone: 'rose' },
+      { label: 'Opportunités', value: this.extractSection('swot', 'Opportunités') || 'Fenêtres de marché ou niches à saisir.', tone: 'blue' },
+      { label: 'Menaces', value: this.extractSection('swot', 'Menaces') || 'Risques externes et barrières à prévoir.', tone: 'amber' },
+    ];
+  }
+
+  getBudgetPreview(): { budget: string; capex: string; opex: string; runway: string; assumptions: string } {
+    const budgetValue = this.project?.budget != null ? `${this.project.budget.toLocaleString('fr-FR')} MAD` : 'À préciser';
+    return {
+      budget: budgetValue,
+      capex: this.extractSection('budget', 'CAPEX') || 'Investissements initiaux, matériel et setup.',
+      opex: this.extractSection('budget', 'OPEX') || 'Coûts récurrents de fonctionnement.',
+      runway: this.extractSection('budget', 'Runway') || 'Précisez la durée de trésorerie visée.',
+      assumptions: this.extractSection('budget', 'Hypothèses') || 'Ajoutez les hypothèses de croissance et de marge.',
+    };
+  }
+
+  private buildPrintableDocument(tab: DocumentTab): string {
+    const title = this.escapeHtml(this.documentTitles[tab]);
+    const subtitle = this.escapeHtml(`${this.project?.title || 'Project'} · ${this.project?.sector || 'No sector'} · ${this.project?.stage || 'No stage'}`);
+    const body = this.buildPrintableBody(tab);
+
+    return `<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${title}</title>
+  <style>
+    @page { size: A4; margin: 14mm; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      color: #0f172a;
+      background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .page {
+      padding: 20px;
+    }
+    .cover {
+      border-radius: 24px;
+      padding: 24px;
+      color: #fff;
+      background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 50%, #0f766e 100%);
+      margin-bottom: 18px;
+    }
+    .cover h1 { margin: 0 0 8px; font-size: 28px; letter-spacing: -0.04em; }
+    .cover p { margin: 0; opacity: 0.92; }
+    .meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 16px 0 20px; }
+    .meta div, .card, .canvas-cell, .swot-card, .budget-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      background: #fff;
+      padding: 14px;
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.06);
+    }
+    .meta span, .label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; color: #64748b; margin-bottom: 6px; }
+    .meta strong, .card strong, .budget-card strong { font-size: 16px; color: #0f172a; }
+    .stack { display: grid; gap: 14px; }
+    .card p, .swot-card p, .budget-card p, .canvas-cell p { margin: 0; line-height: 1.6; color: #334155; }
+    .canvas-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .canvas-cell h3, .swot-card h3, .budget-card h3 { margin: 0 0 8px; font-size: 14px; }
+    .canvas-cell.blue { background: linear-gradient(180deg, #eff6ff, #fff); }
+    .canvas-cell.emerald { background: linear-gradient(180deg, #ecfdf5, #fff); }
+    .canvas-cell.amber { background: linear-gradient(180deg, #fffbeb, #fff); }
+    .canvas-cell.violet { background: linear-gradient(180deg, #f5f3ff, #fff); }
+    .canvas-cell.rose { background: linear-gradient(180deg, #fff1f2, #fff); }
+    .canvas-cell.orange { background: linear-gradient(180deg, #fff7ed, #fff); }
+    .canvas-cell.cyan { background: linear-gradient(180deg, #ecfeff, #fff); }
+    .canvas-cell.green { background: linear-gradient(180deg, #f0fdf4, #fff); }
+    .canvas-cell.slate { background: linear-gradient(180deg, #f8fafc, #fff); }
+    .swot-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .swot-card.emerald { background: linear-gradient(180deg, #f0fdf4, #fff); }
+    .swot-card.rose { background: linear-gradient(180deg, #fff1f2, #fff); }
+    .swot-card.blue { background: linear-gradient(180deg, #eff6ff, #fff); }
+    .swot-card.amber { background: linear-gradient(180deg, #fffbeb, #fff); }
+    .budget-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+    .budget-card { min-height: 120px; }
+    .budget-card .value { font-size: 24px; font-weight: 800; letter-spacing: -0.03em; }
+    ul { margin: 0; padding-left: 18px; }
+    li { margin: 4px 0; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="cover">
+      <h1>${title}</h1>
+      <p>${subtitle}</p>
+    </div>
+    ${body}
+  </div>
+</body>
+</html>`;
+  }
+
+  private buildPrintableBody(tab: DocumentTab): string {
+    if (tab === 'pitch') {
+      const data = this.getPitchPreview();
+      return `
+        <div class="meta">
+          <div><span>Secteur</span><strong>${this.escapeHtml(this.project?.sector || 'À préciser')}</strong></div>
+          <div><span>Stage</span><strong>${this.escapeHtml(this.project?.stage || 'À préciser')}</strong></div>
+          <div><span>Budget</span><strong>${this.escapeHtml(this.getBudgetPreview().budget)}</strong></div>
+        </div>
+        <div class="stack">
+          <div class="card"><span class="label">Problème</span><p>${this.escapeHtml(data.problem).replace(/\n/g, '<br>')}</p></div>
+          <div class="card"><span class="label">Solution</span><p>${this.escapeHtml(data.solution).replace(/\n/g, '<br>')}</p></div>
+          <div class="card"><span class="label">Marché & Traction</span><p>${this.escapeHtml(data.market).replace(/\n/g, '<br>')}</p></div>
+          <div class="card"><span class="label">Modèle de revenu</span><p>${this.escapeHtml(data.model).replace(/\n/g, '<br>')}</p></div>
+          <div class="card"><span class="label">Équipe</span><p>${this.escapeHtml(data.team).replace(/\n/g, '<br>')}</p></div>
+        </div>`;
+    }
+
+    if (tab === 'bmc') {
+      const blocks = this.getBmcPreview();
+      return `
+        <div class="canvas-grid">
+          ${blocks.map((block) => `
+            <div class="canvas-cell ${block.tone}">
+              <h3>${this.escapeHtml(block.label)}</h3>
+              <p>${this.escapeHtml(block.value).replace(/\n/g, '<br>')}</p>
+            </div>
+          `).join('')}
+        </div>`;
+    }
+
+    if (tab === 'swot') {
+      const blocks = this.getSwotPreview();
+      return `
+        <div class="swot-grid">
+          ${blocks.map((block) => `
+            <div class="swot-card ${block.tone}">
+              <h3>${this.escapeHtml(block.label)}</h3>
+              <p>${this.escapeHtml(block.value).replace(/\n/g, '<br>')}</p>
+            </div>
+          `).join('')}
+        </div>`;
+    }
+
+    const data = this.getBudgetPreview();
+    return `
+      <div class="budget-grid">
+        <div class="budget-card"><span class="label">Budget estimé</span><div class="value">${this.escapeHtml(data.budget)}</div></div>
+        <div class="budget-card"><span class="label">CAPEX</span><p>${this.escapeHtml(data.capex).replace(/\n/g, '<br>')}</p></div>
+        <div class="budget-card"><span class="label">OPEX</span><p>${this.escapeHtml(data.opex).replace(/\n/g, '<br>')}</p></div>
+        <div class="budget-card"><span class="label">Runway</span><p>${this.escapeHtml(data.runway).replace(/\n/g, '<br>')}</p></div>
+      </div>
+      <div class="card"><span class="label">Hypothèses</span><p>${this.escapeHtml(data.assumptions).replace(/\n/g, '<br>')}</p></div>`;
+  }
+
+  private extractSection(tab: DocumentTab, heading: string): string {
+    const draft = this.normalizeDraftForParsing(this.documentDrafts[tab] || '');
+    const pattern = new RegExp(`(?:^|\\n)#{1,3}\\s*${this.escapeRegExp(heading)}\\s*\\n([\\s\\S]*?)(?=\\n#{1,3}\\s*[^\\n]+\\n|$)`, 'i');
+    const match = draft.match(pattern);
+    return match ? this.normalizeText(match[1]) : '';
+  }
+
+  private extractBulletValue(tab: DocumentTab, label: string): string {
+    const draft = this.normalizeDraftForParsing(this.documentDrafts[tab] || '');
+    const lines = draft.split(/\r?\n/);
+    const normalizedLabel = label.toLowerCase();
+    for (const line of lines) {
+      const normalizedLine = line.toLowerCase();
+      if (normalizedLine.includes(normalizedLabel) && normalizedLine.includes(':')) {
+        return this.normalizeText(line.split(':').slice(1).join(':'));
+      }
+    }
+    return this.extractSection(tab, label);
+  }
+
+  private normalizeDraftForParsing(value: string): string {
+    return value
+      .replace(/\r/g, '\n')
+      .replace(/\s*##\s*/g, '\n## ')
+      .replace(/\s*#\s*/g, '\n# ')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  }
+
+  private normalizeText(value: string): string {
+    return value
+      .replace(/^[-*\s]+/gm, '')
+      .replace(/\s+\n/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  }
+
+  private escapeHtml(value: string): string {
+    return (value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  private escapeRegExp(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   private readFileAsText(file: File): Promise<{ name: string; content: string; kind?: string; uploadedAt: string }> {

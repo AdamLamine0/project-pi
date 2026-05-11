@@ -14,7 +14,7 @@ const routes: Routes = [
   {
     path: '',
     component: ProjectListComponent,
-    data: { breadcrumb: 'Projets' }
+    data: { breadcrumb: 'Projets', roles: ['USER', 'ADMIN', 'MENTOR'] }
   },
   {
     path: 'new',

@@ -219,6 +219,175 @@
   background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
 }
 
+.document-preview {
+  margin-top: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.preview-header {
+  margin-bottom: 0.75rem;
+}
+
+.preview-sheet {
+  border-radius: 28px;
+  padding: 1rem;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.9), transparent 36%),
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #dbe4f0;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 18px 45px rgba(15, 23, 42, 0.08);
+}
+
+.preview-cover {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1rem 1.1rem;
+  border-radius: 22px;
+  color: #fff;
+  background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 55%, #0f766e 100%);
+}
+
+.preview-cover-compact {
+  align-items: center;
+}
+
+.preview-cover h3 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.preview-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  opacity: 0.8;
+}
+
+.preview-cover-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  align-items: flex-end;
+}
+
+.preview-cover-badges span {
+  display: inline-flex;
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: 0.82rem;
+}
+
+.preview-grid-rows {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 0.85rem;
+}
+
+.preview-block {
+  border-radius: 18px;
+  padding: 0.9rem 1rem;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+.preview-block span {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #64748b;
+  margin-bottom: 0.45rem;
+}
+
+.preview-block p,
+.bmc-card p,
+.swot-card p,
+.metric-card p,
+.budget-notes p {
+  margin-bottom: 0;
+  color: #1e293b;
+  line-height: 1.58;
+  white-space: pre-line;
+}
+
+.hero-block { background: linear-gradient(180deg, #eff6ff, #fff); }
+.solution-block { background: linear-gradient(180deg, #ecfdf5, #fff); }
+.market-block { background: linear-gradient(180deg, #fff7ed, #fff); }
+.model-block { background: linear-gradient(180deg, #f5f3ff, #fff); }
+.team-block { background: linear-gradient(180deg, #f8fafc, #fff); }
+
+.bmc-grid,
+.swot-grid-cards,
+.budget-metrics {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.bmc-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.bmc-card,
+.swot-card,
+.metric-card,
+.budget-notes {
+  border-radius: 18px;
+  padding: 0.95rem;
+  border: 1px solid #dbe4f0;
+  background: #fff;
+}
+
+.bmc-card span,
+.swot-card span,
+.metric-card span,
+.budget-notes span {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #64748b;
+  margin-bottom: 0.45rem;
+}
+
+.tone-blue { background: linear-gradient(180deg, #eff6ff, #fff); }
+.tone-emerald { background: linear-gradient(180deg, #ecfdf5, #fff); }
+.tone-amber { background: linear-gradient(180deg, #fffbeb, #fff); }
+.tone-violet { background: linear-gradient(180deg, #f5f3ff, #fff); }
+.tone-rose { background: linear-gradient(180deg, #fff1f2, #fff); }
+.tone-slate { background: linear-gradient(180deg, #f8fafc, #fff); }
+.tone-cyan { background: linear-gradient(180deg, #ecfeff, #fff); }
+.tone-green { background: linear-gradient(180deg, #f0fdf4, #fff); }
+.tone-orange { background: linear-gradient(180deg, #fff7ed, #fff); }
+
+.budget-metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.metric-card strong {
+  display: block;
+  font-size: 1.45rem;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+}
+
+.accent-budget { background: linear-gradient(135deg, #0f172a, #1d4ed8); color: #fff; }
+.accent-budget span,
+.accent-budget strong,
+.accent-budget p { color: #fff; }
+.accent-capex { background: linear-gradient(180deg, #eff6ff, #fff); }
+.accent-opex { background: linear-gradient(180deg, #ecfdf5, #fff); }
+.accent-runway { background: linear-gradient(180deg, #fff7ed, #fff); }
+
 @media (max-width: 1199.98px) {
   .playground-hero {
     flex-direction: column;
@@ -227,6 +396,27 @@
 
   .result-grid,
   .context-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bmc-grid,
+  .budget-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .preview-cover {
+    flex-direction: column;
+  }
+
+  .preview-cover-badges {
+    align-items: flex-start;
+  }
+
+  .bmc-grid,
+  .swot-grid-cards,
+  .budget-metrics {
     grid-template-columns: 1fr;
   }
 }

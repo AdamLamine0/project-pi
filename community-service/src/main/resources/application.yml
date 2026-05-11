@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: community-service
+  config:
+    import: optional:file:.env[.properties]
   data:
     mongodb:
       uri: ${MONGODB_URI:mongodb://localhost:27017/community_db}

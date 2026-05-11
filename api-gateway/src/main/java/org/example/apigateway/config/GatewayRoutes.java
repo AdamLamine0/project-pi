@@ -192,4 +192,46 @@ public class GatewayRoutes {
                 .filter(lb("investment-pi"))
                 .filter(authFilter.jwtFilter());
     }
+
+    // Gestionprojets Service Routes
+    @Bean
+    public RouterFunction<ServerResponse> projectServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/projects/**"), HandlerFunctions.http())
+                .filter(lb("gestion-projets-service"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> taskServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/tasks/**"), HandlerFunctions.http())
+                .filter(lb("gestion-projets-service"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> teamMemberServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/team-members/**"), HandlerFunctions.http())
+                .filter(lb("gestion-projets-service"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> documentServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/documents/**"), HandlerFunctions.http())
+                .filter(lb("gestion-projets-service"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    // ML Service Route
+    @Bean
+    public RouterFunction<ServerResponse> mlServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/ml/**"), HandlerFunctions.http())
+                .filter(lb("ml-service"))
+                .filter(authFilter.jwtFilter());
+    }
 }

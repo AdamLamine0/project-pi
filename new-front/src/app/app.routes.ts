@@ -56,7 +56,7 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: HomeComponent },
-      { path: 'projects', component: ProjectsComponent },
+      { path: 'projects', loadChildren: () => import('./modules/gestion-projets/gestion-projets.module').then(m => m.GestionProjetsModule) },
       { path: 'community', loadChildren: () => import('./modules/community/community.module').then(m => m.CommunityModule) },
       { path: 'legal', loadChildren: () => import('./modules/legal/legal.module').then(m => m.LegalModule), canActivate: [authGuard], data: { roles: ['ADMIN', 'ENTREPRENEUR', 'EXPERT'] } },
       { path: 'investments', redirectTo: '/investment', pathMatch: 'full' },

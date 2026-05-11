@@ -23,6 +23,7 @@
       <div class="hero-actions">
         <button class="btn btn-outline-light" type="button" (click)="resetWorkspace()">Réinitialiser</button>
         <button class="btn btn-light" type="button" (click)="describeDocument()" [disabled]="loading || !canEdit">Analyser le brouillon</button>
+        <button class="btn btn-warning fw-semibold" type="button" (click)="exportCurrentDocument()">Télécharger PDF</button>
       </div>
     </header>
 
@@ -87,7 +88,10 @@
               <p class="panel-kicker mb-1">Document AI</p>
               <h5 class="mb-0">Brouillon dynamique</h5>
             </div>
-            <span class="badge text-bg-primary">{{ documentDrafts[activeTab]?.length || 0 }} chars</span>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <span class="badge text-bg-primary">{{ getDocCharCount() }} chars</span>
+              <span class="badge text-bg-light">{{ getDocTitle() }}</span>
+            </div>
           </div>
 
           <div class="mb-3">
@@ -110,6 +114,120 @@
           <div class="mb-3">
             <input class="form-control mb-2 fw-bold" [(ngModel)]="documentTitles[activeTab]" [readonly]="!canEdit" />
             <textarea class="form-control document-editor" rows="18" [(ngModel)]="documentDrafts[activeTab]" [readonly]="!canEdit"></textarea>
+          </div>
+
+          <div class="document-preview">
+            <div class="preview-header d-flex justify-content-between align-items-start gap-3 flex-wrap">
+              <div>
+                <p class="panel-kicker mb-1">Aperçu design</p>
+                <h6 class="mb-0">Version prête pour export PDF</h6>
+              </div>
+              <button class="btn btn-sm btn-outline-primary" type="button" (click)="exportCurrentDocument()">Télécharger</button>
+            </div>
+
+            <div [ngSwitch]="activeTab" class="mt-3">
+              <div *ngSwitchCase="'pitch'" class="preview-sheet pitch-sheet">
+                <div class="preview-cover">
+                  <div>
+                    <p class="preview-tag mb-1">Pitch Deck</p>
+                    <h3 class="mb-2">{{ documentTitles.pitch }}</h3>
+                    <p class="mb-0">{{ project.title }}</p>
+                  </div>
+                  <div class="preview-cover-badges">
+                    <span>{{ project.sector || 'Secteur à préciser' }}</span>
+                    <span>{{ project.stage || 'Stage à préciser' }}</span>
+                    <span>{{ (project.budget || 0) | currency:'MAD':'symbol':'1.0-0' }}</span>
+                  </div>
+                </div>
+
+                <div class="preview-grid-rows">
+                  <div class="preview-block hero-block">
+                    <span>Problème</span>
+                    <p>{{ getPitchPreview().problem }}</p>
+                  </div>
+                  <div class="preview-block solution-block">
+                    <span>Solution</span>
+                    <p>{{ getPitchPreview().solution }}</p>
+                  </div>
+                  <div class="preview-block market-block">
+                    <span>Marché & Traction</span>
+                    <p>{{ getPitchPreview().market }}</p>
+                  </div>
+                  <div class="preview-block model-block">
+                    <span>Modèle de revenu</span>
+                    <p>{{ getPitchPreview().model }}</p>
+                  </div>
+                  <div class="preview-block team-block">
+                    <span>Équipe</span>
+                    <p>{{ getPitchPreview().team }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngSwitchCase="'bmc'" class="preview-sheet bmc-sheet">
+                <div class="preview-cover preview-cover-compact">
+                  <div>
+                    <p class="preview-tag mb-1">Business Model Canvas</p>
+                    <h3 class="mb-0">Canvas stratégique</h3>
+                  </div>
+                  <button class="btn btn-sm btn-light" type="button" (click)="exportCurrentDocument()">PDF</button>
+                </div>
+                <div class="bmc-grid mt-3">
+                  <div *ngFor="let block of getBmcPreview()" class="bmc-card" [ngClass]="'tone-' + block.tone">
+                    <span>{{ block.label }}</span>
+                    <p>{{ block.value }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngSwitchCase="'swot'" class="preview-sheet swot-sheet">
+                <div class="preview-cover preview-cover-compact swot-cover">
+                  <div>
+                    <p class="preview-tag mb-1">Analyse SWOT</p>
+                    <h3 class="mb-0">Lecture stratégique</h3>
+                  </div>
+                  <button class="btn btn-sm btn-light" type="button" (click)="exportCurrentDocument()">PDF</button>
+                </div>
+                <div class="swot-grid-cards mt-3">
+                  <div *ngFor="let block of getSwotPreview()" class="swot-card" [ngClass]="'tone-' + block.tone">
+                    <span>{{ block.label }}</span>
+                    <p>{{ block.value }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngSwitchCase="'budget'" class="preview-sheet budget-sheet">
+                <div class="preview-cover preview-cover-compact budget-cover">
+                  <div>
+                    <p class="preview-tag mb-1">Budget et Finances</p>
+                    <h3 class="mb-0">Plan financier condensé</h3>
+                  </div>
+                  <button class="btn btn-sm btn-light" type="button" (click)="exportCurrentDocument()">PDF</button>
+                </div>
+                <div class="budget-metrics mt-3">
+                  <div class="metric-card accent-budget">
+                    <span>Budget estimé</span>
+                    <strong>{{ getBudgetPreview().budget }}</strong>
+                  </div>
+                  <div class="metric-card accent-capex">
+                    <span>CAPEX</span>
+                    <p>{{ getBudgetPreview().capex }}</p>
+                  </div>
+                  <div class="metric-card accent-opex">
+                    <span>OPEX</span>
+                    <p>{{ getBudgetPreview().opex }}</p>
+                  </div>
+                  <div class="metric-card accent-runway">
+                    <span>Runway</span>
+                    <p>{{ getBudgetPreview().runway }}</p>
+                  </div>
+                </div>
+                <div class="budget-notes mt-3">
+                  <span>Hypothèses</span>
+                  <p>{{ getBudgetPreview().assumptions }}</p>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="document-actions">
@@ -140,11 +258,11 @@
           <div class="result-grid">
             <div class="result-card">
               <span>Forces</span>
-              <strong>{{ result.strengths.length }}</strong>
+              <strong>{{ getResultStrengthCount() }}</strong>
             </div>
             <div class="result-card">
               <span>Gaps</span>
-              <strong>{{ result.gaps.length }}</strong>
+              <strong>{{ getResultGapCount() }}</strong>
             </div>
             <div class="result-card">
               <span>Edits</span>
@@ -164,7 +282,7 @@
             </button>
           </div>
 
-          <div class="result-section" *ngIf="result.dimensions.length">
+          <div class="result-section" *ngIf="hasResultDimensions()">
             <h6 class="mb-2">Dimensions</h6>
             <div *ngFor="let dimension of result.dimensions" class="dimension-row mb-3">
               <div class="d-flex justify-content-between mb-1">

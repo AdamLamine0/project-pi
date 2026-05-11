@@ -11,7 +11,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/projects/{projectId}/team-members")
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class TeamMemberController {
     
     @Autowired
