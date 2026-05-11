@@ -9,31 +9,39 @@ import { ProjectRoadmapPageComponent } from './pages/project-roadmap-page/projec
 import { EntrepreneurPlaygroundComponent } from './pages/entrepreneur-playground/entrepreneur-playground.component';
 import { MentorDashboardComponent } from './pages/mentor-dashboard/mentor-dashboard.component';
 import { authGuard } from '../../core/services/auth.guard';
+import { StartupList } from '../investment-module/investment/components/startup-list/startup-list';
 
 const routes: Routes = [
   {
     path: '',
     component: ProjectListComponent,
-    data: { breadcrumb: 'Projets', roles: ['USER', 'ADMIN', 'MENTOR'] }
+    canActivate: [authGuard],
+    data: { breadcrumb: 'Projets', roles: ['ENTREPRENEUR', 'INVESTOR', 'ADMIN', 'MENTOR'] }
   },
   {
     path: 'new',
     component: ProjectCreateComponent,
     canActivate: [authGuard],
-    data: { breadcrumb: 'Nouveau Projet', roles: ['USER', 'ADMIN'] }
+    data: { breadcrumb: 'Nouveau Projet', roles: ['ENTREPRENEUR'] }
   },
 
   {
     path: 'dashboard',
     component: ProjectDashboardComponent,
     canActivate: [authGuard],
-    data: { breadcrumb: 'Dashboard Porteur', roles: ['USER', 'ADMIN', 'MENTOR'] }
+    data: { breadcrumb: 'Dashboard Porteur', roles: ['ENTREPRENEUR', 'ADMIN', 'MENTOR'] }
+  },
+  {
+    path: 'investment',
+    component: StartupList,
+    canActivate: [authGuard],
+    data: { breadcrumb: 'Investissements projets', roles: ['INVESTOR', 'ADMIN'] }
   },
   {
     path: ':id/roadmap',
     component: ProjectRoadmapPageComponent,
     canActivate: [authGuard],
-    data: { breadcrumb: 'Roadmap IA', roles: ['USER', 'ADMIN', 'MENTOR'] }
+    data: { breadcrumb: 'Roadmap IA', roles: ['ENTREPRENEUR', 'ADMIN', 'MENTOR'] }
   },
   {
     path: ':id/playground',
@@ -53,13 +61,14 @@ const routes: Routes = [
   {
     path: ':id',
     component: ProjectDetailComponent,
+    canActivate: [authGuard],
     data: { breadcrumb: 'Détails du Projet' }
   },
   {
     path: ':id/edit',
     component: ProjectFormComponent,
     canActivate: [authGuard],
-    data: { breadcrumb: 'Modifier Projet', roles: ['USER', 'ADMIN'] }
+    data: { breadcrumb: 'Modifier Projet', roles: ['ENTREPRENEUR', 'ADMIN'] }
   }
 ];
 

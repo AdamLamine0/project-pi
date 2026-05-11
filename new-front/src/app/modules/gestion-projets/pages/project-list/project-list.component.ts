@@ -18,7 +18,7 @@ import { AuthService } from '../../../../core/services/auth.service';
         </div>
         <div class="page-header-actions">
           <button
-            *ngIf="!isMentor"
+            *ngIf="canCreateProject"
             (click)="createProject()"
             class="flex w-full items-center justify-center gap-1.5 rounded-lg border-none text-xs font-semibold cursor-pointer transition-all hover:opacity-90 sm:w-auto"
             style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 16px;"
@@ -82,7 +82,7 @@ import { AuthService } from '../../../../core/services/auth.service';
           <h5 class="text-base font-bold mb-2" style="color:var(--text-primary);">Aucun projet trouvé</h5>
           <p class="text-sm mb-4" style="color:var(--text-secondary);">Commencez en créant votre premier projet.</p>
           <button
-            *ngIf="!isMentor"
+            *ngIf="canCreateProject"
             (click)="createProject()"
             class="rounded-lg border-none text-xs font-semibold cursor-pointer transition-all hover:opacity-90"
             style="background:linear-gradient(135deg,#1C4FC3,#1D1384); color:#fff; padding:8px 20px;"
@@ -170,7 +170,16 @@ import { AuthService } from '../../../../core/services/auth.service';
                 <i class="bi bi-eye" style="font-size:14px;"></i>
               </button>
               <button
-                *ngIf="!isMentor"
+                *ngIf="isInvestor"
+                (click)="requestInvestment(project, $event)"
+                class="flex items-center justify-center rounded-lg hover:bg-green-50 dark:hover:bg-gray-800 transition-colors"
+                style="width:28px; height:28px; background:transparent; border:none; cursor:pointer; color:#059669;"
+                [attr.aria-label]="'Investir dans ' + project.title"
+              >
+                <i class="bi bi-cash-coin" style="font-size:14px;"></i>
+              </button>
+              <button
+                *ngIf="canEditProjects"
                 (click)="editProject(project.id); $event.stopPropagation()"
                 class="flex items-center justify-center rounded-lg hover:bg-purple-50 dark:hover:bg-gray-800 transition-colors"
                 style="width:28px; height:28px; background:transparent; border:none; cursor:pointer; color:#1C4FC3;"
@@ -211,6 +220,18 @@ export class ProjectListComponent implements OnInit {
 
   get isMentor(): boolean {
     return this.authService.getRole() === 'MENTOR';
+  }
+
+  get isInvestor(): boolean {
+    return this.authService.getRole() === 'INVESTOR';
+  }
+
+  get canCreateProject(): boolean {
+    return this.authService.getRole() === 'ENTREPRENEUR';
+  }
+
+  get canEditProjects(): boolean {
+    return this.authService.hasRole('ENTREPRENEUR', 'ADMIN');
   }
 
   get currentMentorId(): number {
@@ -287,6 +308,11 @@ export class ProjectListComponent implements OnInit {
   }
 
   createProject(): void {
+    if (!this.canCreateProject) {
+      this.router.navigate(['/app/projects']);
+      return;
+    }
+
     this.router.navigate(['/app/projects/new']);
   }
 
@@ -297,6 +323,17 @@ export class ProjectListComponent implements OnInit {
   editProject(projectId: number, event?: Event): void {
     event?.stopPropagation();
     this.router.navigate(['/app/projects', projectId, 'edit']);
+  }
+
+  requestInvestment(project: Project, event?: Event): void {
+    event?.stopPropagation();
+    this.router.navigate(['/investment/request', project.id], {
+      queryParams: {
+        name: project.title,
+        projectId: project.id,
+        sector: project.sector,
+      },
+    });
   }
 
   deleteProject(projectId: number, event?: Event): void {

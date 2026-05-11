@@ -15,6 +15,28 @@
   color: #6b7280;
 }
 
+.state {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #374151;
+  font-size: 13px;
+}
+
+.state.warning {
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.state.info {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -22,7 +44,7 @@
 }
 
 .card {
-  border-radius: 14px;
+  border-radius: 8px;
   border: 1px solid #e5e7eb;
   box-shadow: 0 8px 18px rgba(17, 24, 39, 0.06);
 }

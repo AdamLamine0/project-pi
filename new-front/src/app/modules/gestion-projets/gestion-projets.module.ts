@@ -16,6 +16,7 @@ import { ProjectRoadmapPageComponent } from './pages/project-roadmap-page/projec
 import { EntrepreneurPlaygroundComponent } from './pages/entrepreneur-playground/entrepreneur-playground.component';
 import { MentorDashboardComponent } from './pages/mentor-dashboard/mentor-dashboard.component';
 import { OnboardingWizardComponent } from './pages/onboarding-wizard/onboarding-wizard.component';
+import { StartupList } from '../investment-module/investment/components/startup-list/startup-list';
 
 @NgModule({
   declarations: [
@@ -37,7 +38,8 @@ import { OnboardingWizardComponent } from './pages/onboarding-wizard/onboarding-
     CommonModule,
     GestionProjetsRoutingModule,
     ReactiveFormsModule,
-    FormsModule
+    FormsModule,
+    StartupList
   ]
 })
 export class GestionProjetsModule { }

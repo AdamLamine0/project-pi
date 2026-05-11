@@ -36,6 +36,8 @@ export class RequestForm implements OnInit, OnDestroy {
 
   form!: FormGroup;
   private readonly sub = new Subscription();
+  private selectedStartupName = '';
+  private selectedStartupSector = '';
 
   constructor(
     private fb: FormBuilder,
@@ -62,6 +64,8 @@ export class RequestForm implements OnInit, OnDestroy {
         }
 
         const startupId = params.get('startupId');
+        this.selectedStartupName = this.route.snapshot.queryParamMap.get('name') ?? '';
+        this.selectedStartupSector = this.route.snapshot.queryParamMap.get('sector') ?? '';
         this.openAdd(startupId ?? '');
       })
     );
@@ -278,17 +282,17 @@ export class RequestForm implements OnInit, OnDestroy {
 
   get startupResolved(): boolean {
     const startupId = this.form.getRawValue().startupId ?? this.currentRequest?.startupId ?? '';
-    return !!STARTUP_CATALOG_BY_ID[startupId];
+    return !!STARTUP_CATALOG_BY_ID[startupId] || !!this.selectedStartupName;
   }
 
   get startupName(): string {
     const startupId = this.form.getRawValue().startupId ?? this.currentRequest?.startupId ?? '';
-    return STARTUP_CATALOG_BY_ID[startupId]?.name ?? 'Startup not selected';
+    return STARTUP_CATALOG_BY_ID[startupId]?.name || this.selectedStartupName || 'Startup not selected';
   }
 
   get startupSector(): string {
     const startupId = this.form.getRawValue().startupId ?? this.currentRequest?.startupId ?? '';
-    return STARTUP_CATALOG_BY_ID[startupId]?.sector ?? '';
+    return STARTUP_CATALOG_BY_ID[startupId]?.sector || this.selectedStartupSector || '';
   }
 
   // ================= VALIDATION =================
