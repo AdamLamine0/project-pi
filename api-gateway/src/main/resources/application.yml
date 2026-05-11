@@ -7,30 +7,51 @@ spring:
       mvc:
         routes:
           - id: user-service
-            uri: http://localhost:8081
+            uri: lb://user-pi
             predicates:
               - Path=/api/auth/**, /api/users/**
             filters:
               - StripPrefix=0
 
           - id: event-service
-            uri: http://localhost:8083
+            uri: lb://event-pi
             predicates:
               - Path=/api/events/**, /api/weather, /api/weather/**, /api/verify/**, /api/tickets/**, /api/registrations/**, /api/speakers/**, /api/programs/**, /api/feedback/**, /api/badges/**, /api/certificates/**, /api/predictions/**
             filters:
               - StripPrefix=0
 
           - id: community-service
-            uri: http://localhost:8084
+            uri: lb://community-service
             predicates:
               - Path=/api/community/**
             filters:
               - StripPrefix=0
 
           - id: partenariat-service
-            uri: http://localhost:8082
+            uri: lb://partenariat-pi
             predicates:
               - Path=/api/organisations/**, /api/conventions/**, /api/objectifs/**, /api/meeting-invitations/**, /api/zoom/**
+            filters:
+              - StripPrefix=0
+
+          - id: legal-service
+            uri: lb://legal-pi
+            predicates:
+              - Path=/api/legal-procedures, /api/legal-procedures/**, /api/procedure-types/**, /api/procedure-types, /api/files/**
+            filters:
+              - StripPrefix=0
+
+          - id: investment-service
+            uri: lb://investment-pi
+            predicates:
+              - Path=/api/invest-request/**, /api/invest-criteria/**, /api/investments/**, /api/admin/investments/**, /api/deals/**, /api/data-room/**, /api/dataroom/**, /api/nda/**, /api/log/**
+            filters:
+              - StripPrefix=0
+
+          - id: gestionprojets-service
+            uri: lb://gestion-projets-service
+            predicates:
+              - Path=/api/projects/**, /api/documents/**
             filters:
               - StripPrefix=0
 

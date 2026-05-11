@@ -1,0 +1,11 @@
+target
+uploads
+ml-service/__pycache__
+ml-service/.idea
+.mvn/wrapper/maven-wrapper.jar
+.idea
+.vscode
+*.iml
+.git
+.gitignore
+Dockerfile

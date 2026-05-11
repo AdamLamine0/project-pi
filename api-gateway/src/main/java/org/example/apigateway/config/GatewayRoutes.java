@@ -166,6 +166,27 @@ public class GatewayRoutes {
 
 
     @Bean
+    public RouterFunction<ServerResponse> legalServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/legal-procedures/**")
+                        .or(path("/api/legal-procedures"))
+                        .or(path("/api/procedure-types/**"))
+                        .or(path("/api/procedure-types"))
+                        .or(path("/api/files/**")), HandlerFunctions.http())
+                .filter(lb("legal-pi"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> gestionProjetsServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/projects/**")
+                        .or(path("/api/documents/**")), HandlerFunctions.http())
+                .filter(lb("gestion-projets-service"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
     public RouterFunction<ServerResponse> investmentServiceRoute() {
         return RouterFunctions
                 .route(path("/api/invest-request/**")
