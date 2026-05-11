@@ -1,1 +1,0 @@
-import{Sa as i,Xa as s,q as r}from"./chunk-INK6J22I.js";var g=(a,u)=>{let e=r(s),t=r(i);if(!e.isLoggedIn())return t.navigate(["/auth/login"]),!1;let o=a.data.role,n=a.data.roles;if(n){if(!n.includes(e.getRole()))return t.navigate(["/events"]),!1}else if(o&&e.getRole()!==o)return t.navigate(["/events"]),!1;return!0};export{g as a};
