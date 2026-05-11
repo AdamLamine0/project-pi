@@ -14,7 +14,7 @@ public class ObjectifMapper {
         o.setTitre(request.getTitre());
         o.setDescription(request.getDescription());
         o.setResponsable(request.getResponsable());
-        o.setDateEcheance(request.getDateEcheance());
+        // dateEcheance no longer mapped
         o.setCommentaire(request.getCommentaire());
         o.setDateCreation(LocalDate.now());
         return o;
@@ -27,7 +27,7 @@ public class ObjectifMapper {
         r.setTitre(o.getTitre());
         r.setDescription(o.getDescription());
         r.setResponsable(o.getResponsable());
-        r.setDateEcheance(o.getDateEcheance());
+        // dateEcheance no longer mapped
         r.setStatut(o.getStatut());
         r.setCommentaire(o.getCommentaire());
         r.setDateCreation(o.getDateCreation());

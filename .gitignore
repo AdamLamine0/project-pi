@@ -12,10 +12,24 @@ target/
 # Logs
 *.log
 logs/
+**/uploads/
+Microsoft.Services.Store.winmd
 
 # OS
 .DS_Store
 Thumbs.db
 
+# Local environment secrets
+.env
+.env.*
+!.env.example
 # Local generated apps
 PIcloud/
+
+# Python
+**/venv/
+**/.venv/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd

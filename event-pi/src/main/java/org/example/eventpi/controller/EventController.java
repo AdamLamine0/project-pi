@@ -28,7 +28,7 @@ public class EventController {
     private final GeminiService geminiService;
 
     private static final Set<String> WRITE_ROLES =
-            Set.of("ADMIN", "MENTOR", "PARTNER");
+            Set.of("ADMIN", "MENTOR", "PARTENAIRE");
     private static final Set<String> ADMIN_ROLES =
             Set.of("ADMIN");
 
@@ -45,7 +45,7 @@ public class EventController {
     // ── CREATE ────────────────────────────────────────────────────────────
     @PostMapping
     public ResponseEntity<EventResponse> createEvent(
-            @RequestBody @Valid EventRequest request, //reçoit le JSON du frontend ET valide les champs 
+            @RequestBody @Valid EventRequest request,
             @RequestHeader("X-User-Id") String userId,
             @RequestHeader("X-User-Role") String role) {
         requireRole(role, WRITE_ROLES);
@@ -55,9 +55,9 @@ public class EventController {
     }
 
     // ── SUBMIT FOR VALIDATION ─────────────────────────────────────────────
-    @PatchMapping("/{id}/submit") //modification partielle 
+    @PatchMapping("/{id}/submit")
     public ResponseEntity<EventResponse> submitForValidation(
-            @PathVariable Long id, // récupère l'ID depuis l'URL
+            @PathVariable Long id,
             @RequestHeader("X-User-Id") String userId,
             @RequestHeader("X-User-Role") String role) {
         requireRole(role, WRITE_ROLES);
@@ -123,7 +123,7 @@ public class EventController {
 
         String r = normalize(role);
 
-        if (r.isEmpty() || (!r.equals("ADMIN") && !r.equals("MENTOR") && !r.equals("PARTNER"))) {
+        if (r.isEmpty() || (!r.equals("ADMIN") && !r.equals("MENTOR") && !r.equals("PARTENAIRE"))) {
             return ResponseEntity.ok(eventService.getAllEvents(EventStatus.PUBLIE, type, organizerId));
         }
 

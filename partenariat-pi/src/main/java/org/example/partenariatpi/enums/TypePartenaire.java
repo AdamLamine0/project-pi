@@ -1,9 +1,9 @@
 package org.example.partenariatpi.enums;
 
 public enum TypePartenaire {
-    ACADEMIQUE,
-    INCUBATEUR,
+    ACADEMIC,
+    INCUBATOR,
     PUBLIC,
-    ENTREPRISE,
-    ASSOCIATIF
+    COMPANY,
+    NONPROFIT
 }

@@ -1,0 +1,118 @@
+<div class="mentor-shell" *ngIf="!loading && project">
+  <!-- HEADER -->
+  <header class="mentor-header">
+    <div class="mentor-header-left">
+      <button class="back-btn" (click)="goBack()">← Retour au projet</button>
+      <div>
+        <p class="mentor-eyebrow">Tableau de bord Mentor</p>
+        <h1 class="mentor-project-name">{{ project.title }}</h1>
+        <div class="mentor-meta">
+          <span class="meta-tag">{{ project.sector || 'Non défini' }}</span>
+          <span class="meta-tag">{{ project.stage || 'Idée' }}</span>
+          <span class="meta-tag">{{ project.status }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="mentor-header-right">
+      <button class="btn-playground" (click)="openPlayground()">💬 Espace Coaching AI</button>
+    </div>
+  </header>
+
+  <!-- PROGRESS RING + STATS -->
+  <section class="mentor-stats-row">
+    <div class="progress-ring-card">
+      <svg class="ring-svg" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="50" class="ring-bg"/>
+        <circle cx="60" cy="60" r="50" class="ring-fill"
+          [style.stroke-dasharray]="'314'"
+          [style.stroke-dashoffset]="314 - (314 * completionRate / 100)"/>
+      </svg>
+      <div class="ring-label">
+        <span class="ring-pct">{{ completionRate }}%</span>
+        <span class="ring-sub">Complétion</span>
+      </div>
+    </div>
+
+    <div class="stat-cards">
+      <div class="stat-card">
+        <span class="stat-value">{{ tasks.length }}</span>
+        <span class="stat-label">Tâches totales</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value text-success">{{ doneCount }}</span>
+        <span class="stat-label">Complétées</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value text-info">{{ inProgressCount }}</span>
+        <span class="stat-label">En cours</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value text-danger">{{ blockedCount }}</span>
+        <span class="stat-label">Bloquées</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- PHASE BREAKDOWN -->
+  <section class="mentor-phases">
+    <h3 class="section-title">Avancement par phase</h3>
+    <div class="phases-grid">
+      <div class="phase-card" *ngFor="let phase of phases" [style.--phase-color]="phase.color">
+        <div class="phase-header">
+          <span class="phase-name">{{ phase.name }}</span>
+          <span class="phase-pct">{{ phase.completion }}%</span>
+        </div>
+        <div class="phase-bar">
+          <div class="phase-bar-fill" [style.width.%]="phase.completion" [style.background]="phase.color"></div>
+        </div>
+        <p class="phase-count">{{ phase.tasks.length }} tâche(s)</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TASKS LIST -->
+  <section class="mentor-tasks">
+    <h3 class="section-title">Toutes les tâches</h3>
+    <div class="tasks-grid">
+      <div class="task-item" *ngFor="let task of tasks">
+        <div class="task-status-dot" [style.background]="getStatusColor(task.status)"></div>
+        <div class="task-body">
+          <strong class="task-title">{{ task.title }}</strong>
+          <p class="task-desc">{{ task.description }}</p>
+          <div class="task-tags">
+            <span class="task-status-tag" [style.color]="getStatusColor(task.status)">{{ getStatusLabel(task.status) }}</span>
+            <span class="badge text-bg-{{ getPriorityColor(task.priority) }} small">{{ task.priority }}</span>
+            <span class="task-due" *ngIf="task.dueDate">Échéance: {{ task.dueDate | date:'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="task-empty" *ngIf="tasks.length === 0">
+        Aucune tâche définie pour ce projet. Le fondateur peut en générer via la roadmap IA.
+      </div>
+    </div>
+  </section>
+
+  <!-- DOCUMENTS -->
+  <section class="mentor-documents">
+    <h3 class="section-title">Documents du projet</h3>
+    <div *ngIf="uploadedDocuments.length === 0" class="docs-empty">
+      Aucun document uploadé par le fondateur pour le moment.
+    </div>
+    <div class="docs-grid" *ngIf="uploadedDocuments.length > 0">
+      <div class="doc-card" *ngFor="let doc of uploadedDocuments">
+        <div class="doc-icon">📄</div>
+        <div>
+          <strong>{{ doc.name }}</strong>
+          <p class="small text-muted mb-0">Ajouté le {{ doc.uploadedAt | date:'dd/MM/yyyy' }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="mentor-shell loading-shell" *ngIf="loading">
+  <div class="loading-spinner">
+    <div class="spinner-ring"></div>
+    <p>Chargement du dashboard mentor...</p>
+  </div>
+</div>

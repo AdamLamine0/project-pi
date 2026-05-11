@@ -10,7 +10,7 @@ import {
   lucideAlertCircle, lucideEdit, lucideMoon, lucideSun, lucideStar,
   lucideMonitor, lucideMenu, lucideCamera, lucideKey, lucideTrash2,
   lucideChevronRight, lucideLanguages, lucideCreditCard, lucideMessageSquare,
-  lucideClipboardList,
+  lucideClipboardList, lucideBuilding, lucideFileText, lucideVideo,
 } from '@ng-icons/lucide';
 import { filter } from 'rxjs/operators';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -36,7 +36,7 @@ interface Notification { id: number; title: string; body: string; time: string; 
       lucideAlertCircle, lucideEdit, lucideMoon, lucideSun, lucideStar,
       lucideMonitor, lucideMenu, lucideCamera, lucideKey, lucideTrash2,
       lucideChevronRight, lucideLanguages, lucideCreditCard, lucideMessageSquare,
-      lucideClipboardList,
+      lucideClipboardList, lucideBuilding, lucideFileText, lucideVideo,
     }),
   ],
   template: `
@@ -949,16 +949,20 @@ export class LayoutComponent {
   }
 
   protected readonly navItems: NavItem[] = [
-    { icon: 'lucideLayoutDashboard', label: 'Dashboard',    route: '/app/dashboard', roles: ['ADMIN'] },
+    { icon: 'lucideLayoutDashboard', label: 'Dashboard',    route: '/app/dashboard'    },
     { icon: 'lucideRocket',          label: 'Projects',     route: '/app/projects'     },
     { icon: 'lucideUsers',           label: 'Community',    route: '/app/community'    },
-    { icon: 'lucideScale',           label: 'Procedures',   route: '/app/legal', roles: ['ADMIN'] },
+    { icon: 'lucideScale',           label: 'Procedures',   route: '/app/legal', roles: ['ADMIN', 'ENTREPRENEUR', 'EXPERT'] },
     { icon: 'lucideTrendingUp',      label: 'Investments',  route: '/investment/demandes', roles: ['INVESTOR', 'ENTREPRENEUR'] },
     { icon: 'lucideGraduationCap',   label: 'Mentoring',    route: '/app/mentoring'    },
     { icon: 'lucideMap',             label: 'Roadmaps',     route: '/app/roadmaps'     },
-    { icon: 'lucideHandshake',       label: 'Partnerships', route: '/app/partnerships' },
+    { icon: 'lucideHandshake',       label: 'Partnerships', route: '/app/partenariat/list' },
     { icon: 'lucideCalendar',        label: 'Events',       route: '/app/events'       },
-    { icon: 'lucideClipboardList',   label: 'Registrations', route: '/app/registrations' },
+    { icon: 'lucideBuilding',        label: 'Mon Organisation', route: '/app/partenariat/mon-organisation', roles: ['PARTNER', 'PARTENAIRE'] },
+    { icon: 'lucideFileText',        label: 'Conventions',  route: '/app/partenariat/conventions', roles: ['ADMIN', 'PARTNER', 'PARTENAIRE', 'USER'] },
+    { icon: 'lucideVideo',           label: 'Meeting',      route: '/app/partenariat/meetings', roles: ['ADMIN', 'PARTNER', 'PARTENAIRE', 'USER'] },
+    { icon: 'lucideClipboardList',   label: 'Registrations', route: '/app/registrations', roles: ['ADMIN'] },
+    { icon: 'lucideUsers',           label: 'Users',         route: '/app/users', roles: ['ADMIN'] },
   ];
 
   protected readonly visibleNavItems = computed(() =>

@@ -1,0 +1,327 @@
+<div class="playground-shell container-fluid py-4">
+  <div *ngIf="loadingProject" class="text-center py-5">
+    <div class="spinner-border" role="status"></div>
+  </div>
+
+  <div *ngIf="!loadingProject && project" class="playground-layout">
+    <header class="playground-hero">
+      <div class="hero-copy">
+        <p class="eyebrow mb-1">
+          Entrepreneur Playground
+          <span *ngIf="isInvestor" class="badge bg-warning text-dark ms-2 fw-bold">Mode Investisseur (Data Room)</span>
+          <span *ngIf="isMentor" class="badge bg-info text-dark ms-2 fw-bold">Mode Mentor (Coaching)</span>
+          <span *ngIf="isFounder" class="badge bg-primary ms-2 fw-bold">Mode Fondateur</span>
+        </p>
+        <h2 class="mb-2">Chat de co-création de documents AI</h2>
+        <p class="hero-text mb-0" *ngIf="isFounder || !project">
+          Reformule un pitch, prépare un memo, affine le cadrage ou fais évoluer le brouillon en temps réel.
+        </p>
+        <p class="hero-text mb-0" *ngIf="isInvestor || isMentor">
+          Analysez le document en toute sécurité. Les modifications du texte original sont verrouillées pour votre compte.
+        </p>
+      </div>
+      <div class="hero-actions">
+        <button class="btn btn-outline-light" type="button" (click)="resetWorkspace()">Réinitialiser</button>
+        <button class="btn btn-light" type="button" (click)="describeDocument()" [disabled]="loading || !canEdit">Analyser le brouillon</button>
+        <button class="btn btn-warning fw-semibold" type="button" (click)="exportCurrentDocument()">Télécharger PDF</button>
+      </div>
+    </header>
+
+    <div *ngIf="error" class="alert alert-warning mt-3 mb-0">{{ error }}</div>
+
+    <div class="row g-4 mt-1">
+      <div class="col-xl-7">
+        <section class="panel panel-chat">
+          <div class="panel-head">
+            <div>
+              <p class="panel-kicker mb-1">Conversation</p>
+              <h5 class="mb-0">AI Document Studio</h5>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+              <span class="badge text-bg-light">{{ project.title }}</span>
+              <span class="badge text-bg-dark">{{ result?.mode || 'heuristic' }}</span>
+            </div>
+          </div>
+
+          <div class="chat-history">
+            <article *ngFor="let message of messages" class="chat-message" [class.user]="message.role === 'user'" [class.assistant]="message.role === 'assistant'">
+              <div class="message-meta">{{ message.role === 'user' ? 'Vous' : 'Copilote' }} · {{ message.timestamp | date:'HH:mm' }}</div>
+              <div class="message-bubble">{{ message.content }}</div>
+            </article>
+            <article *ngIf="!hasConversation" class="chat-empty">
+              Commencez par demander une reformulation, une structure de document ou un plan d'action.
+            </article>
+          </div>
+
+          <div class="prompt-presets">
+            <button *ngFor="let preset of rolePresets" class="preset-chip" type="button" (click)="usePreset(preset)" [disabled]="loading">
+              {{ preset.label }}
+            </button>
+          </div>
+
+          <div class="composer">
+            <label for="playgroundPrompt" class="form-label small text-uppercase mb-2" *ngIf="isFounder">Message au copilote</label>
+            <label for="playgroundPrompt" class="form-label small text-uppercase mb-2" *ngIf="!isFounder">Requête Analyste</label>
+            <textarea
+              id="playgroundPrompt"
+              class="form-control composer-input"
+              rows="4"
+              [(ngModel)]="prompt"
+              [readonly]="!canEdit"
+              placeholder="Demande une reformulation, une version plus courte, un plan de validation ou une section complète..."
+            ></textarea>
+            <div class="d-flex justify-content-between align-items-center gap-3 mt-3 flex-wrap">
+              <div class="small text-muted" *ngIf="isFounder">Le brouillon est modifié côté client avant d’être affiné par OpenRouter.</div>
+              <div class="small text-muted text-warning" *ngIf="!isFounder"><i class="fas fa-lock"></i> L'édition de brouillon est bloquée pour votre rôle.</div>
+              <button class="btn btn-primary" type="button" (click)="sendMessage()" [disabled]="loading || !prompt.trim()">
+                {{ loading ? 'Generation...' : 'Envoyer' }}
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="col-xl-5">
+        <section class="panel panel-document mb-4">
+          <div class="panel-head">
+            <div>
+              <p class="panel-kicker mb-1">Document AI</p>
+              <h5 class="mb-0">Brouillon dynamique</h5>
+            </div>
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <span class="badge text-bg-primary">{{ getDocCharCount() }} chars</span>
+              <span class="badge text-bg-light">{{ getDocTitle() }}</span>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <ul class="nav nav-pills custom-tabs mb-3 gap-2">
+              <li class="nav-item">
+                <button class="nav-link" [class.active]="activeTab === 'pitch'" (click)="setTab('pitch')">Pitch Deck</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" [class.active]="activeTab === 'bmc'" (click)="setTab('bmc')">BMC</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" [class.active]="activeTab === 'swot'" (click)="setTab('swot')">SWOT</button>
+              </li>
+              <li class="nav-item">
+                <button class="nav-link" [class.active]="activeTab === 'budget'" (click)="setTab('budget')">Budget</button>
+              </li>
+            </ul>
+          </div>
+
+          <div class="mb-3">
+            <input class="form-control mb-2 fw-bold" [(ngModel)]="documentTitles[activeTab]" [readonly]="!canEdit" />
+            <textarea class="form-control document-editor" rows="18" [(ngModel)]="documentDrafts[activeTab]" [readonly]="!canEdit"></textarea>
+          </div>
+
+          <div class="document-preview">
+            <div class="preview-header d-flex justify-content-between align-items-start gap-3 flex-wrap">
+              <div>
+                <p class="panel-kicker mb-1">Aperçu design</p>
+                <h6 class="mb-0">Version prête pour export PDF</h6>
+              </div>
+              <button class="btn btn-sm btn-outline-primary" type="button" (click)="exportCurrentDocument()">Télécharger</button>
+            </div>
+
+            <div [ngSwitch]="activeTab" class="mt-3">
+              <div *ngSwitchCase="'pitch'" class="preview-sheet pitch-sheet">
+                <div class="preview-cover">
+                  <div>
+                    <p class="preview-tag mb-1">Pitch Deck</p>
+                    <h3 class="mb-2">{{ documentTitles.pitch }}</h3>
+                    <p class="mb-0">{{ project.title }}</p>
+                  </div>
+                  <div class="preview-cover-badges">
+                    <span>{{ project.sector || 'Secteur à préciser' }}</span>
+                    <span>{{ project.stage || 'Stage à préciser' }}</span>
+                    <span>{{ (project.budget || 0) | currency:'MAD':'symbol':'1.0-0' }}</span>
+                  </div>
+                </div>
+
+                <div class="preview-grid-rows">
+                  <div class="preview-block hero-block">
+                    <span>Problème</span>
+                    <p>{{ getPitchPreview().problem }}</p>
+                  </div>
+                  <div class="preview-block solution-block">
+                    <span>Solution</span>
+                    <p>{{ getPitchPreview().solution }}</p>
+                  </div>
+                  <div class="preview-block market-block">
+                    <span>Marché & Traction</span>
+                    <p>{{ getPitchPreview().market }}</p>
+                  </div>
+                  <div class="preview-block model-block">
+                    <span>Modèle de revenu</span>
+                    <p>{{ getPitchPreview().model }}</p>
+                  </div>
+                  <div class="preview-block team-block">
+                    <span>Équipe</span>
+                    <p>{{ getPitchPreview().team }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngSwitchCase="'bmc'" class="preview-sheet bmc-sheet">
+                <div class="preview-cover preview-cover-compact">
+                  <div>
+                    <p class="preview-tag mb-1">Business Model Canvas</p>
+                    <h3 class="mb-0">Canvas stratégique</h3>
+                  </div>
+                  <button class="btn btn-sm btn-light" type="button" (click)="exportCurrentDocument()">PDF</button>
+                </div>
+                <div class="bmc-grid mt-3">
+                  <div *ngFor="let block of getBmcPreview()" class="bmc-card" [ngClass]="'tone-' + block.tone">
+                    <span>{{ block.label }}</span>
+                    <p>{{ block.value }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngSwitchCase="'swot'" class="preview-sheet swot-sheet">
+                <div class="preview-cover preview-cover-compact swot-cover">
+                  <div>
+                    <p class="preview-tag mb-1">Analyse SWOT</p>
+                    <h3 class="mb-0">Lecture stratégique</h3>
+                  </div>
+                  <button class="btn btn-sm btn-light" type="button" (click)="exportCurrentDocument()">PDF</button>
+                </div>
+                <div class="swot-grid-cards mt-3">
+                  <div *ngFor="let block of getSwotPreview()" class="swot-card" [ngClass]="'tone-' + block.tone">
+                    <span>{{ block.label }}</span>
+                    <p>{{ block.value }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngSwitchCase="'budget'" class="preview-sheet budget-sheet">
+                <div class="preview-cover preview-cover-compact budget-cover">
+                  <div>
+                    <p class="preview-tag mb-1">Budget et Finances</p>
+                    <h3 class="mb-0">Plan financier condensé</h3>
+                  </div>
+                  <button class="btn btn-sm btn-light" type="button" (click)="exportCurrentDocument()">PDF</button>
+                </div>
+                <div class="budget-metrics mt-3">
+                  <div class="metric-card accent-budget">
+                    <span>Budget estimé</span>
+                    <strong>{{ getBudgetPreview().budget }}</strong>
+                  </div>
+                  <div class="metric-card accent-capex">
+                    <span>CAPEX</span>
+                    <p>{{ getBudgetPreview().capex }}</p>
+                  </div>
+                  <div class="metric-card accent-opex">
+                    <span>OPEX</span>
+                    <p>{{ getBudgetPreview().opex }}</p>
+                  </div>
+                  <div class="metric-card accent-runway">
+                    <span>Runway</span>
+                    <p>{{ getBudgetPreview().runway }}</p>
+                  </div>
+                </div>
+                <div class="budget-notes mt-3">
+                  <span>Hypothèses</span>
+                  <p>{{ getBudgetPreview().assumptions }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="document-actions">
+            <input *ngIf="canEdit" type="file" class="form-control form-control-sm" multiple (change)="onDocumentsSelected($event)" />
+          </div>
+
+          <div class="document-list mt-3" *ngIf="documents.length > 0">
+            <div class="document-item" *ngFor="let doc of documents; let i = index">
+              <div>
+                <strong>{{ doc.name }}</strong>
+                <p class="mb-0 small text-muted">{{ doc.kind || 'text' }} · {{ doc.uploadedAt | date:'dd/MM HH:mm' }}</p>
+              </div>
+              <button class="btn btn-sm btn-outline-danger" type="button" (click)="removeDocument(i)">Supprimer</button>
+            </div>
+          </div>
+          <div *ngIf="documents.length === 0" class="empty-state mt-3">Ajoutez des notes, un pitch ou un memo pour enrichir le contexte.</div>
+        </section>
+
+        <section class="panel panel-results mb-4" *ngIf="result">
+          <div class="panel-head">
+            <div>
+              <p class="panel-kicker mb-1">Analyse</p>
+              <h5 class="mb-0">Score et suggestions</h5>
+            </div>
+            <span class="badge text-bg-success">{{ result.overallScore }} / 100</span>
+          </div>
+
+          <div class="result-grid">
+            <div class="result-card">
+              <span>Forces</span>
+              <strong>{{ getResultStrengthCount() }}</strong>
+            </div>
+            <div class="result-card">
+              <span>Gaps</span>
+              <strong>{{ getResultGapCount() }}</strong>
+            </div>
+            <div class="result-card">
+              <span>Edits</span>
+              <strong>{{ result.suggestedEdits?.length || 0 }}</strong>
+            </div>
+          </div>
+
+          <div class="result-section">
+            <h6 class="mb-2">Message du copilote</h6>
+            <p class="mb-0 text-muted">{{ result.assistantMessage }}</p>
+          </div>
+
+          <div class="result-section" *ngIf="result.suggestedEdits?.length">
+            <h6 class="mb-2">Editions proposées</h6>
+            <button *ngFor="let edit of result.suggestedEdits" class="edit-chip" type="button" (click)="applySuggestedEdit(edit.content)">
+              {{ edit.label }}
+            </button>
+          </div>
+
+          <div class="result-section" *ngIf="hasResultDimensions()">
+            <h6 class="mb-2">Dimensions</h6>
+            <div *ngFor="let dimension of result.dimensions" class="dimension-row mb-3">
+              <div class="d-flex justify-content-between mb-1">
+                <strong>{{ dimension.name }}</strong>
+                <span>{{ dimension.score }}%</span>
+              </div>
+              <div class="progress" style="height: 8px;">
+                <div class="progress-bar" [style.width.%]="dimension.score"></div>
+              </div>
+              <small class="text-muted d-block mt-1">{{ dimension.advice }}</small>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel panel-context">
+          <div class="panel-head">
+            <div>
+              <p class="panel-kicker mb-1">Contexte</p>
+              <h5 class="mb-0">Projet source</h5>
+            </div>
+            <span class="badge text-bg-light">{{ project.sector || 'No sector' }}</span>
+          </div>
+
+          <div class="context-grid">
+            <div>
+              <span>Stage</span>
+              <strong>{{ project.stage || 'A preciser' }}</strong>
+            </div>
+            <div>
+              <span>Budget</span>
+              <strong>{{ (project.budget || 0) | currency }}</strong>
+            </div>
+            <div>
+              <span>Equipe</span>
+              <strong>{{ project.teamSize || 'A preciser' }}</strong>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>

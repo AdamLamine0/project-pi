@@ -54,11 +54,13 @@ public class SecurityConfig {
                 String role   = request.getHeader("X-User-Role");
                 String userId = request.getHeader("X-User-Id");
 
-                if (email != null && role != null) {
+                if (userId != null || (email != null && role != null)) {
                     // Build a Spring Security principal from gateway headers
-                    var authority = new SimpleGrantedAuthority(role);
+                    String principal = email != null && !email.isBlank() ? email : "user-" + userId;
+                    String authorityName = role != null && !role.isBlank() ? role : "USER";
+                    var authority = new SimpleGrantedAuthority(authorityName);
                     var auth = new UsernamePasswordAuthenticationToken(
-                            email, userId, List.of(authority)
+                            principal, userId, List.of(authority)
                     );
                     SecurityContextHolder.getContext().setAuthentication(auth);
                 }

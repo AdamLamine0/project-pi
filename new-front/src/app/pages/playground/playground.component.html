@@ -1,0 +1,169 @@
+<div class="flex h-[calc(100vh-4rem)] overflow-hidden bg-gray-50 dark:bg-gray-900">
+
+  <!-- LEFT CHAT -->
+  <div class="flex flex-col w-full lg:w-[360px] shrink-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+      <h2 class="font-bold text-gray-900 dark:text-white text-sm">AI Copilot</h2>
+      <select [(ngModel)]="selectedProjectId" (ngModelChange)="onProjectChange($event)"
+        class="mt-2 w-full text-xs border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1.5 bg-white dark:bg-gray-700">
+        <option value="">No project selected</option>
+        <option *ngFor="let p of projects()" [value]="p.id">{{ p.title }}</option>
+      </select>
+    </div>
+
+    <div class="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
+      <label class="flex items-center gap-2 cursor-pointer text-xs text-blue-600 font-medium hover:text-blue-700">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+        Upload PDF for analysis
+        <input type="file" accept=".pdf" class="hidden" (change)="onFileUpload($event)" />
+      </label>
+      <div *ngIf="uploadedFile()" class="mt-1 flex items-center gap-1 text-xs text-gray-500">
+        <span class="truncate">{{ uploadedFile() }}</span>
+        <button (click)="clearFile()" class="text-red-400 hover:text-red-600 ml-1">×</button>
+      </div>
+      <div *ngIf="uploading()" class="mt-1 text-xs text-blue-500 animate-pulse">Analyzing document...</div>
+    </div>
+
+    <div #chatBox class="flex-1 overflow-y-auto p-3 space-y-2">
+      <div *ngIf="messages().length === 0" class="h-full flex flex-col items-center justify-center text-center p-4">
+        <p class="text-xs text-gray-400 mb-3">Quick actions:</p>
+        <div class="flex flex-col gap-1.5 w-full">
+          <button *ngFor="let s of suggestions" (click)="sendSuggestion(s)"
+            class="text-xs px-3 py-2 bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-blue-50 hover:text-blue-600 text-left transition-colors border border-gray-200 dark:border-gray-600">
+            {{ s }}
+          </button>
+        </div>
+      </div>
+      <div *ngFor="let msg of messages()" [class]="msg.role === 'user' ? 'flex justify-end' : 'flex justify-start'">
+        <div [class]="msg.role === 'user'
+          ? 'max-w-[85%] px-3 py-2 rounded-2xl rounded-tr-sm bg-blue-600 text-white text-xs'
+          : 'max-w-[85%] px-3 py-2 rounded-2xl rounded-tl-sm bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white text-xs whitespace-pre-wrap'">
+          {{ msg.content }}
+        </div>
+      </div>
+      <div *ngIf="thinking()" class="flex justify-start">
+        <div class="px-3 py-2 rounded-2xl bg-gray-100 dark:bg-gray-700 flex gap-1">
+          <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay:0ms"></span>
+          <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay:150ms"></span>
+          <span class="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style="animation-delay:300ms"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="px-3 py-3 border-t border-gray-200 dark:border-gray-700">
+      <div class="flex gap-2">
+        <input [(ngModel)]="userMessage" (keydown.enter)="send()"
+          placeholder="Ask anything..."
+          class="flex-1 border border-gray-300 dark:border-gray-600 rounded-xl px-3 py-2 text-xs bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <button (click)="send()" [disabled]="thinking() || !userMessage.trim()"
+          class="px-3 py-2 bg-blue-600 text-white rounded-xl text-xs hover:bg-blue-700 disabled:opacity-40 transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+        </button>
+      </div>
+      <p *ngIf="error()" class="mt-1 text-xs text-red-500">{{ error() }}</p>
+    </div>
+  </div>
+
+  <!-- RIGHT DOCUMENT PANEL -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <div class="flex items-center border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-2">
+      <button *ngFor="let tab of docTabs" (click)="activeTab.set(tab.id)"
+        [class]="activeTab() === tab.id
+          ? 'px-4 py-3 text-sm font-semibold text-blue-600 border-b-2 border-blue-600'
+          : 'px-4 py-3 text-sm text-gray-500 hover:text-gray-700 border-b-2 border-transparent'">
+        {{ tab.label }}
+        <span *ngIf="hasDoc(tab.id)" class="ml-1 w-2 h-2 bg-green-500 rounded-full inline-block align-middle"></span>
+      </button>
+      <div class="flex-1"></div>
+      <div class="flex items-center gap-2 pr-2">
+        <button (click)="generateDoc(activeTab())" [disabled]="generating()"
+          class="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-40 transition-colors">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          {{ hasDoc(activeTab()) ? 'Regenerate' : 'Generate' }}
+        </button>
+        <button *ngIf="hasDoc(activeTab())" (click)="exportPDF()"
+          class="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          Export PDF
+        </button>
+      </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-gray-900">
+
+      <div *ngIf="generating()" class="flex flex-col items-center justify-center h-full">
+        <div class="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="text-sm text-gray-500">Generating {{ getTabLabel(activeTab()) }} with AI...</p>
+      </div>
+
+      <div *ngIf="!hasDoc(activeTab()) && !generating()" class="flex flex-col items-center justify-center h-full text-center">
+        <div class="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl shadow-sm flex items-center justify-center mb-4 text-3xl">
+          {{ getTabEmoji(activeTab()) }}
+        </div>
+        <h3 class="font-bold text-gray-900 dark:text-white mb-1">{{ getTabLabel(activeTab()) }}</h3>
+        <p class="text-sm text-gray-500 mb-6 max-w-xs">{{ getTabDescription(activeTab()) }}</p>
+        <button (click)="generateDoc(activeTab())"
+          class="px-6 py-2.5 bg-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-colors">
+          Generate {{ getTabLabel(activeTab()) }}
+        </button>
+      </div>
+
+      <!-- BMC -->
+      <div *ngIf="hasDoc('bmc') && activeTab() === 'bmc' && !generating()" class="doc-export-area">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white">Business Model Canvas</h2>
+            <span class="text-xs text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">{{ selectedProject()?.title || 'My Startup' }}</span>
+          </div>
+          <app-bmc-view [data]="bmcData()!"></app-bmc-view>
+        </div>
+      </div>
+
+      <!-- SWOT -->
+      <div *ngIf="hasDoc('swot') && activeTab() === 'swot' && !generating()" class="doc-export-area">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white">SWOT Analysis</h2>
+            <span class="text-xs text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">{{ selectedProject()?.title || 'My Startup' }}</span>
+          </div>
+          <app-swot-view [data]="swotData()!"></app-swot-view>
+        </div>
+      </div>
+
+      <!-- Budget -->
+      <div *ngIf="hasDoc('budget') && activeTab() === 'budget' && !generating()" class="doc-export-area">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Budget Plan</h2>
+          <div class="grid grid-cols-3 gap-4 mb-6">
+            <div *ngFor="let kpi of budgetKPIs()" class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-center">
+              <div class="text-2xl font-black text-blue-600">{{ kpi.value }}</div>
+              <div class="text-xs text-gray-500 mt-1">{{ kpi.label }}</div>
+            </div>
+          </div>
+          <pre class="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300 font-sans leading-relaxed bg-gray-50 dark:bg-gray-700 rounded-xl p-4">{{ budgetText() }}</pre>
+        </div>
+      </div>
+
+      <!-- Pitch -->
+      <div *ngIf="hasDoc('pitch') && activeTab() === 'pitch' && !generating()" class="doc-export-area">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-6">Pitch Deck</h2>
+          <div class="space-y-3">
+            <div *ngFor="let slide of pitchSlides(); let i = index"
+              class="border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:border-blue-300 transition-colors">
+              <div class="flex items-start gap-3">
+                <div class="w-8 h-8 bg-blue-600 text-white rounded-lg flex items-center justify-center text-sm font-bold shrink-0">{{ i + 1 }}</div>
+                <div>
+                  <h3 class="font-semibold text-gray-900 dark:text-white mb-1 capitalize">{{ slide.title }}</h3>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">{{ slide.content }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>

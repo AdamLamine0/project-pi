@@ -1,0 +1,13 @@
+/* partenarie-list.component.css
+ * All visual tokens come from src/styles.css (page-shell, page-header,
+ * stats-grid, card-grid-auto, --surface, --text-*, etc.) so this page
+ * inherits the exact same theme as /app/partnerships.
+ */
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}

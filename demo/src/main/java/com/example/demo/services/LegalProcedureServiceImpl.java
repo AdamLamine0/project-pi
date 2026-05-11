@@ -14,8 +14,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +43,51 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
                 .build();
 
         return mapper.toProcedureResponse(procedureRepository.save(procedure));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<LegalProcedureResponse> findAll() {
+        return procedureRepository.findAll()
+                .stream()
+                .map(mapper::toProcedureResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public LegalProcedureStatsResponse getStats() {
+        List<LegalProcedure> procedures = procedureRepository.findAll();
+        long total = procedures.size();
+        long drafts = countByStatus(procedures, ProcedureStatus.BROUILLON);
+        long inProgress = countByStatus(procedures, ProcedureStatus.EN_COURS);
+        long waitingExpert = countByStatus(procedures, ProcedureStatus.EN_ATTENTE_EXPERT);
+        long completed = countByStatus(procedures, ProcedureStatus.COMPLETE);
+        long rejected = countByStatus(procedures, ProcedureStatus.REFUSE);
+        double averageCompletion = procedures.stream()
+                .map(LegalProcedure::getCompletionRate)
+                .filter(rate -> rate != null)
+                .mapToDouble(Float::doubleValue)
+                .average()
+                .orElse(0D);
+        Map<String, Long> byType = Arrays.stream(com.example.demo.enums.ProcedureType.values())
+                .collect(Collectors.toMap(
+                        Enum::name,
+                        type -> procedures.stream()
+                                .filter(procedure -> procedure.getProcedureType() == type)
+                                .count()
+                ));
+
+        return new LegalProcedureStatsResponse(
+                total,
+                drafts,
+                inProgress,
+                waitingExpert,
+                completed,
+                rejected,
+                averageCompletion,
+                byType
+        );
     }
 
     @Override
@@ -171,5 +219,11 @@ public class LegalProcedureServiceImpl implements LegalProcedureService {
                 procedure.getId(), DocumentStatus.VALIDE);
         float rate = ((float) (deposed + validated) / total) * 100;
         procedure.setCompletionRate(Math.round(rate * 100f) / 100f);
+    }
+
+    private long countByStatus(List<LegalProcedure> procedures, ProcedureStatus status) {
+        return procedures.stream()
+                .filter(procedure -> procedure.getStatus() == status)
+                .count();
     }
 }

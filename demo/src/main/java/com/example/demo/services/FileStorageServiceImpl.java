@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -62,32 +63,53 @@ public class FileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
-    public String storeGenerated(String prefix, String extension, byte[] content) {
+    public String storeGenerated(String baseName, String extension, byte[] content) {
         try {
             if (content == null || content.length == 0) {
                 throw new IllegalArgumentException("Le contenu genere est vide.");
             }
 
-            String safePrefix = StringUtils.cleanPath(prefix == null || prefix.isBlank() ? "document" : prefix);
-            String safeExtension = extension == null || extension.isBlank() ? ".bin" : extension;
-            if (!safeExtension.startsWith(".")) {
-                safeExtension = "." + safeExtension;
-            }
+            String safeBaseName = sanitizeBaseName(baseName);
+            String safeExtension = sanitizeExtension(extension);
+            String generatedName = safeBaseName + "-" + UUID.randomUUID() + safeExtension;
+            Path targetLocation = this.uploadPath.resolve(generatedName).normalize();
 
-            String generatedName = safePrefix + "-" + UUID.randomUUID() + safeExtension;
-            Path targetLocation = this.uploadPath.resolve(generatedName);
+            if (!targetLocation.startsWith(this.uploadPath)) {
+                throw new IllegalArgumentException("Nom de fichier genere invalide.");
+            }
 
             Files.write(targetLocation, content, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-
-            String baseUrl = uploadProperties.getBaseUrl();
-            if (baseUrl == null || baseUrl.isBlank()) {
-                baseUrl = "http://localhost:8087";
-            }
-
-            return baseUrl + "/api/files/" + generatedName;
-
+            return fileUrl(generatedName);
         } catch (IOException e) {
             throw new RuntimeException("Erreur lors du stockage du fichier genere.", e);
         }
+    }
+
+    private String sanitizeBaseName(String baseName) {
+        String value = baseName == null ? "generated-file" : baseName;
+        value = StringUtils.cleanPath(value)
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9._-]+", "-")
+                .replaceAll("^-+|-+$", "");
+        return value.isBlank() ? "generated-file" : value;
+    }
+
+    private String sanitizeExtension(String extension) {
+        if (extension == null || extension.isBlank()) {
+            return "";
+        }
+        String value = extension.trim().toLowerCase(Locale.ROOT);
+        if (!value.startsWith(".")) {
+            value = "." + value;
+        }
+        return value.replaceAll("[^a-z0-9.]+", "");
+    }
+
+    private String fileUrl(String filename) {
+        String baseUrl = uploadProperties.getBaseUrl();
+        if (baseUrl == null || baseUrl.isBlank()) {
+            baseUrl = "http://localhost:8087";
+        }
+        return baseUrl + "/api/files/" + filename;
     }
 }

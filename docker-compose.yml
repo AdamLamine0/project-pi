@@ -230,16 +230,33 @@ services:
     depends_on:
       eureka-server:
         condition: service_started
-      ml-service:
+      gestionprojets-ai-service:
         condition: service_started
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
       EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
-      ML_SERVICE_URL: http://ml-service:8085
+      ML_SERVICE_URL: http://gestionprojets-ai-service:8001
       MAIL_USERNAME: ${MAIL_USERNAME:-}
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
     ports:
       - "8099:8099"
+    networks:
+      - project-pi
+
+  gestionprojets-ai-service:
+    build:
+      context: ./gestionprojets/ml-service
+    image: project-pi/gestionprojets-ai-service:local
+    depends_on:
+      eureka-server:
+        condition: service_started
+    environment:
+      EUREKA_SERVER: http://eureka-server:8761/eureka/
+      SERVICE_NAME: gestionprojets-ai-service
+      SERVICE_HOST: gestionprojets-ai-service
+      SERVICE_PORT: 8001
+    ports:
+      - "8001:8001"
     networks:
       - project-pi
 
@@ -263,6 +280,8 @@ services:
       investment-service:
         condition: service_started
       gestionprojets-service:
+        condition: service_started
+      gestionprojets-ai-service:
         condition: service_started
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/

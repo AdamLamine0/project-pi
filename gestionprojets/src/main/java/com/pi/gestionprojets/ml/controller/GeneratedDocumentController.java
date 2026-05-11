@@ -16,7 +16,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/documents")
-@CrossOrigin(origins = "*")
 public class GeneratedDocumentController {
 
     @Autowired

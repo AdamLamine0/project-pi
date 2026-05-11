@@ -181,8 +181,18 @@ public class GatewayRoutes {
     public RouterFunction<ServerResponse> gestionProjetsServiceRoute() {
         return RouterFunctions
                 .route(path("/api/projects/**")
-                        .or(path("/api/documents/**")), HandlerFunctions.http())
+                        .or(path("/api/documents/**"))
+                        .or(path("/api/tasks/**"))
+                        .or(path("/api/team-members/**")), HandlerFunctions.http())
                 .filter(lb("gestion-projets-service"))
+                .filter(authFilter.jwtFilter());
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> gestionProjetsMlServiceRoute() {
+        return RouterFunctions
+                .route(path("/api/ml/**"), HandlerFunctions.http())
+                .filter(lb("gestionprojets-ai-service"))
                 .filter(authFilter.jwtFilter());
     }
 

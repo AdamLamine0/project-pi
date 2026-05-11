@@ -34,10 +34,10 @@ public class Convention {
 
     // ── Dates ─────────────────────────────────────────────────────────────────
 
-    @NotNull(message = "Date debut is required")
+    //@NotNull(message = "Date debut is required")
     private LocalDate dateDebut;
 
-    @NotNull(message = "Date fin is required")
+    //@NotNull(message = "Date fin is required")
     private LocalDate dateFin;
 
     // ── Objectifs ─────────────────────────────────────────────────────────────
@@ -49,7 +49,7 @@ public class Convention {
     // ── Lifecycle ─────────────────────────────────────────────────────────────
 
     @Enumerated(EnumType.STRING)
-    private StatutConvention statut = StatutConvention.BROUILLON;
+    private StatutConvention statut = StatutConvention.DRAFT;
 
     private String documentUrl;
 

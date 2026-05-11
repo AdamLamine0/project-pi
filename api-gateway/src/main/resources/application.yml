@@ -51,7 +51,14 @@ spring:
           - id: gestionprojets-service
             uri: lb://gestion-projets-service
             predicates:
-              - Path=/api/projects/**, /api/documents/**
+              - Path=/api/projects/**, /api/documents/**, /api/tasks/**, /api/team-members/**
+            filters:
+              - StripPrefix=0
+
+          - id: gestionprojets-ai-service
+            uri: lb://gestionprojets-ai-service
+            predicates:
+              - Path=/api/ml/**
             filters:
               - StripPrefix=0
 

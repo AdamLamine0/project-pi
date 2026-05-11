@@ -300,7 +300,7 @@
                     <ng-icon name="lucideMapPin" [size]="'11'" aria-hidden="true" /> {{ event.location || event.locationType }}
                   }
                 </span>
-                <span><ng-icon name="lucideUsers" [size]="'11'" aria-hidden="true" /> {{ event.registeredCount }}/{{ event.capacityMax || 'Γê₧' }}</span>
+                <span><ng-icon name="lucideUsers" [size]="'11'" aria-hidden="true" /> {{ event.registeredCount }}/{{ event.capacityMax || '∞' }}</span>
               </div>
             </div>
 
@@ -607,7 +607,7 @@
                             class="text-xs font-semibold rounded-lg cursor-pointer flex-shrink-0"
                             [style.color]="isFormSpeakerStaged(c) ? '#15803d' : 'var(--text-body)'"
                             style="background:var(--surface); border:1px solid var(--border); padding:4px 10px; font-family:var(--font-sans);">
-                            {{ isFormSpeakerStaged(c) ? 'Added Γ£ô' : '+ Add' }}
+                            {{ isFormSpeakerStaged(c) ? 'Added ✔' : '+ Add' }}
                           </button>
                         </div>
                       }
@@ -655,7 +655,7 @@
                   <div class="px-4 py-3" style="background:var(--surface);">
                     <p class="font-semibold mb-1" style="color:var(--text-primary);">Registration estimate</p>
                     <p class="font-bold" style="color:#1C4FC3; font-size:15px;">
-                      {{ fullAnalysis.registrationEstimate.min }}ΓÇô{{ fullAnalysis.registrationEstimate.max }}
+                      {{ fullAnalysis.registrationEstimate.min }}–{{ fullAnalysis.registrationEstimate.max }}
                       <span class="font-normal" style="color:var(--text-secondary); font-size:11px;">inscribed</span>
                     </p>
                     <p style="color:var(--text-secondary);">
@@ -682,7 +682,7 @@
                   <div class="px-4 py-3" style="background:var(--surface);">
                     <p class="font-semibold mb-1" style="color:var(--text-primary);">Date conflicts</p>
                     @if (!fullAnalysis.conflicts.length) {
-                      <p style="color:#15803d;">Γ£ô No conflicts this week</p>
+                      <p style="color:#15803d;">✔ No conflicts this week</p>
                     } @else {
                       @for (c of fullAnalysis.conflicts; track c.eventTitle) {
                         <div class="mb-1 flex items-start gap-1">

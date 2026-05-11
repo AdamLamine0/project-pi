@@ -114,7 +114,7 @@ export class ProcedureHomeComponent implements OnInit {
       return;
     }
 
-    if (this.auth.isAdmin()) {
+    if (this.auth.isAdmin() || this.auth.isEntrepreneur()) {
       this.loadDashboardStats();
     }
   }
@@ -133,6 +133,22 @@ export class ProcedureHomeComponent implements OnInit {
         },
         error: (err) => {
           this.statsError = err?.error?.message || 'Unable to load procedure dashboard.';
+          this.statsLoading = false;
+        },
+      });
+      return;
+    }
+
+    if (this.auth.isEntrepreneur()) {
+      this.legalService.getMyProcedures(this.auth.getUserId()).subscribe({
+        next: (procedures) => {
+          this.procedures = this.sortByCreatedAtDesc(procedures);
+          this.dashboardStats = this.statsFromProcedures(procedures);
+          this.procedureCards = this.cardsFromProcedures(procedures);
+          this.statsLoading = false;
+        },
+        error: (err) => {
+          this.statsError = err?.error?.message || 'Unable to load your procedure workspace.';
           this.statsLoading = false;
         },
       });
@@ -202,7 +218,16 @@ export class ProcedureHomeComponent implements OnInit {
     this.router.navigate([this.legalBasePath(), 'new']);
   }
 
+  openList(): void {
+    this.router.navigate([this.legalBasePath(), 'list']);
+  }
+
   openProcedure(procedure: LegalProcedureResponse): void {
+    if (!this.auth.isAdmin()) {
+      this.router.navigate([this.legalBasePath(), procedure.id], { state: { procedure } });
+      return;
+    }
+
     this.selectedProcedure.set(procedure);
     this.showProcedureModal.set(true);
   }
@@ -302,6 +327,10 @@ export class ProcedureHomeComponent implements OnInit {
   }
 
   legalBasePath(): string {
-    return this.auth.isAdmin() ? '/app/legal' : '/procedures';
+    return this.router.url.startsWith('/app/') ? '/app/legal' : '/procedures';
+  }
+
+  recentProcedures(): LegalProcedureResponse[] {
+    return this.procedures.slice(0, 4);
   }
 }

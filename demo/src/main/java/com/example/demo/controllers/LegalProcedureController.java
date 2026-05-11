@@ -38,6 +38,16 @@ public class LegalProcedureController {
         return ResponseEntity.ok(service.findByEntrepreneur(entrepreneurId));
     }
 
+    @GetMapping("/admin/all")
+    public ResponseEntity<List<LegalProcedureResponse>> findAll() {
+        return ResponseEntity.ok(service.findAll());
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<LegalProcedureStatsResponse> stats() {
+        return ResponseEntity.ok(service.getStats());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<LegalProcedureResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(service.findById(id));

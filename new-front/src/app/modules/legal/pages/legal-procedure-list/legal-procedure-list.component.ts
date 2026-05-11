@@ -82,7 +82,7 @@ export class LegalProcedureListComponent implements OnInit {
   }
 
   openCreate(): void {
-    this.router.navigate([this.auth.isAdmin() ? '/app/legal/new' : '/procedures/new']);
+    this.router.navigate([this.legalBasePath(), 'new']);
   }
 
   submit(id: string): void {
@@ -106,6 +106,21 @@ export class LegalProcedureListComponent implements OnInit {
 
   getStatusClass(status: ProcedureStatus): string {
     return `status-${status.toLowerCase().replace(/_/g, '-')}`;
+  }
+
+  countByStatus(status: ProcedureStatus): number {
+    return this.procedures.filter(procedure => procedure.status === status).length;
+  }
+
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.selectedStatus = '';
+    this.selectedType = '';
+    this.applyFilter();
+  }
+
+  legalBasePath(): string {
+    return this.router.url.startsWith('/app/') ? '/app/legal' : '/procedures';
   }
 
   private sortByCreatedAtDesc(procedures: LegalProcedureResponse[]): LegalProcedureResponse[] {

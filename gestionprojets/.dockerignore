@@ -1,4 +1,9 @@
 target
+ml-service/venv
+ml-service/.venv
+ml-service/__pycache__
+ml-service/.env
+ml-service/.env.*
 .mvn/wrapper/maven-wrapper.jar
 .idea
 .vscode

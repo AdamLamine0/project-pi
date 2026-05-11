@@ -1,0 +1,97 @@
+<div class="onboarding-shell">
+  <div class="onboarding-card">
+    <div class="stepper">
+      <button class="step" [class.active]="step === 2">2 Projet</button>
+      <button class="step" [class.active]="step === 3">3 Equipe</button>
+      <button class="step" [class.active]="step === 4">4 Besoins</button>
+      <button class="step" [class.active]="step === 5">Confirmation</button>
+    </div>
+
+    <form [formGroup]="form">
+    <div class="step-content" *ngIf="step === 2">
+      <h3>Etape 2 - Projet</h3>
+      <label>Nom projet</label>
+      <input class="form-control" formControlName="projectName" />
+
+      <label class="mt-3">Secteur</label>
+      <select class="form-select" formControlName="sector">
+        <option value="">Selectionner un secteur</option>
+        <option *ngFor="let s of sectors" [value]="s">{{ s }}</option>
+      </select>
+
+      <label class="mt-3">Stade</label>
+      <div class="chip-row">
+        <button type="button" class="chip" *ngFor="let stageName of stages" [class.active]="selectedStage === stageName" (click)="setStage(stageName)">{{ stageName }}</button>
+      </div>
+
+      <label class="mt-3">Description courte</label>
+      <textarea rows="4" class="form-control" formControlName="shortDescription"></textarea>
+
+      <label class="mt-3">Upload pitch deck (optionnel)</label>
+      <input type="file" class="form-control" (change)="onPitchDeckSelected($event)" />
+      <small class="text-muted" *ngIf="form.get('pitchDeckName')?.value">Fichier: {{ form.get('pitchDeckName')?.value }}</small>
+    </div>
+
+    <div class="step-content" *ngIf="step === 3">
+      <h3>Etape 3 - Equipe</h3>
+      <label>Competences presentes</label>
+      <div class="chip-row wrap">
+        <button type="button" class="chip" *ngFor="let skill of skills" [class.active]="selectedSkills.includes(skill)" (click)="toggleSkill(skill)">{{ skill }}</button>
+      </div>
+
+      <label class="mt-3">Competences manquantes (auto-detectees)</label>
+      <div class="missing-box">
+        <span class="missing" *ngFor="let item of missingSkills">{{ item }}</span>
+      </div>
+
+      <label class="mt-3">Taille equipe</label>
+      <select class="form-select" formControlName="teamSize">
+        <option value="1">1</option>
+        <option value="2-3">2-3</option>
+        <option value="4-10">4-10</option>
+        <option value="10+">10+</option>
+      </select>
+    </div>
+
+    <div class="step-content" *ngIf="step === 4">
+      <h3>Etape 4 - Besoins</h3>
+      <label>Besoin principal</label>
+      <select class="form-select" formControlName="mainNeed">
+        <option *ngFor="let need of needs" [value]="need">{{ need }}</option>
+      </select>
+
+      <label class="mt-3">Budget temps mentorat (h/semaine)</label>
+      <input type="number" class="form-control" formControlName="mentorshipHours" min="1" max="40" />
+
+      <label class="mt-3">Objectif a 6 mois</label>
+      <textarea rows="4" class="form-control" formControlName="objective6Months"></textarea>
+    </div>
+
+    <div class="step-content" *ngIf="step === 5">
+      <h3>Confirmation</h3>
+      <div class="summary">
+        <p><strong>Projet:</strong> {{ form.get('projectName')?.value }}</p>
+        <p><strong>Secteur:</strong> {{ form.get('sector')?.value }}</p>
+        <p><strong>Stade:</strong> {{ selectedStage }}</p>
+        <p><strong>Competences:</strong> {{ selectedSkills.join(', ') || 'Aucune' }}</p>
+        <p><strong>Manquantes:</strong> {{ missingSkills.join(', ') || 'Aucune' }}</p>
+        <p><strong>Besoin principal:</strong> {{ form.get('mainNeed')?.value }}</p>
+      </div>
+
+      <button class="btn btn-primary" (click)="launchAiAnalysis()" [disabled]="loading">Lancer l'analyse IA</button>
+
+      <div *ngIf="loading" class="loading-state mt-3">
+        <div class="pulse"></div>
+        <div class="pulse"></div>
+        <div class="pulse"></div>
+        <p class="mb-0">Analyse en cours...</p>
+      </div>
+    </div>
+
+    <div class="actions" *ngIf="step < 5">
+      <button class="btn btn-outline-secondary" (click)="previous()" [disabled]="step === 2">Precedent</button>
+      <button class="btn btn-primary" (click)="next()">Suivant</button>
+    </div>
+    </form>
+  </div>
+</div>
