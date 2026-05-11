@@ -40,3 +40,73 @@ jobs:
           context: ./userPI
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/user-pi:latest
+
+      - name: Build and push gestionprojets
+        uses: docker/build-push-action@v6
+        with:
+          context: ./gestionprojets
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/gestionprojets:latest
+
+      - name: Build and push investment-pi
+        uses: docker/build-push-action@v6
+        with:
+          context: ./investment-pi
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/investment-pi:latest
+
+      - name: Build and push partenariat-pi
+        uses: docker/build-push-action@v6
+        with:
+          context: ./partenariat-pi
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/partenariat-pi:latest
+
+      - name: Build and push ai-service
+        uses: docker/build-push-action@v6
+        with:
+          context: ./ai-service
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ai-service:latest
+
+      - name: Build and push community-service
+        uses: docker/build-push-action@v6
+        with:
+          context: ./community-service
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/community-service:latest
+
+      - name: Build and push event-pi
+        uses: docker/build-push-action@v6
+        with:
+          context: ./event-pi
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/event-pi:latest
+
+      - name: Build and push legal-pi
+        uses: docker/build-push-action@v6
+        with:
+          context: ./demo
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/legal-pi:latest
+
+      - name: Build and push event-ml-service
+        uses: docker/build-push-action@v6
+        with:
+          context: ./event-pi/ml-service
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/event-ml-service:latest
+
+      - name: Build and push gestionprojets-ml-service
+        uses: docker/build-push-action@v6
+        with:
+          context: ./gestionprojets/ml-service
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/gestionprojets-ml-service:latest
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: ./new-front
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
