@@ -110,3 +110,10 @@ jobs:
           context: ./new-front
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/frontend:latest
+
+      - name: Build and push new-front
+        uses: docker/build-push-action@v6
+        with:
+          context: ./new-front
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/new-front:latest
