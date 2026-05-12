@@ -120,7 +120,7 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
 
   protected readonly isLoggedIn         = computed(() => this.authService.isLoggedIn());
   protected readonly canAccessDashboard = computed(() =>
-    this.authService.hasRole('ADMIN', 'MENTOR', 'PARTNER', 'PARTENAIRE')
+    this.authService.hasRole('ADMIN', 'MENTOR', 'PARTNER')
   );
   protected readonly userInitial = computed(() => {
     const e = this.authService.getEmail();
@@ -143,10 +143,10 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
     { id: 'project-hub',  label: '⚡ Project Hub', route: '/app/projects',                      type: 'route', authRequired: true },
     { id: 'community',    label: 'Community',    route: '/community',                           type: 'route' },
     { id: 'procedures',   label: 'Procedures',   route: '/procedures',                          type: 'route' },
-    { id: 'partners',     label: 'Partnerships', route: '/app/partenariat/list',                type: 'route', roles: ['ADMIN', 'PARTNER', 'PARTENAIRE', 'USER'] },
-    { id: 'organisation', label: 'Mon Organisation', route: '/app/partenariat/mon-organisation', type: 'route', roles: ['PARTNER', 'PARTENAIRE'] },
-    { id: 'conventions',  label: 'Conventions',  route: '/app/partenariat/conventions',         type: 'route', roles: ['ADMIN', 'PARTNER', 'PARTENAIRE', 'USER'] },
-    { id: 'meetings',     label: 'Meeting',      route: '/app/partenariat/meetings',            type: 'route', roles: ['ADMIN', 'PARTNER', 'PARTENAIRE', 'USER'] },
+    { id: 'partners',     label: 'Partnerships', route: '/app/partenariat/list',                type: 'route', roles: ['ADMIN', 'PARTNER', 'USER'] },
+    { id: 'organisation', label: 'Mon Organisation', route: '/app/partenariat/mon-organisation', type: 'route', roles: ['PARTNER'] },
+    { id: 'conventions',  label: 'Conventions',  route: '/app/partenariat/conventions',         type: 'route', roles: ['ADMIN', 'PARTNER', 'USER'] },
+    { id: 'meetings',     label: 'Meeting',      route: '/app/partenariat/meetings',            type: 'route', roles: ['ADMIN', 'PARTNER', 'USER'] },
     { id: 'services',     label: 'Services',     anchor: 'services',                            type: 'anchor' },
     { id: 'about',        label: 'About',        anchor: 'about',                               type: 'anchor' },
     { id: 'contact',      label: 'Contact',      anchor: 'contact',                             type: 'anchor' },

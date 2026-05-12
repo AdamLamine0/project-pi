@@ -10,11 +10,11 @@ import { RequestMeetingComponent } from './request-meeting/request-meeting.compo
 import { MeetingsComponent } from './meetings/meetings.component';
 
 
-const SHARED_ROLES = ['ADMIN', 'PARTNER', 'PARTENAIRE', 'USER'];
+const SHARED_ROLES = ['ADMIN', 'PARTNER', 'USER'];
 
 const routes: Routes = [
   { path: 'list',                  component: PartenarieListComponent,   canActivate: [authGuard], data: { roles: SHARED_ROLES } },
-  { path: 'mon-organisation',      component: MonOrganisationComponent,  canActivate: [authGuard], data: { roles: ['PARTNER', 'PARTENAIRE'] } },
+  { path: 'mon-organisation',      component: MonOrganisationComponent,  canActivate: [authGuard], data: { roles: ['PARTNER'] } },
   { path: 'mon-organisation/:id',  component: MonOrganisationComponent,  canActivate: [authGuard], data: { roles: SHARED_ROLES } },
   { path: 'form',                  component: FormOrganisationComponent,  canActivate: [authGuard], data: { role: 'ADMIN' } },
   { path: 'form/:id',              component: FormOrganisationComponent,  canActivate: [authGuard], data: { role: 'ADMIN' } },

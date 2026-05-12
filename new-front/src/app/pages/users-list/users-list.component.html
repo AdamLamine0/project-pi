@@ -40,7 +40,7 @@
     <div class="ul-select">
       <select [(ngModel)]="selectedRole" (change)="applyFilter()">
         <option value="">All roles</option>
-        <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+        <option *ngFor="let r of roles" [value]="r">{{ displayRole(r) }}</option>
       </select>
     </div>
     <span class="ul-count">{{ filtered.length }} / {{ users.length }}</span>
@@ -82,7 +82,7 @@
           </td>
           <td class="ul-email">{{ u.email }}</td>
           <td>
-            <span class="ul-role" [ngClass]="roleBadgeClass(u.role)">{{ u.role }}</span>
+            <span class="ul-role" [ngClass]="roleBadgeClass(displayRole(u.role))">{{ displayRole(u.role) }}</span>
           </td>
           <td>
             <span class="ul-status" [class.is-active]="(u.statut || '').toUpperCase() === 'ACTIVE'">
@@ -139,7 +139,7 @@
       <div class="ul-fg">
         <label>Role</label>
         <select [(ngModel)]="createForm.role">
-          <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+          <option *ngFor="let r of roles" [value]="r">{{ displayRole(r) }}</option>
         </select>
       </div>
     </div>
@@ -176,7 +176,7 @@
       <div class="ul-fg ul-fg-full">
         <label>Role</label>
         <select [(ngModel)]="editForm.role">
-          <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+          <option *ngFor="let r of roles" [value]="r">{{ displayRole(r) }}</option>
         </select>
       </div>
     </div>

@@ -163,7 +163,7 @@
               <select id="fu-role" formControlName="role"
                 [class.err]="f['role'].invalid && f['role'].touched">
                 <option value="" disabled>Choisir un rôle…</option>
-                <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+                <option *ngFor="let r of roles" [value]="r">{{ displayRole(r) }}</option>
               </select>
               <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="6 9 12 15 18 9"/>

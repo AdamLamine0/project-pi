@@ -958,9 +958,9 @@ export class LayoutComponent {
     { icon: 'lucideMap',             label: 'Roadmaps',     route: '/app/roadmaps'     },
     { icon: 'lucideHandshake',       label: 'Partnerships', route: '/app/partenariat/list' },
     { icon: 'lucideCalendar',        label: 'Events',       route: '/app/events'       },
-    { icon: 'lucideBuilding',        label: 'Mon Organisation', route: '/app/partenariat/mon-organisation', roles: ['PARTNER', 'PARTENAIRE'] },
-    { icon: 'lucideFileText',        label: 'Conventions',  route: '/app/partenariat/conventions', roles: ['ADMIN', 'PARTNER', 'PARTENAIRE', 'USER'] },
-    { icon: 'lucideVideo',           label: 'Meeting',      route: '/app/partenariat/meetings', roles: ['ADMIN', 'PARTNER', 'PARTENAIRE', 'USER'] },
+    { icon: 'lucideBuilding',        label: 'Mon Organisation', route: '/app/partenariat/mon-organisation', roles: ['PARTNER'] },
+    { icon: 'lucideFileText',        label: 'Conventions',  route: '/app/partenariat/conventions', roles: ['ADMIN', 'PARTNER', 'USER'] },
+    { icon: 'lucideVideo',           label: 'Meeting',      route: '/app/partenariat/meetings', roles: ['ADMIN', 'PARTNER', 'USER'] },
     { icon: 'lucideClipboardList',   label: 'Registrations', route: '/app/registrations', roles: ['ADMIN'] },
     { icon: 'lucideUsers',           label: 'Users',         route: '/app/users', roles: ['ADMIN'] },
   ];
@@ -1000,9 +1000,7 @@ export class LayoutComponent {
     }
 
     const labels: Record<string, string> = {
-      PARTENAIRE: 'Partner',
       PARTNER: 'Partner',
-      INVESTISSEUR: 'Investor',
       INVESTOR: 'Investor',
       ENTREPRENEUR: 'Entrepreneur',
       MENTOR: 'Mentor',

@@ -507,7 +507,7 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   get canInvestorInterest(): boolean {
-    return this.currentRole === 'INVESTOR' || this.currentRole === 'INVESTISSEUR' || this.currentRole === 'ADMIN';
+    return this.currentRole === 'INVESTOR' || this.currentRole === 'ADMIN';
   }
 
   get canUploadDocuments(): boolean {

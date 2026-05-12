@@ -21,12 +21,19 @@ export class UsersListComponent implements OnInit {
 
   searchTerm = '';
   selectedRole = '';
-  readonly roles: UserRole[] = Object.values(Role) as UserRole[];
+  readonly roles: UserRole[] = [
+    'ADMIN',
+    'PARTNER',
+    'MENTOR',
+    'INVESTOR',
+    'EXPERT',
+    'ENTREPRENEUR',
+  ];
 
   // Edit modal
   editing: User | null = null;
   editForm: { name: string; prenom: string; email: string; role: UserRole } = {
-    name: '', prenom: '', email: '', role: 'USER'
+    name: '', prenom: '', email: '', role: 'PARTNER'
   };
   isSaving = false;
 
@@ -37,7 +44,7 @@ export class UsersListComponent implements OnInit {
   // Create user modal
   creating = false;
   createForm: { prenom: string; name: string; email: string; password: string; role: UserRole } = {
-    prenom: '', name: '', email: '', password: '', role: 'USER'
+    prenom: '', name: '', email: '', password: '', role: 'PARTNER'
   };
   isCreating = false;
 
@@ -68,7 +75,7 @@ export class UsersListComponent implements OnInit {
   applyFilter(): void {
     const term = this.searchTerm.trim().toLowerCase();
     this.filtered = this.users.filter(u => {
-      if (this.selectedRole && u.role !== this.selectedRole) return false;
+      if (this.selectedRole && this.normalizeRole(u.role) !== this.selectedRole) return false;
       if (!term) return true;
       return (
         (u.name ?? '').toLowerCase().includes(term) ||
@@ -85,7 +92,7 @@ export class UsersListComponent implements OnInit {
       name: user.name ?? '',
       prenom: user.prenom ?? '',
       email: user.email ?? '',
-      role: user.role
+      role: this.normalizeRole(user.role)
     };
     this.errorMessage = '';
     this.successMessage = '';
@@ -125,7 +132,7 @@ export class UsersListComponent implements OnInit {
 
   // ── Create ──────────────────────────────────────────────────────────────
   openCreate(): void {
-    this.createForm = { prenom: '', name: '', email: '', password: '', role: 'USER' };
+    this.createForm = { prenom: '', name: '', email: '', password: '', role: 'PARTNER' };
     this.creating = true;
     this.errorMessage = '';
     this.successMessage = '';
@@ -200,11 +207,10 @@ export class UsersListComponent implements OnInit {
     return (a + b) || (u.email?.[0]?.toUpperCase() ?? '?');
   }
 
-  roleBadgeClass(role: UserRole): string {
+  roleBadgeClass(role: UserRole | string): string {
     switch (role) {
       case 'ADMIN': return 'role-admin';
-      case 'PARTNER':
-      case 'PARTENAIRE': return 'role-partner';
+      case 'PARTNER': return 'role-partner';
       case 'MENTOR': return 'role-mentor';
       case 'INVESTOR': return 'role-investor';
       case 'EXPERT': return 'role-expert';
@@ -214,6 +220,20 @@ export class UsersListComponent implements OnInit {
   }
 
   trackById = (_: number, u: User) => u.id;
+
+  displayRole(role: UserRole | string): string {
+    return this.normalizeRole(role as UserRole);
+  }
+
+  private normalizeRole(role: UserRole | string): UserRole {
+    const aliases: Record<string, UserRole> = {
+      PARTENAIRE: 'PARTNER',
+      INVESTISSEUR: 'INVESTOR',
+      ETUDIANT: 'MENTOR',
+      USER: 'MENTOR',
+    };
+    return aliases[role] ?? (role as UserRole);
+  }
 
   private getErrorMessage(err: unknown): string {
     const e = err as HttpErrorResponse;

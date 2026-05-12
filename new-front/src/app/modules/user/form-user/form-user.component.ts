@@ -22,7 +22,14 @@ export class FormUserComponent implements OnInit {
   isSubmitting = false;
   errorMessage  = '';
   successMessage = '';
-  roles = Object.values(Role);
+  roles: Role[] = [
+    Role.ADMIN,
+    Role.PARTNER,
+    Role.MENTOR,
+    Role.INVESTOR,
+    Role.EXPERT,
+    Role.ENTREPRENEUR,
+  ];
 
   constructor(
     private fb: FormBuilder,
@@ -69,7 +76,7 @@ export class FormUserComponent implements OnInit {
         name:   user.name,
         prenom: user.prenom,
         email:  user.email,
-        role:   user.role,
+        role:   this.normalizeRole(user.role),
         statut: user.statut
       });
       // password not required in edit mode
@@ -130,5 +137,19 @@ export class FormUserComponent implements OnInit {
 
   goBack(): void {
     this.router.navigate(['/user/list']);
+  }
+
+  displayRole(role: string): string {
+    return this.normalizeRole(role);
+  }
+
+  private normalizeRole(role: string): string {
+    const aliases: Record<string, string> = {
+      PARTENAIRE: Role.PARTNER,
+      INVESTISSEUR: Role.INVESTOR,
+      ETUDIANT: Role.MENTOR,
+      USER: Role.MENTOR,
+    };
+    return aliases[role] ?? role;
   }
 }

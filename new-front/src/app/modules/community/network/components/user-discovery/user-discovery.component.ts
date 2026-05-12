@@ -245,7 +245,7 @@ export class UserDiscoveryComponent implements OnInit {
   loading = false;
   currentUserId = '';
   connectionStatus: { [key: number]: 'CONNECTED' | 'PENDING' | null } = {};
-  roles = ['USER', 'ADMIN', 'MENTOR', 'PARTENAIRE', 'ENTREPRENEUR', 'INVESTISSEUR', 'ETUDIANT'];
+  roles = ['ADMIN', 'PARTNER', 'MENTOR', 'INVESTOR', 'EXPERT', 'ENTREPRENEUR'];
 
   constructor(
     private router: Router,

@@ -646,10 +646,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   protected closeProfile(): void {
-    const roleValue = this.authService.getRole() as string;
     const isDashboardUser = this.authService.hasRole(
       Role.ADMIN, Role.MENTOR, Role.INVESTOR, Role.PARTNER
-    ) || roleValue === 'PARTENAIRE';
+    );
     this.router.navigate([isDashboardUser ? '/app/dashboard' : '/']);
   }
 
@@ -658,9 +657,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   protected get isDashboardUser(): boolean {
-    const roleValue = this.authService.getRole() as string;
-    return this.authService.hasRole(Role.ADMIN, Role.MENTOR, Role.INVESTOR, Role.PARTNER)
-      || roleValue === 'PARTENAIRE';
+    return this.authService.hasRole(Role.ADMIN, Role.MENTOR, Role.INVESTOR, Role.PARTNER);
   }
 
   protected get isInvestor(): boolean {
@@ -956,9 +953,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     }
 
     const labels: Record<string, string> = {
-      PARTENAIRE: 'Partner',
       PARTNER: 'Partner',
-      INVESTISSEUR: 'Investor',
       INVESTOR: 'Investor',
       ENTREPRENEUR: 'Entrepreneur',
       MENTOR: 'Mentor',
