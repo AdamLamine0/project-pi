@@ -213,13 +213,16 @@
   transform: translateX(20px);
 }
 
-/* Modal backdrop blur */
+/* Modal backdrop */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.42);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
+  z-index: 0;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.modal-backdrop + .relative {
+  z-index: 1;
 }
 
 /* Dark mode theme */
