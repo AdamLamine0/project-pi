@@ -44,17 +44,7 @@ export class AuthService {
       return;
     }
 
-    void this.router.navigateByUrl('/auth/login', { replaceUrl: true }).then((navigated) => {
-      if (!navigated || window.location.pathname.startsWith('/app')) {
-        this.forceLoginRedirect();
-      }
-    });
-
-    window.setTimeout(() => {
-      if (!window.location.pathname.startsWith('/auth/login')) {
-        this.forceLoginRedirect();
-      }
-    }, 250);
+    this.forceLoginRedirect();
   }
 
   saveToken(token: string): void {
@@ -132,7 +122,7 @@ export class AuthService {
     }
 
     const loginUrl = this.router.serializeUrl(this.router.createUrlTree(['/auth/login']));
-    window.location.replace(loginUrl);
+    window.location.href = loginUrl;
   }
 
   hasRole(...roles: UserRole[]): boolean {
