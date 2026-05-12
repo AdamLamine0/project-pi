@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { BehaviorSubject, EMPTY, Observable, of } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { environment } from '../../../../../environments/environment';
 import { CommunityNotification } from '../models/notification.model';
 import { ChatService } from '../../messaging/services/chat.service';
@@ -52,31 +52,41 @@ export class CommunityNotificationService {
   }
 
   refreshNotifications(userId: string) {
-    this.getNotifications(userId).subscribe();
-    this.getUnreadCount(userId).subscribe();
+    this.getNotifications(userId).subscribe({ error: () => undefined });
+    this.getUnreadCount(userId).subscribe({ error: () => undefined });
   }
 
   getNotifications(userId: string): Observable<CommunityNotification[]> {
     return this.http.get<CommunityNotification[]>(`${this.apiUrl}/${userId}`).pipe(
-      tap(notifs => this.notificationsSubject.next(notifs))
+      tap(notifs => this.notificationsSubject.next(notifs)),
+      catchError(() => {
+        this.notificationsSubject.next([]);
+        return of([]);
+      })
     );
   }
 
   getUnreadCount(userId: string): Observable<number> {
     return this.http.get<number>(`${this.apiUrl}/${userId}/unread-count`).pipe(
-      tap(count => this.unreadCountSubject.next(count))
+      tap(count => this.unreadCountSubject.next(count)),
+      catchError(() => {
+        this.unreadCountSubject.next(0);
+        return of(0);
+      })
     );
   }
 
   markAsRead(id: string, userId: string): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/${id}/read`, {}).pipe(
-      tap(() => this.refreshNotifications(userId))
+      tap(() => this.refreshNotifications(userId)),
+      catchError(() => EMPTY)
     );
   }
 
   markAllAsRead(userId: string): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/all/${userId}/read`, {}).pipe(
-      tap(() => this.refreshNotifications(userId))
+      tap(() => this.refreshNotifications(userId)),
+      catchError(() => EMPTY)
     );
   }
 }

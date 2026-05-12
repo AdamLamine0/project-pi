@@ -222,7 +222,7 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
   protected markRead(n: CommunityNotification): void {
     const userId = this.authService.getUserId()?.toString() || '';
     if (n.id && !n.read) {
-      this.notificationService.markAsRead(n.id, userId).subscribe();
+      this.notificationService.markAsRead(n.id, userId).subscribe({ error: () => undefined });
     }
     this.showNotifications.set(false);
     this.userDropdownOpen.set(false);
@@ -252,7 +252,7 @@ export class LandingLayoutComponent implements OnInit, OnDestroy {
   protected markAllRead(): void {
     const userId = this.authService.getUserId()?.toString();
     if (userId) {
-      this.notificationService.markAllAsRead(userId).subscribe();
+      this.notificationService.markAllAsRead(userId).subscribe({ error: () => undefined });
     }
   }
 

@@ -858,7 +858,7 @@ export class LayoutComponent {
     const userId = this.authService.getUserId()?.toString() || '';
     
     if (n.id && !n.read) {
-      this.notificationService.markAsRead(n.id, userId).subscribe();
+      this.notificationService.markAsRead(n.id, userId).subscribe({ error: () => undefined });
     }
 
     // Navigation logic from PIcloud
@@ -888,7 +888,7 @@ export class LayoutComponent {
   protected markAllRead(): void {
     const userId = this.authService.getUserId()?.toString();
     if (userId) {
-      this.notificationService.markAllAsRead(userId).subscribe();
+      this.notificationService.markAllAsRead(userId).subscribe({ error: () => undefined });
     }
   }
 
