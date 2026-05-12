@@ -36,14 +36,25 @@ export class AuthService {
   }
 
   logout(): void {
-    if (this.isBrowser) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('userId');
-      localStorage.removeItem('role');
-      localStorage.removeItem('email');
+    this.clearSession();
+    this.removeStaleOverlays();
+
+    if (!this.isBrowser) {
+      void this.router.navigateByUrl('/auth/login', { replaceUrl: true });
+      return;
     }
 
-    this.router.navigate(['/auth/login']);
+    void this.router.navigateByUrl('/auth/login', { replaceUrl: true }).then((navigated) => {
+      if (!navigated || window.location.pathname.startsWith('/app')) {
+        this.forceLoginRedirect();
+      }
+    });
+
+    window.setTimeout(() => {
+      if (!window.location.pathname.startsWith('/auth/login')) {
+        this.forceLoginRedirect();
+      }
+    }, 250);
   }
 
   saveToken(token: string): void {
@@ -92,6 +103,36 @@ export class AuthService {
 
   getEmail(): string {
     return this.isBrowser ? localStorage.getItem('email') || '' : '';
+  }
+
+  private clearSession(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('role');
+    localStorage.removeItem('email');
+  }
+
+  private removeStaleOverlays(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
+    document.body.classList.remove('modal-open');
+    document.querySelectorAll('.modal-backdrop, .mobile-nav-backdrop, .cdk-overlay-backdrop')
+      .forEach((element) => element.remove());
+  }
+
+  private forceLoginRedirect(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
+    const loginUrl = this.router.serializeUrl(this.router.createUrlTree(['/auth/login']));
+    window.location.replace(loginUrl);
   }
 
   hasRole(...roles: UserRole[]): boolean {

@@ -1031,7 +1031,7 @@ export class LayoutComponent {
 
   protected logout(): void {
     this.dismissOverlays();
-    setTimeout(() => this.authService.logout());
+    this.authService.logout();
   }
 
   private dismissOverlays(): void {
