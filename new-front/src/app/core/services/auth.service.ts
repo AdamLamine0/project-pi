@@ -100,7 +100,7 @@ export class AuthService {
   }
 
   getPostAuthRedirectPath(): string {
-    if (this.hasRole('ADMIN', 'MENTOR', 'PARTNER', 'PARTENAIRE')) {
+    if (this.hasRole('ADMIN', 'MENTOR', 'PARTNER', 'INVESTOR', 'EXPERT', 'ENTREPRENEUR')) {
       return '/app/dashboard';
     }
 
@@ -109,7 +109,12 @@ export class AuthService {
 
   private normalizeRole(rawRole: string): UserRole | '' {
     const stripped = rawRole.startsWith('ROLE_') ? rawRole.slice(5) : rawRole;
-    return (stripped as UserRole) || '';
+    const aliases: Record<string, UserRole> = {
+      PARTENAIRE: 'PARTNER',
+      INVESTISSEUR: 'INVESTOR',
+      STARTUP: 'ENTREPRENEUR',
+    };
+    return aliases[stripped] ?? ((stripped as UserRole) || '');
   }
 
   private decodeToken(token: string): Record<string, any> | null {
@@ -130,7 +135,7 @@ export class AuthService {
   isMentor(): boolean { return this.getRole() === 'MENTOR'; }
   isInvestor(): boolean { return this.getRole() === 'INVESTOR'; }
   isInvestisseur(): boolean { return this.isInvestor(); }
-  isPartner(): boolean { return this.getRole() === 'PARTNER' || this.getRole() === 'PARTENAIRE'; }
+  isPartner(): boolean { return this.getRole() === 'PARTNER'; }
   isPartenaire(): boolean { return this.isPartner(); }
   isEntrepreneur(): boolean { return this.getRole() === 'ENTREPRENEUR'; }
   isExpert(): boolean { return this.getRole() === 'EXPERT'; }

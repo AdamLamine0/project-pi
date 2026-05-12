@@ -556,7 +556,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   protected teamSearch = '';
   protected selectedRoleFilter = '';
-  protected readonly roleOptions = Object.values(Role);
+  protected readonly roleOptions = [
+    Role.PARTNER,
+    Role.MENTOR,
+    Role.INVESTOR,
+    Role.EXPERT,
+    Role.ENTREPRENEUR,
+  ];
 
   protected successMessage = '';
   protected errorMessage = '';
@@ -949,7 +955,18 @@ export class ProfileComponent implements OnInit, OnDestroy {
       return 'Member';
     }
 
-    return role === 'PARTENAIRE' ? 'Partner' : role.charAt(0) + role.slice(1).toLowerCase();
+    const labels: Record<string, string> = {
+      PARTENAIRE: 'Partner',
+      PARTNER: 'Partner',
+      INVESTISSEUR: 'Investor',
+      INVESTOR: 'Investor',
+      ENTREPRENEUR: 'Entrepreneur',
+      MENTOR: 'Mentor',
+      EXPERT: 'Expert',
+      ADMIN: 'Admin',
+    };
+
+    return labels[role] ?? role.charAt(0) + role.slice(1).toLowerCase();
   }
 
   protected formatDate(value: string | null): string {

@@ -999,7 +999,18 @@ export class LayoutComponent {
       return 'Member';
     }
 
-    return role.charAt(0) + role.slice(1).toLowerCase();
+    const labels: Record<string, string> = {
+      PARTENAIRE: 'Partner',
+      PARTNER: 'Partner',
+      INVESTISSEUR: 'Investor',
+      INVESTOR: 'Investor',
+      ENTREPRENEUR: 'Entrepreneur',
+      MENTOR: 'Mentor',
+      EXPERT: 'Expert',
+      ADMIN: 'Admin',
+    };
+
+    return labels[role] ?? role.charAt(0) + role.slice(1).toLowerCase();
   });
 
   protected readonly userInitials = computed(() => {
@@ -1019,8 +1030,23 @@ export class LayoutComponent {
   }
 
   protected logout(): void {
+    this.dismissOverlays();
+    setTimeout(() => this.authService.logout());
+  }
+
+  private dismissOverlays(): void {
     this.showProfile.set(false);
     this.showSettings.set(false);
-    this.authService.logout();
+    this.showNotifications.set(false);
+    this.mobileNavOpen.set(false);
+    this.sidebarExpanded.set(false);
+
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    document.body.classList.remove('modal-open');
+    document.querySelectorAll('.modal-backdrop, .mobile-nav-backdrop, .cdk-overlay-backdrop')
+      .forEach((element) => element.remove());
   }
 }
