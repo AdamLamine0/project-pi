@@ -207,7 +207,7 @@ export class UsersListComponent implements OnInit {
     return (a + b) || (u.email?.[0]?.toUpperCase() ?? '?');
   }
 
-  roleBadgeClass(role: UserRole | string): string {
+  roleBadgeClass(role: string): string {
     switch (role) {
       case 'ADMIN': return 'role-admin';
       case 'PARTNER': return 'role-partner';
@@ -222,7 +222,7 @@ export class UsersListComponent implements OnInit {
   trackById = (_: number, u: User) => u.id;
 
   displayRole(role: UserRole | string): string {
-    return this.normalizeRole(role as UserRole);
+    return this.normalizeRole(role);
   }
 
   private normalizeRole(role: UserRole | string): UserRole {
