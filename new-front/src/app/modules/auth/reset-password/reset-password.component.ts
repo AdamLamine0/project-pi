@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { USER_API_BASE } from '../../../core/config/api.config';
 
 @Component({
   selector: 'app-reset-password',
@@ -57,7 +58,7 @@ export class ResetPasswordComponent implements OnInit {
 
     try {
       await firstValueFrom(
-        this.http.post('http://localhost:8090/api/auth/reset-password',
+        this.http.post(`${USER_API_BASE}/auth/reset-password`,
           { token: this.token, newPassword: this.form.value.newPassword },
           { responseType: 'text' }
         )

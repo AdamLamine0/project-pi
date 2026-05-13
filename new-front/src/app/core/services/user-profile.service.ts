@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
+import { USER_API_BASE } from '../config/api.config';
 
 export interface UserPublic {
   id: number;
@@ -14,7 +15,7 @@ export interface UserPublic {
 @Injectable({ providedIn: 'root' })
 export class UserProfileService {
 
-  private readonly baseUrl = 'http://localhost:8091/api/users';
+  private readonly baseUrl = `${USER_API_BASE}/users`;
   private readonly cache = new Map<string, UserPublic>();
 
   constructor(private http: HttpClient) { }

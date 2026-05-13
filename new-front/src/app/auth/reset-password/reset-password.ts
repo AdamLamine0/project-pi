@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { CommonModule } from '@angular/common';
+import { USER_API_BASE } from '../../core/config/api.config';
 
 @Component({
   selector: 'app-reset-password',
@@ -72,7 +73,7 @@ export class ResetPasswordComponent implements OnInit {
     try {
       await firstValueFrom(
         this.http.post(
-          'http://localhost:8091/api/auth/forgot-password',
+          `${USER_API_BASE}/auth/forgot-password`,
           { email: this.forgotForm.value.email },
           { responseType: 'text' }
         )
@@ -96,7 +97,7 @@ export class ResetPasswordComponent implements OnInit {
     try {
       await firstValueFrom(
         this.http.post(
-          'http://localhost:8091/api/auth/reset-password',
+          `${USER_API_BASE}/auth/reset-password`,
           { token: this.token, newPassword: this.resetForm.value.newPassword },
           { responseType: 'text' }
         )

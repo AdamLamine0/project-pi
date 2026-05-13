@@ -1,4 +1,4 @@
-/** Resolves API-relative paths to the gateway origin so links work from the Angular dev server. */
+/** Resolves API-relative paths against the current browser origin. */
 export function absoluteGatewayUrl(path: string | null | undefined): string {
   if (!path) {
     return '';
@@ -6,6 +6,6 @@ export function absoluteGatewayUrl(path: string | null | undefined): string {
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
-  const base = 'http://localhost:8091';
+  const base = typeof window !== 'undefined' ? window.location.origin : '';
   return base + (path.startsWith('/') ? path : `/${path}`);
 }

@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { HttpClient } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { USER_API_BASE } from '../../../core/config/api.config';
 
 @Component({
   selector: 'app-forgot-password',
@@ -36,7 +37,7 @@ export class ForgotPasswordComponent {
 
     try {
       await firstValueFrom(
-        this.http.post('http://localhost:8090/api/auth/forgot-password',
+        this.http.post(`${USER_API_BASE}/auth/forgot-password`,
           { email: this.form.value.email },
           { responseType: 'text' }
         )

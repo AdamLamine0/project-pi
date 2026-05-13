@@ -3,13 +3,14 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { EntrepreneurPlaygroundRequest, EntrepreneurPlaygroundResult, MentoringRequest, MentoringRequestStatus, Project, Task, TeamMember } from '../../../models/project';
+import { GATEWAY_API_BASE } from '../../../core/config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GestionProjetsService {
-  private apiUrl = 'http://localhost:8091/api/projects';
-  private docsUrl = 'http://localhost:8091/api/documents';
+  private apiUrl = `${GATEWAY_API_BASE}/projects`;
+  private docsUrl = `${GATEWAY_API_BASE}/documents`;
   private readonly MENTORING_KEY = 'pi_mentoring_requests';
 
   constructor(private http: HttpClient) { }

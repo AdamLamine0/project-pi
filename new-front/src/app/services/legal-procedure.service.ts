@@ -13,12 +13,13 @@ import {
   LegalChatResponse,
   LegalProcedureStatsResponse,
 } from '../models/legal-procedure.model';
+import { USER_API_BASE } from '../core/config/api.config';
 
 @Injectable({ providedIn: 'root' })
 export class LegalProcedureService {
 
-  private readonly base      = 'http://localhost:8091/api/legal-procedures';
-  private readonly usersBase = 'http://localhost:8091/api/users';
+  private readonly base      = `${USER_API_BASE}/legal-procedures`;
+  private readonly usersBase = `${USER_API_BASE}/users`;
 
   constructor(private readonly http: HttpClient) {}
 
