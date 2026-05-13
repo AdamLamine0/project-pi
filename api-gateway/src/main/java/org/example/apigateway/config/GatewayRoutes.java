@@ -1,6 +1,7 @@
 package org.example.apigateway.config;
 
 import org.example.apigateway.filter.AuthFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +15,7 @@ import org.springframework.web.servlet.function.ServerResponse;
 
 import java.util.List;
 
+import static org.springframework.cloud.gateway.server.mvc.filter.FilterFunctions.uri;
 import static org.springframework.cloud.gateway.server.mvc.filter.LoadBalancerFilterFunctions.lb;
 import static org.springframework.web.servlet.function.RequestPredicates.path;
 
@@ -21,16 +23,21 @@ import static org.springframework.web.servlet.function.RequestPredicates.path;
 public class GatewayRoutes {
 
     private final AuthFilter authFilter;
+    private final String userPiUri;
 
-    public GatewayRoutes(AuthFilter authFilter) {
+    public GatewayRoutes(
+            AuthFilter authFilter,
+            @Value("${services.user-pi.uri:http://user-pi:8081}") String userPiUri
+    ) {
         this.authFilter = authFilter;
+        this.userPiUri = userPiUri;
     }
 
     @Bean
     public RouterFunction<ServerResponse> userAuthRoute() {
         return RouterFunctions
                 .route(path("/api/auth/**"), HandlerFunctions.http())
-                .filter(lb("user-pi"))
+                .filter(uri(userPiUri))
                 .filter(authFilter.jwtFilter());
     }
 
@@ -38,7 +45,7 @@ public class GatewayRoutes {
     public RouterFunction<ServerResponse> userServiceRoute() {
         return RouterFunctions
                 .route(path("/api/users/**"), HandlerFunctions.http())
-                .filter(lb("user-pi"))
+                .filter(uri(userPiUri))
                 .filter(authFilter.jwtFilter());
     }
 
@@ -47,7 +54,7 @@ public class GatewayRoutes {
         return RouterFunctions
                 .route(path("/login/oauth2/**").or(path("/oauth2/**")),
                         HandlerFunctions.http())
-                .filter(lb("user-pi"));
+                .filter(uri(userPiUri));
     }
 
     @Bean
