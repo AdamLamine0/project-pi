@@ -5,6 +5,7 @@ on:
     branches:
       - faten
       - dockerfile
+      - finalll
 
 jobs:
   build-and-push:
