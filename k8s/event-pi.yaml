@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-pi
+  labels:
+    app: event-pi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: event-pi
+  template:
+    metadata:
+      labels:
+        app: event-pi
+    spec:
+      initContainers:
+        - name: wait-for-mysql
+          image: mysql:8.4
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MYSQL_PWD
+              value: root
+          command:
+            - sh
+            - -c
+            - |
+              until mysqladmin ping -hmysql -uroot --silent; do
+                echo "Waiting for mysql:3306..."
+                sleep 2
+              done
+      containers:
+        - name: event-pi
+          image: fatenke/event-pi:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8083
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:mysql://mysql:3306/event_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: root
+            - name: DB_USERNAME
+              value: root
+            - name: DB_PASSWORD
+              value: root
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: http://eureka-server:8761/eureka/
+            - name: EUREKA_INSTANCE_PREFER_IP_ADDRESS
+              value: "true"
+            - name: ML_SERVICE_URL
+              value: http://ml-service:8085
+            - name: APP_BASE_URL
+              value: http://event-pi:8083
+            - name: APP_FRONTEND_URL
+              value: http://172.18.255.200
+            - name: APP_UPLOAD_DIR
+              value: /app/uploads/events
+            - name: APP_UPLOAD_SPEAKERS_DIR
+              value: /app/uploads/speakers
+            - name: APP_UPLOAD_CERTIFICATES_DIR
+              value: /app/uploads/certificates
+            - name: MAIL_USERNAME
+              value: ""
+            - name: MAIL_PASSWORD
+              value: ""
+            - name: GROQ_API_KEY
+              value: ""
+            - name: WEATHER_API_KEY
+              value: ""
+          volumeMounts:
+            - name: event-uploads
+              mountPath: /app/uploads
+          readinessProbe:
+            tcpSocket:
+              port: 8083
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket:
+              port: 8083
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+      volumes:
+        - name: event-uploads
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: event-pi
+  labels:
+    app: event-pi
+spec:
+  type: ClusterIP
+  selector:
+    app: event-pi
+  ports:
+    - name: http
+      port: 8083
+      targetPort: 8083
